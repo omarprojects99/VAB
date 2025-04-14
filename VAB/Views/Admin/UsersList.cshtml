@@ -93,23 +93,30 @@
                     <!--   For Toggle Mobile Nav Icon -->
 
                     <div class="collapse navbar-collapse pr-3" id="#">
-
-                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+<ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
                             <li class="nav-item dropdown show">
-                                <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
-                                    <div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>
-                                    admin@admin.com
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    <a href="account.html" class="dropdown-item">
-                                        <i class="material-icons">
-                                            supervisor_account
-                                        </i>
-                                        Account Settings
+                                @if (User.Identity.IsAuthenticated) // Check if user is logged in
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
                                     </a>
-                                    <div class="menu-dropdown-divider"></div>
-                                    <a class="dropdown-item" href="login.html"><i class="material-icons">exit_to_app</i>Logout</a>
-                                </div>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="Admin" asp-action="AccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
                             </li>
                         </ul>
 
@@ -148,8 +155,8 @@
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li><a href="index.html"><i class="material-icons">home</i>Dashboard</a></li>
-                        <li><a href="users.html"><i class="material-icons">supervisor_account</i>Users</a></li>
+                        <li><a href="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
+                        <li><a href="@Url.Action("UsersList", "Admin")"><i class="material-icons">supervisor_account</i>Users</a></li>
                         <li><a href="role.html"><i class="material-icons">perm_data_setting</i>Role</a></li>
                         <li><a href="permissions.html"><i class="material-icons">lock_open</i>Permissions</a></li>
                         <!-- Ui Elements -->
@@ -291,6 +298,8 @@
                     </ol>
                 </nav>
                 <div class="create-item">
+                    <button onclick="loadUserForm('/Admin/AddUser')" class="btn btn-primary">➕ Add User</button>
+
                     <a href="@Url.Action("AddUser", "Admin")"  class="theme-primary-btn btn btn-primary"><i class="material-icons">add</i>Create user</a>
                     <a href="adduser.html" name='export' class=" btn btn-secondary"><i class="material-icons">add</i>Export Execel</a>
                 </div>
@@ -330,9 +339,15 @@
                                                     <td>@string.Join(", ", user.Roles)</td>
 
                                                     <td>
-                                                        <a class="btn btn-sm btn-secondary" asp-controller="Admin" asp-action="ViewUser" asp-route-id="@user.Id">View user</a>  <a class="btn btn-sm btn-info" asp-controller="Admin" asp-action="EditUser" asp-route-id="@user.Id">Edit</a>  <form asp-action="DeleteUser" method="post" style="display:inline;">
+                                                        <a class="btn btn-sm btn-secondary" href="javascript:void(0);"
+                                                           onclick="loadUserForm('/Admin/ViewUser?id=@user.Id')"
+                                                           >
+                                                            👁️ View
+                                                        </a>
+                                                        <a href="javascript:void(0);" onclick="loadUserForm('/Admin/EditUser?id=@user.Id')" class="btn btn-sm btn-info">✏️ Edit</a>
+                                                        <form asp-action="DeleteUser" method="post" style="display:inline;">
                                                             <input type="hidden" name="id" value="@user.Id" />
-                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
+                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">🗑️ Delete</button>
                                                         </form>
                                                     </td>
                                                    
@@ -362,7 +377,27 @@
         </div>
 
     </section>
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" id="modalContent">
+                <!-- Content will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <script>
+        function loadUserForm(url) {
+            $.get(url, function(data) {
+                $('#modalContent').html(data);
+                $('#userModal').modal('show');
+            });
+        }
+    </script>
+
+
+   
     <!--====== End Main Wrapper Section======-->
     <!--====== JQuery from CDN ======-->
     <script src="~/js/jquery.min.js"></script>

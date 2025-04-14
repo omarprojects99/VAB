@@ -99,24 +99,31 @@
 
                         <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
                             <li class="nav-item dropdown show">
-                                <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
-                                    <div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>
-                                    admin@admin.com
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    <a href="account.html" class="dropdown-item">
-                                        <i class="material-icons">
-                                            supervisor_account
-                                        </i>
-                                        Account Settings
+                                @if (User.Identity.IsAuthenticated) // Check if user is logged in
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://www.kindpng.com/picc/m/21-211180_transparent-businessman-clipart-png-user-man-icon-png.png" alt="">
+                                        </div>
+                                        @User.Identity.Name
                                     </a>
-                                    <div class="menu-dropdown-divider"></div>
-                                    <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
-                                        <i class="material-icons">exit_to_app</i> Logout
-                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="Admin" asp-action="AccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
                                     </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
                             </li>
                         </ul>
+
 
                     </div>
 
@@ -153,7 +160,7 @@
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li><a href="index.html"><i class="material-icons">home</i>Dashboard</a></li>
+                        <li><a href ="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
                         <li><a href="@Url.Action("UsersList", "Admin")"><i class="material-icons">supervisor_account</i>Users</a></li>
                         <li><a href="role.html"><i class="material-icons">perm_data_setting</i>Role</a></li>
                         <li><a href="permissions.html"><i class="material-icons">lock_open</i>Permissions</a></li>

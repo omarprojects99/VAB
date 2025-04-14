@@ -221,6 +221,54 @@ namespace VAB.Controllers
             return RedirectToAction("UsersList");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> AccountSettings()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login"); // Redirect if not logged in
+            }
+
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            if (user == null)
+            {
+                return RedirectToAction("Login"); // Redirect if user not found
+            }
+
+            var roles = await _userManager.GetRolesAsync(user); // Get user roles
+
+            var model = new UserManagementViewModel
+            {
+                NomPrenom = user.NomPrenom,
+                Email = user.Email,
+                Telephone = user.Telephone,
+                Role = roles.FirstOrDefault() ?? "User" // Get first role or default to 'User'
+            };
+
+            return View(model);
+        }
+        [HttpGet]
+        public async Task<IActionResult> UpdateProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var model = new UserManagementViewModel
+            {
+                NomPrenom = user.NomPrenom,
+                Email = user.Email,
+                Telephone = user.Telephone
+            };
+
+            return View("UpdateProfile", model);
+        }
+
+
+        
+       
     }
 
 

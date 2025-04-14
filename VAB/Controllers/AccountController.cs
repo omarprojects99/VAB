@@ -59,5 +59,79 @@ namespace VAB.Controllers
             Response.Headers["Expires"] = "0";
             return RedirectToAction("Login", "Account");
         }
+        public async Task<IActionResult> ProfileInfo()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+               
+            }
+            return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> UpdateProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var model = new UserManagementViewModel
+            {
+                NomPrenom = user.NomPrenom,
+                Email = user.Email,
+                Telephone = user.Telephone
+            };
+
+            return View("UpdateProfile", model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfile(UserManagementViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Update user properties
+            user.NomPrenom = model.NomPrenom;
+            user.Email = model.Email;
+            user.Telephone = model.Telephone;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                await _signInManager.RefreshSignInAsync(user); // Ensure the changes take effect
+                TempData["SuccessMessage"] = "Profile updated successfully!";
+                return RedirectToAction("AccountSettings","Admin");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View("UpdateProfile", model);
+        }
+
+
+
+
+
+
+
     }
+
+
+
+
+
 }

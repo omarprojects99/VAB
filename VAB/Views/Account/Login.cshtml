@@ -5,14 +5,96 @@
 }
 @model VAB.ViewModel.LoginViewModel
 
-<form asp-action="Login" method="post">
-    <input asp-for="Email" placeholder="Email" />
-    <span asp-validation-for="Email"></span>
+@{
+    ViewData["Title"] = "Login";
+    Layout = null; // Disable the layout
+}
 
-    <input asp-for="Password" placeholder="Password" type="password" />
-    <span asp-validation-for="Password"></span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="~/css/LogIn.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
 
-    <input asp-for="RememberMe" type="checkbox" /> Remember Me
+        .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+        }
 
-    <button type="submit">Login</button>
-</form>
+        .logo {
+            width: 210px;
+            height: auto;
+        }
+
+        /* Add more CSS to style the form if needed */
+    </style>
+</head>
+<body>
+
+    <section>
+        <div class="logo-container">
+            <img src="~/images/Tunisair-Logo-Vector.svg-.png" alt="Logo" class="logo">
+        </div>
+
+        <!-- Login Form -->
+        <form asp-action="Login" method="post">
+            <div class="avatar">
+                <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M512 625.778c-159.289 0-284.444-125.156-284.444-284.445S352.71 56.89 512 56.89s284.444 125.155 284.444 284.444S671.29 625.778 512 625.778z m0-56.89c125.156 0 227.556-102.4 227.556-227.555S637.156 113.778 512 113.778s-227.556 102.4-227.556 227.555S386.844 568.89 512 568.89z" />
+                    <path d="M56.889 1024c0-250.311 204.8-455.111 455.111-455.111S967.111 773.689 967.111 1024h-56.889c0-221.867-176.355-398.222-398.222-398.222S113.778 802.133 113.778 1024h-56.89z" />
+                </svg>
+            </div>
+
+            <!-- Email Input -->
+            <input asp-for="Email" placeholder="Email" />
+            <span asp-validation-for="Email"></span>
+
+            <!-- Password Input -->
+
+            <input asp-for="Password" placeholder="Password" type="password" />
+            <span asp-validation-for="Password"></span>
+
+            <!-- Remember Me -->
+            <div class="remember-me">
+                <input asp-for="RememberMe" type="checkbox" /> Remember Me
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="bottom-left">
+            <div class="user btn">
+                <div class="avatar">
+                    <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M512 625.778c-159.289 0-284.444-125.156-284.444-284.445S352.71 56.89 512 56.89s284.444 125.155 284.444 284.444S671.29 625.778 512 625.778z m0-56.89c125.156 0 227.556-102.4 227.556-227.555S637.156 113.778 512 113.778s-227.556 102.4-227.556 227.555S386.844 568.89 512 568.89z" />
+                        <path d="M56.889 1024c0-250.311 204.8-455.111 455.111-455.111S967.111 773.689 967.111 1024h-56.889c0-221.867-176.355-398.222-398.222-398.222S113.778 802.133 113.778 1024h-56.89z" />
+                    </svg>
+                </div>
+                <p>omar bhs</p>
+            </div>
+
+            <div class="user btn">
+                <div class="avatar">
+                    <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M512 625.778c-159.289 0-284.444-125.156-284.444-284.445S352.71 56.89 512 56.89s284.444 125.155 284.444 284.444S671.29 625.778 512 625.778z m0-56.89c125.156 0 227.556-102.4 227.556-227.555S637.156 113.778 512 113.778s-227.556 102.4-227.556 227.555S386.844 568.89 512 568.89z" />
+                        <path d="M56.889 1024c0-250.311 204.8-455.111 455.111-455.111S967.111 773.689 967.111 1024h-56.889c0-221.867-176.355-398.222-398.222-398.222S113.778 802.133 113.778 1024h-56.89z" />
+                    </svg>
+                </div>
+                <p>Other user</p>
+            </div>
+        </div>
+
+    </section>
+
+    <script src="~/js/Login.js"></script>
+</body>
+</html>

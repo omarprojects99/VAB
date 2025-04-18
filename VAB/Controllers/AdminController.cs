@@ -5,6 +5,7 @@ using VAB.ViewModel;
 using VAB.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using VAB.Data;
 
 namespace VAB.Controllers
 {
@@ -13,10 +14,12 @@ namespace VAB.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public AdminController(UserManager<User> userManager,RoleManager<IdentityRole> roleManager)
+        private readonly ApplicationDbContext _context;
+        public AdminController(UserManager<User> userManager,RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
         
        
@@ -265,10 +268,115 @@ namespace VAB.Controllers
 
             return View("UpdateProfile", model);
         }
+        //categorie
+        public async Task<IActionResult> Categories()
+        {
+            var categories = await _context.Categories.ToListAsync();
+            return View(categories);
+        }
+        // Show all categories
+
+        // GET: Add Category
+        public IActionResult AddCategorie()
+        {
+            return View();
+        }
+
+        // POST: Add Category
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddCategorie(CategorieManagementViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var categorie = new Categorie
+                    {
+                        Description = model.Description
+                        // You can initialize other default values here if needed
+                    };
+
+                    _context.Add(categorie);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Categories));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("SQL ERROR: " + ex.Message);
+                    ModelState.AddModelError(string.Empty, "An error occurred while saving. Try again.");
+                }
+            }
+
+            return View(model);
+        }
+        //Edit
+        // GET: Edit Categorie
+        public async Task<IActionResult> EditCategorie(int id)
+        {
+            if (id == 0)
+            {
+                return NotFound();
+            }
+
+            // Find the category by id
+            var categorie = await _context.Categories.FindAsync(id);
+            if (categorie == null)
+            {
+                return NotFound();
+            }
+
+            // Map to the view model
+            var model = new CategorieManagementViewModel
+            {
+                Id = categorie.Id,
+                Description = categorie.Description
+            };
+
+            // Return the view with the category data
+            return View(model);
+        }
+
+        // POST: Edit Categorie
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCategorie(CategorieManagementViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var categorie = await _context.Categories.FindAsync(model.Id);
+
+                    if (categorie == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Update only the Description field
+                    categorie.Description = model.Description;
+
+                    // Save changes
+                    _context.Update(categorie);
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToAction(nameof(Categories)); // Redirect back to Categories
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("SQL ERROR: " + ex.Message);
+                    ModelState.AddModelError(string.Empty, "An error occurred while updating the category. Please try again.");
+                }
+            }
+
+            return View(model); // Return the view with the model if validation fails
+        }
 
 
-        
-       
+
+
+
+
     }
 
 

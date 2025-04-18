@@ -155,6 +155,131 @@ namespace VAB.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("VAB.Models.Article", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategorieId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PrixUnitaireHT")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("QuantiteCasse")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteComplementaire")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteDotation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteOffert")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteVendu")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Restant")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalEmbarque")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Valeur")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategorieId");
+
+                    b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("VAB.Models.Categorie", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PrixUnitaireHT")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("QuantiteCasse")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteComplementaire")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteDotation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteOffert")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteVendu")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Restant")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalEmbarque")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Valeur")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("VAB.Models.Prix", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateDebut")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Valeur")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.ToTable("Prix");
+                });
+
             modelBuilder.Entity("VAB.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -280,6 +405,38 @@ namespace VAB.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("VAB.Models.Article", b =>
+                {
+                    b.HasOne("VAB.Models.Categorie", "Categorie")
+                        .WithMany("Articles")
+                        .HasForeignKey("CategorieId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categorie");
+                });
+
+            modelBuilder.Entity("VAB.Models.Prix", b =>
+                {
+                    b.HasOne("VAB.Models.Article", "Article")
+                        .WithMany("PrixHistorique")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+                });
+
+            modelBuilder.Entity("VAB.Models.Article", b =>
+                {
+                    b.Navigation("PrixHistorique");
+                });
+
+            modelBuilder.Entity("VAB.Models.Categorie", b =>
+                {
+                    b.Navigation("Articles");
                 });
 #pragma warning restore 612, 618
         }

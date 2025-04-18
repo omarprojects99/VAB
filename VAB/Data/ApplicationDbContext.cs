@@ -13,9 +13,13 @@ namespace VAB.Data
         }
 
         // DbSet properties for each model
-      
-      
+        public DbSet<Categorie> Categories { get; set; }
+        public DbSet<Article> Articles { get; set; }
+        public DbSet<Prix> Prix { get; set; }
 
-        
+
+
+
+
     }
 }

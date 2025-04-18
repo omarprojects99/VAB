@@ -371,6 +371,22 @@ namespace VAB.Controllers
 
             return View(model); // Return the view with the model if validation fails
         }
+        //delete 
+        [HttpPost]
+        public async Task<IActionResult> DeleteCategorie(int id)
+        {
+            var categorie = await _context.Categories.FindAsync(id);
+            if (categorie == null)
+            {
+                return NotFound();
+            }
+
+            _context.Categories.Remove(categorie);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Categories"); // Adjust this to your listing view
+        }
+
 
 
 

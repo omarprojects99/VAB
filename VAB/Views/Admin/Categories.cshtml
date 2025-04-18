@@ -153,9 +153,9 @@
                                                         </button>
 
                                                         <!-- Delete Button -->
-                                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal-@categorie.Id">
-                                                            <i class="material-icons mr-1">delete</i> Delete
-                                                        </button>
+                                                         <form asp-action="DeleteCategorie" method="post" asp-route-id="@categorie.Id" onsubmit="return confirm('Are you sure you want to delete this category?');">
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </form>
                                                     </td>
                                                 </tr>
 

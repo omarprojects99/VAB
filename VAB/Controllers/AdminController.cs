@@ -277,9 +277,10 @@ namespace VAB.Controllers
         // Show all categories
 
         // GET: Add Category
+        // GET: Add Category
         public IActionResult AddCategorie()
         {
-            return View();
+            return View(new CategorieManagementViewModel());
         }
 
         // POST: Add Category
@@ -294,11 +295,16 @@ namespace VAB.Controllers
                     var categorie = new Categorie
                     {
                         Description = model.Description
-                        // You can initialize other default values here if needed
+                        // Initialize other default values here if needed
                     };
 
                     _context.Add(categorie);
                     await _context.SaveChangesAsync();
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = true });
+                    }
                     return RedirectToAction(nameof(Categories));
                 }
                 catch (Exception ex)
@@ -308,10 +314,14 @@ namespace VAB.Controllers
                 }
             }
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
             return View(model);
         }
-        //Edit
-        // GET: Edit Categorie
+
+        // GET: Edit Category
         public async Task<IActionResult> EditCategorie(int id)
         {
             if (id == 0)
@@ -319,25 +329,22 @@ namespace VAB.Controllers
                 return NotFound();
             }
 
-            // Find the category by id
             var categorie = await _context.Categories.FindAsync(id);
             if (categorie == null)
             {
                 return NotFound();
             }
 
-            // Map to the view model
             var model = new CategorieManagementViewModel
             {
                 Id = categorie.Id,
                 Description = categorie.Description
             };
 
-            // Return the view with the category data
             return View(model);
         }
 
-        // POST: Edit Categorie
+        // POST: Edit Category
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCategorie(CategorieManagementViewModel model)
@@ -353,14 +360,16 @@ namespace VAB.Controllers
                         return NotFound();
                     }
 
-                    // Update only the Description field
                     categorie.Description = model.Description;
 
-                    // Save changes
                     _context.Update(categorie);
                     await _context.SaveChangesAsync();
 
-                    return RedirectToAction(nameof(Categories)); // Redirect back to Categories
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = true });
+                    }
+                    return RedirectToAction(nameof(Categories));
                 }
                 catch (Exception ex)
                 {
@@ -369,9 +378,16 @@ namespace VAB.Controllers
                 }
             }
 
-            return View(model); // Return the view with the model if validation fails
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+            return View(model);
         }
-        //delete 
+
+
+        // Other actions (e.g., Categories, DeleteCategorie) assumed unchanged
+
         [HttpPost]
         public async Task<IActionResult> DeleteCategorie(int id)
         {

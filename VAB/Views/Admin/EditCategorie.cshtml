@@ -1,30 +1,32 @@
 ﻿@model VAB.ViewModel.CategorieManagementViewModel
 
-@{
-    ViewData["Title"] = "Edit Category";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Make sure your layout is set here
-}
-
-<h2>@ViewData["Title"]</h2>
-
-<form asp-action="EditCategorie" method="post">
-    @Html.AntiForgeryToken()
-
-    <!-- Hidden Field for Id -->
-    <input type="hidden" asp-for="Id" />
-
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <input asp-for="Description" class="form-control" />
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Categories" class="btn btn-secondary">Cancel</a>
-</form>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+<div class="modal-header">
+    <h5 class="modal-title" id="categoryModalLabel">Edit Category</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>
+<div class="modal-body">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
     }
-}
+    <form id="editCategoryForm" asp-action="EditCategorie" asp-controller="Admin" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="form-group">
+            <label asp-for="Description" class="form-label">Description</label>
+            <input asp-for="Description" class="form-control" />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken()" />
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+    <button type="submit" form="editCategoryForm" class="btn btn-primary">Save</button>
+</div>

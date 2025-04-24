@@ -170,6 +170,9 @@ namespace VAB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("IdArticle")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("PrixUnitaireHT")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");

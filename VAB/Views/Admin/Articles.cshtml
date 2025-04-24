@@ -1,0 +1,296 @@
+﻿@model List<VAB.Models.Article>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Admin Dashboard - Articles</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="~/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/style.css" rel="stylesheet">
+    <link href="~/css/sidebar.css" rel="stylesheet">
+    <link href="~/css/responsive.css" rel="stylesheet">
+    <style>
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-btn {
+            width: 80px;
+            text-align: center;
+            padding: 4px 8px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+            .custom-btn a {
+                text-decoration: none;
+                display: block;
+                color: inherit;
+            }
+
+        .table-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .table th, .table td {
+            width: 33.33%;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table th {
+            font-size: 18px;
+        }
+
+        .table td {
+            font-size: 14px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Admin" asp-action="Dashboard" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta"><div class="toggle-btn type1"></div></div>
+                        </div>
+                    </div>
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <div class="collapse navbar-collapse pr-3">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="User">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="Admin" asp-action="AccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li><a asp-controller="Admin" asp-action="Dashboard"><i class="material-icons">home</i>Dashboard</a></li>
+                        <li><a asp-controller="Admin" asp-action="UsersList"><i class="material-icons">supervisor_account</i>Users</a></li>
+                        <li><a asp-controller="Admin" asp-action="Categories"><i class="material-icons">category</i>Categories</a></li>
+                        <li class="active"><a asp-controller="Admin" asp-action="Articles"><i class="material-icons">article</i>Articles</a></li>
+                        <li><a asp-controller="Admin" asp-action="Roles"><i class="material-icons">perm_data_setting</i>Role</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Dashboard"><i class="material-icons">home</i>Home</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="Admin" asp-action="Categories">Categories</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Articles</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="main-content">
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="card bg-white">
+                            <div class="card-body">
+                                @if (TempData["Success"] != null)
+                                {
+                                    <div class="alert alert-success">
+                                        @TempData["Success"]
+                                    </div>
+                                }
+
+                                <h2 class="mb-4"><i class="material-icons mr-2">article</i> Articles</h2>
+
+                                <div class="text-end mb-3">
+                                    @if (ViewBag.CategoryId == null)
+                                    {
+                                        <p class="text-danger">Category ID is missing!</p>
+                                    }
+                                    <button onclick="loadArticleForm('/Admin/AddArticle?categoryId=@ViewBag.CategoryId')" class="btn btn-primary">
+                                        <i class="material-icons mr-2">add</i> Add Article
+                                    </button>
+                                    <!-- Test Modal Button -->
+                                    <button onclick="$('#articleModal').modal('show')" class="btn btn-secondary">Test Modal</button>
+                                </div>
+
+                                <div class="table-container">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Name</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var article in Model)
+                                                {
+                                                    <tr>
+                                                        <td>@article.IdArticle</td>
+                                                        @* <td>@article.Id</td> *@
+                                                        <td>@article.Description</td>
+                                                        <td>
+                                                            <div class="button-container">
+                                                                <button class="btn btn-sm btn-warning custom-btn" onclick="loadArticleForm('/Admin/EditArticle/@article.Id')">
+                                                                    <i class="material-icons mr-1">edit</i> Edit
+                                                                </button>
+                                                                <form asp-action="DeleteArticle" method="post" asp-route-id="@article.Id" onsubmit="return confirm('Are you sure you want to delete this article?');">
+                                                                    <button type="submit" class="btn btn-sm btn-danger custom-btn">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                                        </svg> Delete
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Article Modal Container -->
+    <div class="modal fade" id="articleModal" tabindex="-1" aria-labelledby="articleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" id="articleModalContent">
+                <!-- Content will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        // Debug script loading
+        console.log('jQuery version:', $.fn.jquery);
+        console.log('Bootstrap modal:', $.fn.modal);
+
+        $(document).ready(function () {
+            $('.table').DataTable({
+                responsive: true
+            });
+        });
+
+        function loadArticleForm(url) {
+            console.log('Loading form from:', url);
+            $.get(url, function (data) {
+                console.log('Form loaded successfully');
+                $('#articleModalContent').html(data);
+                $('#articleModal').modal('show');
+                $.validator.unobtrusive.parse('#articleModalContent form');
+            }).fail(function (xhr, status, error) {
+                console.error('Error loading form:', status, error);
+                alert('Error loading the form: ' + error);
+            });
+        }
+
+        $(document).on('submit', '#createArticleForm, #editArticleForm', function (e) {
+            e.preventDefault();
+            var form = $(this);
+            console.log('Submitting form to:', form.attr('action'));
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function (response) {
+                    console.log('Form submission response:', response);
+                    if (response.success) {
+                        $('#articleModal').modal('hide');
+                        window.location.reload();
+                    } else {
+                        $('#articleModalContent').html(response);
+                        $.validator.unobtrusive.parse('#articleModalContent form');
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Form submission error:', xhr.status, xhr.responseText);
+                    $('#articleModalContent').html(xhr.responseText);
+                    $.validator.unobtrusive.parse('#articleModalContent form');
+                    alert('Error submitting the form.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

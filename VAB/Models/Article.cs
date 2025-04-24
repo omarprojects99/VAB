@@ -7,6 +7,10 @@ namespace VAB.Models
     {
         public int Id { get; set; }
 
+        [Required(ErrorMessage = "Article ID is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Article ID must be a positive number")]
+        public int IdArticle { get; set; }
+
         [Required]
         public string Description { get; set; }
 

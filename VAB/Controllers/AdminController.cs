@@ -295,11 +295,10 @@ namespace VAB.Controllers
                     var categorie = new Categorie
                     {
                         Description = model.Description
-                        // Initialize other default values here if needed
                     };
-
                     _context.Add(categorie);
                     await _context.SaveChangesAsync();
+                    TempData["Success"] = "✅ Category created successfully";
 
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                     {
@@ -402,18 +401,344 @@ namespace VAB.Controllers
 
             return RedirectToAction("Categories"); // Adjust this to your listing view
         }
+        // GET: /Admin/Articles?categoryId={id}
+        public async Task<IActionResult> Articles(int categoryId)
+        {
+            var articles = await _context.Articles
+                .Where(a => a.CategorieId == categoryId)
+                .ToListAsync();
+            ViewBag.CategoryId = categoryId;
+            return View(articles);
+        }
 
+        // GET: /Admin/AddArticle?categoryId={id}
+        // GET: /Admin/AddArticle?categoryId={id}
+        public IActionResult AddArticle(int categoryId)
+        {
+            ViewBag.CategoryId = categoryId;
+            return PartialView(new ArticleViewModel { CategorieId = categoryId });
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddArticle(ArticleViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Validation Error: {error.ErrorMessage}");
+                }
+                return PartialView(model);
+            }
 
+            try
+            {
+                if (await _context.Articles.AnyAsync(a => a.IdArticle == model.IdArticle))
+                {
+                    ModelState.AddModelError("IdArticle", "An article with this ID already exists.");
+                    return PartialView(model);
+                }
 
+                var article = new Article
+                {
+                    IdArticle = model.IdArticle,
+                    Description = model.Description,
+                    CategorieId = model.CategorieId,
+                    QuantiteDotation = 0,
+                    QuantiteComplementaire = 0,
+                    TotalEmbarque = 0,
+                    QuantiteCasse = 0,
+                    QuantiteOffert = 0,
+                    QuantiteVendu = 0,
+                    PrixUnitaireHT = 0m,
+                    Valeur = 0m,
+                    Restant = 0,
+                    PrixHistorique = new List<Prix>()
+                };
+                _context.Articles.Add(article);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "✅ Article created successfully";
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
+                ModelState.AddModelError("", $"Error saving article: {ex.Message}");
+                return PartialView(model);
+            }
+        }
+        // POST: /Admin/EditArticle
+        // GET: /Admin/EditArticle/{id}
+        public async Task<IActionResult> EditArticle(int id)
+        {
+            var article = await _context.Articles.FindAsync(id);
+            if (article == null)
+            {
+                return NotFound();
+            }
 
+            var model = new ArticleViewModel
+            {
+                IdArticle = article.IdArticle,
+                Description = article.Description,
+                CategorieId = article.CategorieId
+            };
+            return PartialView(model);
+        }
 
+        // POST: /Admin/EditArticle
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditArticle(int id, ArticleViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Validation Error: {error.ErrorMessage}");
+                }
+                return PartialView(model);
+            }
 
+            try
+            {
+                var article = await _context.Articles.FindAsync(id);
+                if (article == null)
+                {
+                    return NotFound();
+                }
+
+                // Check for duplicate IdArticle, excluding the current article
+                if (await _context.Articles.AnyAsync(a => a.IdArticle == model.IdArticle && a.Id != id))
+                {
+                    ModelState.AddModelError("IdArticle", "An article with this ID already exists.");
+                    return PartialView(model);
+                }
+
+                article.IdArticle = model.IdArticle;
+                article.Description = model.Description;
+                article.CategorieId = model.CategorieId;
+                // Other properties remain unchanged
+
+                _context.Update(article);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "✅ Article updated successfully";
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
+                ModelState.AddModelError("", $"Error updating article: {ex.Message}");
+                return PartialView(model);
+            }
+        }
+
+        // POST: /Admin/DeleteArticle
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteArticle(int id)
+        {
+            var article = await _context.Articles.FindAsync(id);
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            _context.Articles.Remove(article);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "✅ Article deleted successfully";
+            return RedirectToAction("Articles", new { categoryId = article.CategorieId });
+        }
+        // Price Management Actions
+        public async Task<IActionResult> Prices(int? categoryId)
+        {
+            var query = _context.Articles.AsQueryable();
+            if (categoryId.HasValue)
+            {
+                query = query.Where(a => a.CategorieId == categoryId.Value);
+            }
+
+            var articles = await query.ToListAsync();
+            ViewBag.CategoryId = categoryId;
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            return View(articles);
+        }
+
+        [HttpGet]
+        [Route("Admin/ManagePrices/{id:int}")]
+        public async Task<IActionResult> ManagePrices(int id)
+        {
+            var article = await _context.Articles
+                .Include(a => a.PrixHistorique)
+                .FirstOrDefaultAsync(a => a.Id == id);
+            if (article == null)
+                return NotFound();
+
+            var model = new PrixViewModel
+            {
+                ArticleId = article.Id,
+                DateDebut = DateTime.Today
+            };
+
+            ViewBag.Article = article;
+            ViewBag.PriceHistory = article.PrixHistorique.OrderByDescending(p => p.DateDebut);
+            return PartialView(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddPrice(PrixViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                ViewBag.Article = article;
+                ViewBag.PriceHistory = await _context.Prix
+                    .Where(p => p.ArticleId == model.ArticleId)
+                    .OrderByDescending(p => p.DateDebut)
+                    .ToListAsync();
+                return PartialView("ManagePrices", model);
+            }
+
+            try
+            {
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                if (article == null)
+                    return NotFound();
+
+                // Set DateFin for previous active price (if any)
+                var activePrice = await _context.Prix
+                    .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
+                    .FirstOrDefaultAsync();
+                if (activePrice != null)
+                {
+                    activePrice.DateFin = model.DateDebut.AddDays(-1);
+                    _context.Update(activePrice);
+                }
+
+                var prix = new Prix
+                {
+                    ArticleId = model.ArticleId,
+                    Valeur = model.Valeur,
+                    DateDebut = model.DateDebut,
+                    DateFin = model.DateFin
+                };
+                _context.Prix.Add(prix);
+
+                // Update Article's current price
+                article.PrixUnitaireHT = model.Valeur;
+                _context.Update(article);
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "✅ Price added successfully";
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
+                ModelState.AddModelError("", $"Error adding price: {ex.Message}");
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                ViewBag.Article = article;
+                ViewBag.PriceHistory = await _context.Prix
+                    .Where(p => p.ArticleId == model.ArticleId)
+                    .OrderByDescending(p => p.DateDebut)
+                    .ToListAsync();
+                return PartialView("ManagePrices", model);
+            }
+        }
+
+        [HttpGet]
+        [Route("Admin/EditPrice/{id:int}")]
+        public async Task<IActionResult> EditPrice(int id)
+        {
+            var prix = await _context.Prix.FindAsync(id);
+            if (prix == null)
+                return NotFound();
+
+            var article = await _context.Articles.FindAsync(prix.ArticleId);
+            if (article == null)
+                return NotFound();
+
+            var model = new PrixViewModel
+            {
+                Id = prix.Id,
+                ArticleId = prix.ArticleId,
+                Valeur = prix.Valeur,
+                DateDebut = prix.DateDebut,
+                DateFin = prix.DateFin
+            };
+
+            ViewBag.Article = article;
+            return PartialView(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPrice(PrixViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                ViewBag.Article = article;
+                return PartialView(model);
+            }
+
+            try
+            {
+                var prix = await _context.Prix.FindAsync(model.Id);
+                if (prix == null)
+                    return NotFound();
+
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                if (article == null)
+                    return NotFound();
+
+                prix.Valeur = model.Valeur;
+                prix.DateDebut = model.DateDebut;
+                prix.DateFin = model.DateFin;
+                _context.Update(prix);
+
+                // Update Article's current price if this is the active price
+                if (prix.DateFin == null)
+                {
+                    article.PrixUnitaireHT = model.Valeur;
+                    _context.Update(article);
+                }
+                else
+                {
+                    // If the edited price is no longer active, set PrixUnitaireHT to the current active price
+                    var activePrice = await _context.Prix
+                        .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
+                        .FirstOrDefaultAsync();
+                    article.PrixUnitaireHT = activePrice?.Valeur ?? 0m;
+                    _context.Update(article);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "✅ Price updated successfully";
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
+                ModelState.AddModelError("", $"Error updating price: {ex.Message}");
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                ViewBag.Article = article;
+                return PartialView(model);
+            }
+        }
     }
 
 
 
 
+
 }
+
+
+
+
+
 
 

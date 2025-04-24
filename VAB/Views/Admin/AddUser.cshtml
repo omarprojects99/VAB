@@ -299,63 +299,46 @@
 @*             </div> *@
             <!--  Header BreadCrumb -->
             <!-- Create New User -->
-            <div class="main-content">
+<div class="container-fluid px-4 py-3">
+    <h5 class="mb-4 fw-bold text-danger">➕ Add New User</h5>
 
-                <div class="card bg-white">
-                    <div class="card-body mt-5 mb-5">
+    <form asp-action="AddUser" method="post">
+        @Html.AntiForgeryToken()
 
-                       
-
- <form asp-action="AddUser" method="post">
-    @Html.AntiForgeryToken()
-
-    <div class="form-group row">
-        <div class="col-md-2">Name</div>
-                                <div class="col-md-4">
-        <input asp-for="NomPrenom" class="form-control" required />
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Name</label>
+            <input asp-for="NomPrenom" class="form-control rounded shadow-sm" placeholder="Full Name" required />
         </div>
-    </div>
 
-    <div class="form-group row">
-
-                                <div class="col-md-2">E-Mail Address</div>
-                                <div class="col-md-4">
-        <input asp-for="Email" class="form-control" required />
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input asp-for="Email" class="form-control rounded shadow-sm" placeholder="example@domain.com" type="email" required />
         </div>
-    </div>
 
-    <div class="form-group row">
-                                <div class="col-md-2">Phone number</div>
-                                <div class="col-md-4">
-        <input asp-for="Telephone" class="form-control" required />
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Phone Number</label>
+            <input asp-for="Telephone" class="form-control rounded shadow-sm" placeholder="+216 XX XXX XXX" required />
         </div>
-    </div>
 
-    <div class="form-group">
-        <label>Role</label>
-        <select asp-for="Role" class="form-control" required>
-            <option value="">-- Select Role --</option>
-            <option value="Admin">
-                Admin</option>
-            <option value="AgentSaisie">
-                Agent del la saisie</option>
-            <option value="DGF">
-                DGF</option>
-        </select>
-    </div>
-                            <div class="form-group pt-2 row">
-                                <div class="col-md-2"></div>
-                                <div class="col-md-4">
-                                    <button type="submit" class=" theme-primary-btn btn btn-success">Create User</button>
-                                    </div>
-                                    </div>
-</form>
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Role</label>
+            <select asp-for="Role" class="form-select rounded shadow-sm" required>
+                <option value="">-- Select Role --</option>
+                <option value="Admin">Admin</option>
+                <option value="AgentSaisie">Agent de la saisie</option>
+                <option value="DGF">DGF</option>
+            </select>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-danger px-4 py-2 rounded-pill shadow-sm">
+                <i class="bi bi-person-plus-fill me-2"></i> Create
+            </button>
+        </div>
+    </form>
+</div>
 
 
-
-                     </div> 
-                 </div> 
-             </div> 
 @*             <!-- Create New User--> *@
 
 

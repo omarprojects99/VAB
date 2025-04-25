@@ -583,6 +583,7 @@ namespace VAB.Controllers
 
             ViewBag.Article = article;
             ViewBag.PriceHistory = article.PrixHistorique.OrderByDescending(p => p.DateDebut);
+            ViewBag.CategoryId = Request.Query["categoryId"].ToString(); // Pass categoryId from query
             return PartialView(model);
         }
 
@@ -598,6 +599,7 @@ namespace VAB.Controllers
                     .Where(p => p.ArticleId == model.ArticleId)
                     .OrderByDescending(p => p.DateDebut)
                     .ToListAsync();
+                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
                 return PartialView("ManagePrices", model);
             }
 
@@ -607,7 +609,6 @@ namespace VAB.Controllers
                 if (article == null)
                     return NotFound();
 
-                // Set DateFin for previous active price (if any)
                 var activePrice = await _context.Prix
                     .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
                     .FirstOrDefaultAsync();
@@ -626,24 +627,24 @@ namespace VAB.Controllers
                 };
                 _context.Prix.Add(prix);
 
-                // Update Article's current price
                 article.PrixUnitaireHT = model.Valeur;
                 _context.Update(article);
 
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "✅ Price added successfully";
+                TempData["Success"] = "✅ Prix ajouté avec succès";
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
-                ModelState.AddModelError("", $"Error adding price: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
+                ModelState.AddModelError("", $"Erreur lors de l'ajout du prix: {ex.Message}");
                 var article = await _context.Articles.FindAsync(model.ArticleId);
                 ViewBag.Article = article;
                 ViewBag.PriceHistory = await _context.Prix
                     .Where(p => p.ArticleId == model.ArticleId)
                     .OrderByDescending(p => p.DateDebut)
                     .ToListAsync();
+                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
                 return PartialView("ManagePrices", model);
             }
         }
@@ -670,6 +671,7 @@ namespace VAB.Controllers
             };
 
             ViewBag.Article = article;
+            ViewBag.CategoryId = Request.Query["categoryId"].ToString();
             return PartialView(model);
         }
 
@@ -681,6 +683,7 @@ namespace VAB.Controllers
             {
                 var article = await _context.Articles.FindAsync(model.ArticleId);
                 ViewBag.Article = article;
+                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
                 return PartialView(model);
             }
 
@@ -699,7 +702,6 @@ namespace VAB.Controllers
                 prix.DateFin = model.DateFin;
                 _context.Update(prix);
 
-                // Update Article's current price if this is the active price
                 if (prix.DateFin == null)
                 {
                     article.PrixUnitaireHT = model.Valeur;
@@ -707,7 +709,6 @@ namespace VAB.Controllers
                 }
                 else
                 {
-                    // If the edited price is no longer active, set PrixUnitaireHT to the current active price
                     var activePrice = await _context.Prix
                         .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
                         .FirstOrDefaultAsync();
@@ -716,18 +717,54 @@ namespace VAB.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "✅ Price updated successfully";
+                TempData["Success"] = "✅ Prix mis à jour avec succès";
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Database Error: {ex.Message}");
-                ModelState.AddModelError("", $"Error updating price: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
+                ModelState.AddModelError("", $"Erreur lors de la mise à jour du prix: {ex.Message}");
                 var article = await _context.Articles.FindAsync(model.ArticleId);
                 ViewBag.Article = article;
+                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
                 return PartialView(model);
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Admin/DeletePrice/{id:int}")]
+        public async Task<IActionResult> DeletePrice(int id)
+        {
+            try
+            {
+                var prix = await _context.Prix.FindAsync(id);
+                if (prix == null)
+                    return Json(new { success = false, message = "Prix non trouvé." });
+
+                var article = await _context.Articles.FindAsync(prix.ArticleId);
+                if (article == null)
+                    return Json(new { success = false, message = "Article non trouvé." });
+
+                _context.Prix.Remove(prix);
+
+                var activePrice = await _context.Prix
+                    .Where(p => p.ArticleId == prix.ArticleId && p.DateFin == null)
+                    .FirstOrDefaultAsync();
+                article.PrixUnitaireHT = activePrice?.Valeur ?? 0m;
+                _context.Update(article);
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "✅ Prix supprimé avec succès";
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
+                return Json(new { success = false, message = $"Erreur lors de la suppression du prix: {ex.Message}" });
+            }
+        }
+
     }
 
 

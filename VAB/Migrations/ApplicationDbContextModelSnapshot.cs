@@ -255,6 +255,211 @@ namespace VAB.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("VAB.Models.Cc", b =>
+                {
+                    b.Property<int>("CcId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CcId"));
+
+                    b.Property<string>("Base")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("College")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Matricule")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Prenom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Secteur")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("CcId");
+
+                    b.ToTable("Ccs");
+                });
+
+            modelBuilder.Entity("VAB.Models.Equipage", b =>
+                {
+                    b.Property<int>("EquipageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EquipageId"));
+
+                    b.Property<int>("Cc1Id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Cc2Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Pnc1Id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Pnc2Id")
+                        .HasColumnType("int");
+
+                    b.HasKey("EquipageId");
+
+                    b.HasIndex("Cc1Id");
+
+                    b.HasIndex("Cc2Id");
+
+                    b.HasIndex("Pnc1Id");
+
+                    b.HasIndex("Pnc2Id");
+
+                    b.ToTable("Equipages");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgentSaisieId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateEdition")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EquipageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentSaisieId");
+
+                    b.HasIndex("EquipageId");
+
+                    b.ToTable("EtatDesVentesArrivee");
+                });
+
+            modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Annee")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateGeneration")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Mois")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FeuilleDeLignes");
+                });
+
+            modelBuilder.Entity("VAB.Models.FeuilleEtatDesVentesArrivee", b =>
+                {
+                    b.Property<int>("FeuilleDeLignesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EtatDesVentesArriveeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FeuilleDeLignesId", "EtatDesVentesArriveeId");
+
+                    b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.ToTable("FeuilleEtatDesVentesArrivee");
+                });
+
+            modelBuilder.Entity("VAB.Models.Pnc", b =>
+                {
+                    b.Property<int>("PncId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PncId"));
+
+                    b.Property<string>("Base")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("College")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Matricule")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Prenom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Secteur")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("PncId");
+
+                    b.ToTable("Pncs");
+                });
+
+            modelBuilder.Entity("VAB.Models.PncEquipage", b =>
+                {
+                    b.Property<int>("PncId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EquipageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PncId", "EquipageId");
+
+                    b.HasIndex("EquipageId");
+
+                    b.ToTable("PncEquipages");
+                });
+
             modelBuilder.Entity("VAB.Models.Prix", b =>
                 {
                     b.Property<int>("Id")
@@ -359,6 +564,44 @@ namespace VAB.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("VAB.Models.Vol", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Destination")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("FeuilleDeLignesId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("Heure")
+                        .HasColumnType("time");
+
+                    b.Property<int>("NombrePassagers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TypeVol")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeuilleDeLignesId");
+
+                    b.ToTable("Vols");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -421,6 +664,96 @@ namespace VAB.Migrations
                     b.Navigation("Categorie");
                 });
 
+            modelBuilder.Entity("VAB.Models.Equipage", b =>
+                {
+                    b.HasOne("VAB.Models.Cc", "Cc1")
+                        .WithMany()
+                        .HasForeignKey("Cc1Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Cc", "Cc2")
+                        .WithMany()
+                        .HasForeignKey("Cc2Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VAB.Models.Pnc", "Pnc1")
+                        .WithMany()
+                        .HasForeignKey("Pnc1Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Pnc", "Pnc2")
+                        .WithMany()
+                        .HasForeignKey("Pnc2Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Cc1");
+
+                    b.Navigation("Cc2");
+
+                    b.Navigation("Pnc1");
+
+                    b.Navigation("Pnc2");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
+                {
+                    b.HasOne("VAB.Models.User", "AgentSaisie")
+                        .WithMany()
+                        .HasForeignKey("AgentSaisieId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Equipage", "Equipage")
+                        .WithMany()
+                        .HasForeignKey("EquipageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AgentSaisie");
+
+                    b.Navigation("Equipage");
+                });
+
+            modelBuilder.Entity("VAB.Models.FeuilleEtatDesVentesArrivee", b =>
+                {
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
+                        .WithMany("FeuilleEtatDesVentes")
+                        .HasForeignKey("EtatDesVentesArriveeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.FeuilleDeLignes", "FeuilleDeLignes")
+                        .WithMany("FeuilleEtatDesVentes")
+                        .HasForeignKey("FeuilleDeLignesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EtatDesVentesArrivee");
+
+                    b.Navigation("FeuilleDeLignes");
+                });
+
+            modelBuilder.Entity("VAB.Models.PncEquipage", b =>
+                {
+                    b.HasOne("VAB.Models.Equipage", "Equipage")
+                        .WithMany("PncEquipages")
+                        .HasForeignKey("EquipageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Pnc", "Pnc")
+                        .WithMany()
+                        .HasForeignKey("PncId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Equipage");
+
+                    b.Navigation("Pnc");
+                });
+
             modelBuilder.Entity("VAB.Models.Prix", b =>
                 {
                     b.HasOne("VAB.Models.Article", "Article")
@@ -432,6 +765,15 @@ namespace VAB.Migrations
                     b.Navigation("Article");
                 });
 
+            modelBuilder.Entity("VAB.Models.Vol", b =>
+                {
+                    b.HasOne("VAB.Models.FeuilleDeLignes", "FeuilleDeLignes")
+                        .WithMany("Vols")
+                        .HasForeignKey("FeuilleDeLignesId");
+
+                    b.Navigation("FeuilleDeLignes");
+                });
+
             modelBuilder.Entity("VAB.Models.Article", b =>
                 {
                     b.Navigation("PrixHistorique");
@@ -440,6 +782,23 @@ namespace VAB.Migrations
             modelBuilder.Entity("VAB.Models.Categorie", b =>
                 {
                     b.Navigation("Articles");
+                });
+
+            modelBuilder.Entity("VAB.Models.Equipage", b =>
+                {
+                    b.Navigation("PncEquipages");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
+                {
+                    b.Navigation("FeuilleEtatDesVentes");
+                });
+
+            modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>
+                {
+                    b.Navigation("FeuilleEtatDesVentes");
+
+                    b.Navigation("Vols");
                 });
 #pragma warning restore 612, 618
         }

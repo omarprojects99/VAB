@@ -38,7 +38,7 @@ namespace VAB.Controllers
                     if (roles.Contains("Admin"))
                         return RedirectToAction("Dashboard", "Admin");
                     else if (roles.Contains("AgentSaisie"))
-                        return RedirectToAction("AgentForm", "AgentSaisie");
+                        return RedirectToAction("AgentDashboard", "AgentSaisie");
                     else if (roles.Contains("Chef"))
                         return RedirectToAction("Dashboard", "ResponsableCatering");
                     else if (roles.Contains("DGF"))

@@ -65,8 +65,13 @@
                     console.log('Closing modal...');
                     $('#priceModal').modal('hide');
                     console.log('Modal hidden, redirecting...');
-                    var redirectUrl = '@categoryId' ? '/Admin/Prices?categoryId=@categoryId' : '/Admin/Prices';
-                    window.location.href = redirectUrl;
+                       var row = $('form[data-id="' + response.id + '"]').closest('tr');
+    row.find('td').eq(0).text(response.valeur);
+    row.find('td').eq(1).text(response.dateDebut);
+    row.find('td').eq(2).text(response.dateFin);
+
+    // Close the modal
+    $('#priceModal').modal('hide');
                 } else {
                     console.log('Response indicates failure, updating modal content');
                     $('#priceModalContent').html(response);

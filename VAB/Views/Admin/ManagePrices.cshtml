@@ -40,13 +40,14 @@
                                     <button class="btn btn-sm btn-warning custom-btn" onclick="loadPriceForm('/Admin/EditPrice/@price.Id?categoryId=@categoryId')">
                                         <i class="material-icons mr-1">edit</i> Modifier
                                     </button>
-                                    <form asp-action="DeletePrice" asp-route-id="@price.Id" method="post" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce prix ?');">
+                                    <form class="delete-price-form" data-id="@price.Id" method="post" asp-action="DeletePrice" asp-route-id="@price.Id" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-danger custom-btn">
                                             <i class="material-icons mr-1">delete</i> Supprimer
                                         </button>
                                     </form>
                                 </div>
+
                             </td>
                         </tr>
                     }
@@ -131,32 +132,31 @@
         });
     });
 
-    $(document).on('submit', 'form[asp-action="DeletePrice"]', function (e) {
+        $(function(){
+      $('.delete-price-form').on('submit', function(e){
         e.preventDefault();
+
         var form = $(this);
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce prix ?')) {
-            console.log('Submitting delete price form to:', form.attr('action'));
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: form.serialize(),
-                success: function (response) {
-                    console.log('Delete price form submission response:', response);
-                    if (response.success) {
-                        console.log('Closing modal...');
-                        $('#priceModal').modal('hide');
-                        console.log('Modal hidden, redirecting...');
-                        var redirectUrl = '@categoryId' ? '/Admin/Prices?categoryId=@categoryId' : '/Admin/Prices';
-                        window.location.href = redirectUrl;
-                    } else {
-                        alert(response.message || 'Erreur lors de la suppression du prix.');
-                    }
-                },
-                error: function (xhr) {
-                    console.error('Delete price form submission error:', xhr.status, xhr.responseText);
-                    alert('Erreur lors de la suppression du prix.');
-                }
-            });
-        }
+        var id   = form.data('id');
+        var token = form.find('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+          url: '/Admin/DeletePrice/' + id,
+          type: 'POST',
+          data: { __RequestVerificationToken: token },
+          success: function(response){
+            if (response.success) {
+              // remove the row from the table
+              form.closest('tr').fadeOut(300, function(){ $(this).remove(); });
+            }
+            else {
+              alert('Erreur: ' + response.message);
+            }
+          },
+          error: function(){
+            alert('Une erreur est survenue lors de la suppression.');
+          }
+        });
+      });
     });
 </script>

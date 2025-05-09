@@ -1,0 +1,208 @@
+﻿@model VAB.ViewModel.EtatDesVentesArriveeViewModel
+@{
+    Layout = null;
+}
+
+<div class="modal-body sales-form-modal" style="max-height: 70vh; overflow-y: auto;">
+    <div class="header-section">
+        <h3 class="company-title">AIR DUTYFREE</h3>
+        <div class="location-info">VAB TUNIS<br>Carthage</div>
+        <div class="form-group">
+            <label>Date et Heure d'Édition:</label>
+            <p class="form-control-static">@Model.DateEdition.ToString("yyyy-MM-dd HH:mm")</p>
+        </div>
+        <div class="form-group">
+            <label>Agent Saisie</label>
+            <p class="form-control-static">@(Model.AgentSaisieName ?? "Inconnu")</p>
+        </div>
+    </div>
+
+    <h3 class="form-title">ETAT DES VENTES ARRIVEE N° <span class="form-control-static d-inline-block w-auto">@Model.Numero</span></h3>
+
+    <table class="info-table">
+        <tr>
+            <td>FL 01:</td>
+            <td><p class="form-control-static">@(Model.FeuilleDeLignesNumeros != null && Model.FeuilleDeLignesNumeros.Count > 0 ? Model.FeuilleDeLignesNumeros[0].ToString() : "Aucun")</p></td>
+            <td>CC 1:</td>
+            <td><p class="form-control-static">@(Model.Cc1Name ?? "Inconnu")</p></td>
+            <td>Matricule:</td>
+            <td><p class="form-control-static">@(Model.Cc1Matricule ?? "Inconnu")</p></td>
+            <td>PNC 1:</td>
+            <td><p class="form-control-static">@(Model.Pnc1Name ?? "Inconnu")</p></td>
+            <td>Matricule:</td>
+            <td><p class="form-control-static">@(Model.Pnc1Matricule ?? "Inconnu")</p></td>
+        </tr>
+        <tr>
+            <td>FL 02:</td>
+            <td><p class="form-control-static">@(Model.FeuilleDeLignesNumeros != null && Model.FeuilleDeLignesNumeros.Count > 1 ? Model.FeuilleDeLignesNumeros[1].ToString() : "Aucun")</p></td>
+            <td>CC 2:</td>
+            <td><p class="form-control-static">@(string.IsNullOrEmpty(Model.Cc2Name) ? "Aucun" : Model.Cc2Name)</p></td>
+            <td>Matricule:</td>
+            <td><p class="form-control-static">@(string.IsNullOrEmpty(Model.Cc2Matricule) ? "Aucun" : Model.Cc2Matricule)</p></td>
+            <td>PNC 2:</td>
+            <td><p class="form-control-static">@(string.IsNullOrEmpty(Model.Pnc2Name) ? "Aucun" : Model.Pnc2Name)</p></td>
+            <td>Matricule:</td>
+            <td><p class="form-control-static">@(string.IsNullOrEmpty(Model.Pnc2Matricule) ? "Aucun" : Model.Pnc2Matricule)</p></td>
+        </tr>
+    </table>
+
+    <h4 class="form-title">PNC Dynamiques</h4>
+    <table class="dynamic-pnc-table">
+        <thead>
+            <tr>
+                <th>PNC</th>
+                <th>Matricule</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.DynamicPncs == null || !Model.DynamicPncs.Any())
+            {
+                <tr>
+                    <td colspan="2"><p class="form-control-static">Aucun PNC dynamique</p></td>
+                </tr>
+            }
+            else
+            {
+                foreach (var pnc in Model.DynamicPncs)
+                {
+                    <tr>
+                        <td><p class="form-control-static">@pnc.Name</p></td>
+                        <td><p class="form-control-static">@pnc.Matricule</p></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+    </div>
+
+    <style>
+        .sales-form-modal {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .header-section {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .company-title {
+            color: #600000;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .location-info {
+            color: #555;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #600000;
+            font-weight: bold;
+            margin: 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #600000;
+        }
+
+        .sales-form-modal .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+            .sales-form-modal .form-group label {
+                margin: 0;
+                font-weight: 500;
+            }
+
+        .form-control-static {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 13px;
+            background-color: #fff;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+            .info-table td {
+                border: 1px solid #eee;
+                padding: 6px;
+                text-align: left;
+                font-size: 13px;
+            }
+
+            .info-table p {
+                margin: 0;
+            }
+
+        .dynamic-pnc-table {
+            width: 50%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+            .dynamic-pnc-table th, .dynamic-pnc-table td {
+                border: 1px solid #eee;
+                padding: 6px;
+                text-align: left;
+                font-size: 13px;
+            }
+
+            .dynamic-pnc-table th {
+                background-color: #f5f5f5;
+                font-weight: bold;
+            }
+
+            .dynamic-pnc-table p {
+                margin: 0;
+            }
+
+        .modal-footer {
+            border-top: 3px solid #600000;
+            padding: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-secondary:hover {
+                background-color: #5a6268;
+            }
+    </style>
+</div>

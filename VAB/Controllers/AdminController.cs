@@ -676,60 +676,78 @@ namespace VAB.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditPrice(PrixViewModel model)
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> EditPrice(PrixViewModel model)
+{
+    if (!ModelState.IsValid)
+    {
+        var article = await _context.Articles.FindAsync(model.ArticleId);
+        ViewBag.Article = article;
+        ViewBag.CategoryId = Request.Query["categoryId"].ToString();
+        return PartialView(model);
+    }
+
+    try
+    {
+        var prix = await _context.Prix.FindAsync(model.Id);
+        if (prix == null)
+            return NotFound();
+
+        var article = await _context.Articles.FindAsync(model.ArticleId);
+        if (article == null)
+            return NotFound();
+
+        prix.Valeur = model.Valeur;
+        prix.DateDebut = model.DateDebut;
+        prix.DateFin = model.DateFin;
+        _context.Update(prix);
+
+        if (prix.DateFin == null)
         {
-            if (!ModelState.IsValid)
+            article.PrixUnitaireHT = model.Valeur;
+        }
+        else
+        {
+            var activePrice = await _context.Prix
+                .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
+                .FirstOrDefaultAsync();
+            if (activePrice != null)
             {
-                var article = await _context.Articles.FindAsync(model.ArticleId);
-                ViewBag.Article = article;
-                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
-                return PartialView(model);
+                article.PrixUnitaireHT = activePrice.Valeur;
             }
-
-            try
+            else
             {
-                var prix = await _context.Prix.FindAsync(model.Id);
-                if (prix == null)
-                    return NotFound();
-
-                var article = await _context.Articles.FindAsync(model.ArticleId);
-                if (article == null)
-                    return NotFound();
-
-                prix.Valeur = model.Valeur;
-                prix.DateDebut = model.DateDebut;
-                prix.DateFin = model.DateFin;
-                _context.Update(prix);
-
-                if (prix.DateFin == null)
-                {
-                    article.PrixUnitaireHT = model.Valeur;
-                    _context.Update(article);
-                }
-                else
-                {
-                    var activePrice = await _context.Prix
-                        .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
-                        .FirstOrDefaultAsync();
-                    article.PrixUnitaireHT = activePrice?.Valeur ?? 0m;
-                    _context.Update(article);
-                }
-
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "✅ Prix mis à jour avec succès";
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
-                ModelState.AddModelError("", $"Erreur lors de la mise à jour du prix: {ex.Message}");
-                var article = await _context.Articles.FindAsync(model.ArticleId);
-                ViewBag.Article = article;
-                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
-                return PartialView(model);
+                var mostRecentPrice = await _context.Prix
+                    .Where(p => p.ArticleId == model.ArticleId)
+                    .OrderByDescending(p => p.DateDebut)
+                    .FirstOrDefaultAsync();
+                article.PrixUnitaireHT = mostRecentPrice?.Valeur ?? 0m;
             }
         }
+        _context.Update(article);
+
+        await _context.SaveChangesAsync();
+        TempData["Success"] = "✅ Prix mis à jour avec succès";
+                return Json(new
+                {
+                    success = true,
+                    id = prix.Id,
+                    valeur = prix.Valeur.ToString("C"),
+                    dateDebut = prix.DateDebut.ToString("yyyy-MM-dd"),
+                    dateFin = prix.DateFin?.ToString("yyyy-MM-dd") ?? "Actif"
+                });
+
+            }
+            catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
+        ModelState.AddModelError("", $"Erreur lors de la mise à jour du prix: {ex.Message}");
+        var article = await _context.Articles.FindAsync(model.ArticleId);
+        ViewBag.Article = article;
+        ViewBag.CategoryId = Request.Query["categoryId"].ToString();
+        return PartialView(model);
+    }
+}
 
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -184,6 +184,7 @@
                                                 <tr>
                                                     <th>ID</th>
                                                     <th>Name</th>
+                                                    <th>Prix</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -194,6 +195,7 @@
                                                         <td>@article.IdArticle</td>
                                                         @* <td>@article.Id</td> *@
                                                         <td>@article.Description</td>
+                                                        <td>@article.PrixUnitaireHT</td>
                                                         <td>
                                                             <div class="button-container">
                                                                 <button class="btn btn-sm btn-warning custom-btn" onclick="loadArticleForm('/Admin/EditArticle/@article.Id')">

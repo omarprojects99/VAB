@@ -572,12 +572,22 @@ namespace VAB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Aircraft")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Destination")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EtatDesVentesArriveeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EtatDesVentesArriveeId1")
+                        .HasColumnType("int");
 
                     b.Property<int?>("FeuilleDeLignesId")
                         .HasColumnType("int");
@@ -596,6 +606,12 @@ namespace VAB.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.HasIndex("EtatDesVentesArriveeId1")
+                        .IsUnique()
+                        .HasFilter("[EtatDesVentesArriveeId1] IS NOT NULL");
 
                     b.HasIndex("FeuilleDeLignesId");
 
@@ -767,9 +783,21 @@ namespace VAB.Migrations
 
             modelBuilder.Entity("VAB.Models.Vol", b =>
                 {
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
+                        .WithMany()
+                        .HasForeignKey("EtatDesVentesArriveeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", null)
+                        .WithOne("Vol")
+                        .HasForeignKey("VAB.Models.Vol", "EtatDesVentesArriveeId1");
+
                     b.HasOne("VAB.Models.FeuilleDeLignes", "FeuilleDeLignes")
                         .WithMany("Vols")
-                        .HasForeignKey("FeuilleDeLignesId");
+                        .HasForeignKey("FeuilleDeLignesId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("EtatDesVentesArrivee");
 
                     b.Navigation("FeuilleDeLignes");
                 });
@@ -792,6 +820,9 @@ namespace VAB.Migrations
             modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
                 {
                     b.Navigation("FeuilleEtatDesVentes");
+
+                    b.Navigation("Vol")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>

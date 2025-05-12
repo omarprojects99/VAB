@@ -37,6 +37,36 @@ namespace VAB.ViewModel
         public string Pnc2Matricule { get; set; }
         // Dynamic PNCs
         public List<DynamicPnc> DynamicPncs { get; set; } = new List<DynamicPnc>();
+        // Vol fields (Données Générales)
+        [Required(ErrorMessage = "Le numéro de vol est requis.")]
+        [Display(Name = "VOL")]
+        public int FlightNumber { get; set; }
+
+        [Required(ErrorMessage = "La date du vol est requise.")]
+        [Display(Name = "DATE")]
+        [DataType(DataType.Date)]
+        public DateTime FlightDate { get; set; }
+
+        [Required(ErrorMessage = "La destination est requise.")]
+        [Display(Name = "DEST")]
+        public string Destination { get; set; }
+
+        [Display(Name = "A/C")]
+        public string Aircraft { get; set; }
+
+        [Required(ErrorMessage = "L'heure du vol est requise.")]
+        [Display(Name = "HEURE")]
+        [DataType(DataType.Time)]
+        public TimeSpan FlightTime { get; set; }
+
+        [Required(ErrorMessage = "Le type de vol est requis.")]
+        [Display(Name = "TYPE")]
+        public string FlightType { get; set; }
+
+        [Required(ErrorMessage = "Le nombre de passagers est requis.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Le nombre de passagers doit être positif.")]
+        [Display(Name = "Tot Pax")]
+        public int TotalPassengers { get; set; }
 
     }
     public class DynamicPnc

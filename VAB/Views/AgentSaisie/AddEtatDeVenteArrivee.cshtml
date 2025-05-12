@@ -101,7 +101,7 @@
             </tr>
         </table>
 
-        <h4 class="form-title">PNC Dynamiques</h4>
+       
         <table class="dynamic-pnc-table" id="dynamicPncTable">
             <thead>
                 <tr>
@@ -134,27 +134,62 @@
         </table>
         <button type="button" class="btn btn-primary btn-sm" onclick="addPncRow()">Ajouter PNC</button>
 
-        @*     <div class="general-data"> *@
-        @*         <h4 class="section-title">Données Générales</h4> *@
-        @*         <table class="info-table modern-info-table"> *@
-        @*             <tr><td>A/C:</td><td><input type="text" name="ac" class="form-control"></td></tr> *@
-        @*             <tr><td>VOL:</td><td><input type="text" name="vol" class="form-control"></td></tr> *@
-        @*             <tr><td>DEST:</td><td><input type="text" name="dest" class="form-control"></td></tr> *@
-        @*             <tr><td>TYPE:</td><td><input type="text" name="type" class="form-control"></td></tr> *@
-        @*             <tr><td>DATE:</td><td><input type="date" name="date_vol" class="form-control"></td></tr> *@
-        @*             <tr><td>Tot Pax:</td><td><input type="number" name="tot_pax" class="form-control"></td></tr> *@
-        @*             <tr><td>OVB:</td><td><input type="text" name="ovb" class="form-control"></td></tr> *@
-        @*             <tr><td>TPE:</td><td><input type="text" name="tpe" class="form-control"></td></tr> *@
-        @*             <tr> *@
-        @*                 <td>FOND DE ROULEMENT:</td> *@
-        @*                 <td> *@
-        @*                     <input type="text" name="fond_monnaie" placeholder="Monnaie" class="form-control d-inline-block" style="width:45%;"> *@
-        @*                     <input type="text" name="fond_valeur" placeholder="Valeur" class="form-control d-inline-block" style="width:45%;"> *@
-        @*                 </td> *@
-        @*             </tr> *@
-        @*         </table> *@
-        @*     </div> *@
-        @* </div> *@
+        <div class="general-data">
+            <h4 class="section-title">Données Générales</h4>
+            <table class="info-table modern-info-table">
+                <tr>
+                    <td><label asp-for="Aircraft"></label></td>
+                    <td>
+                        <input asp-for="Aircraft" class="form-control" placeholder="A320" />
+                        <span asp-validation-for="Aircraft" class="text-danger"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label asp-for="FlightNumber"></label></td>
+                    <td>
+                        <input asp-for="FlightNumber" type="number" class="form-control" placeholder="123" id="flightNumber" />
+                        <span asp-validation-for="FlightNumber" class="text-danger"></span>
+                        <div id="flightNumberError" class="text-danger"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label asp-for="Destination"></label></td>
+                    <td>
+                        <input asp-for="Destination" class="form-control" placeholder="TUN/YUL/TUN" />
+                        <span asp-validation-for="Destination" class="text-danger"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label asp-for="FlightType"></label></td>
+                    <td>
+                        <input asp-for="FlightType" class="form-control" placeholder="Commercial" />
+                        <span asp-validation-for="FlightType" class="text-danger"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label asp-for="FlightDate"></label></td>
+                    <td>
+                        <input asp-for="FlightDate" type="date" class="form-control" placeholder="DD/MM/YYYY" />
+                        <span asp-validation-for="FlightDate" class="text-danger"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label asp-for="FlightTime"></label></td>
+                    <td>
+                        <input asp-for="FlightTime" type="time" class="form-control" />
+                        <span asp-validation-for="FlightTime" class="text-danger"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label asp-for="TotalPassengers"></label></td>
+                    <td>
+                        <input asp-for="TotalPassengers" type="number" class="form-control" min="0" placeholder="150" />
+                        <span asp-validation-for="TotalPassengers" class="text-danger"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+         
 
         @* <div class="action-buttons"> *@
         @*     <button type="button" class="add-category-btn" onclick="addCategory()">Ajouter Catégorie</button> *@
@@ -595,6 +630,42 @@
     </style>
 
     <script>
+
+
+
+
+         // Validate Flight Number against FeuilleDeLignes
+        function validateFlightNumber() {
+            const flightNumber = document.getElementById('flightNumber').value;
+            const feuilleNumeros = Array.from(document.querySelectorAll('.feuille-numero'))
+                .map(input => input.value)
+                .filter(num => num > 0);
+            if (!flightNumber || feuilleNumeros.length === 0) return;
+
+            fetch(`/AgentSaisie/ValidateFlightNumber?flightNumber=${flightNumber}&feuilleNumeros=${feuilleNumeros.join(',')}`)
+                .then(response => response.json())
+                .then(data => {
+                    const errorDiv = document.getElementById('flightNumberError') || document.createElement('div');
+                    errorDiv.id = 'flightNumberError';
+                    errorDiv.className = 'text-danger';
+                    errorDiv.style.marginTop = '5px';
+                    if (!data.isValid) {
+                        errorDiv.textContent = data.message;
+                        document.getElementById('flightNumber').parentElement.appendChild(errorDiv);
+                    } else {
+                        errorDiv.textContent = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error validating flight number:', error);
+                });
+        }
+
+        document.getElementById('flightNumber').addEventListener('blur', validateFlightNumber);
+        document.querySelectorAll('.feuille-numero').forEach(input => {
+            input.addEventListener('blur', validateFlightNumber);
+        });
+
         let lastCategoryId = 0;
 
         function addCategory() {
@@ -728,7 +799,7 @@
             updateGrandTotal();
         }
 
-            let pncIndex = @((Model.DynamicPncs?.Count ?? 1));
+               let pncIndex = @((Model.DynamicPncs?.Count ?? 1));
 
         function addPncRow() {
             const tbody = document.getElementById('pnc-tbody');
@@ -749,7 +820,7 @@
             reindexRows();
         }
 
-        function reindexRows() {
+           function reindexRows() {
             const rows = document.querySelectorAll('#pnc-tbody tr');
             rows.forEach((row, index) => {
                 const inputs = row.querySelectorAll('input');

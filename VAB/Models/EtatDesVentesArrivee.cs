@@ -28,6 +28,6 @@ namespace VAB.Models
         // Many-to-many with FeuilleDeLignes
          public List<FeuilleEtatDesVentesArrivee> FeuilleEtatDesVentes { get; set; }
 
-
+      
     }
 }

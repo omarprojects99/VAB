@@ -4,31 +4,35 @@ namespace VAB.Models
 {
     public class Vol
     {
-         public int Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        public int Numero { get; set; } // Flight number
+        public int Numero { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
-        public DateTime Date { get; set; } // Flight date
+        public DateTime Date { get; set; }
 
         [Required]
         public string Destination { get; set; }
 
+        public string Aircraft { get; set; }
+
         [Required]
         [DataType(DataType.Time)]
-        public TimeSpan Heure { get; set; } // Flight time
+        public TimeSpan Heure { get; set; }
 
         [Required]
-        public string TypeVol { get; set; } // e.g., "Commercial", "Mise en place"
+        public string TypeVol { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "Please enter a valid number of passengers")]
-        public int NombrePassagers { get; set; } // ✅ Number of passengers
+        [Range(0, int.MaxValue)]
+        public int NombrePassagers { get; set; }
 
-        // Foreign key for FeuilleDeLignes
         public int? FeuilleDeLignesId { get; set; }
         public FeuilleDeLignes FeuilleDeLignes { get; set; }
+
+        public int? EtatDesVentesArriveeId { get; set; }
+        public EtatDesVentesArrivee EtatDesVentesArrivee { get; set; }
     }
 }

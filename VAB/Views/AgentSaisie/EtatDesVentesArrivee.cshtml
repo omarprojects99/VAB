@@ -198,10 +198,10 @@
                             des Ventes</li>
                     </ol>
                 </nav>
-                <div class="create-item">
-                    <button onclick="loadSalesReportForm('/AgentSaisie/AddEtatDesVentesArrivee')" class="btn"
-                        style="background-color: #c5c5c5">➕ Créer un État des Ventes</button>
-                </div>
+                @* <div class="create-item"> *@
+                @*     <button onclick="loadSalesReportForm('/AgentSaisie/AddEtatDesVentesArrivee')" class="btn" *@
+                @*         style="background-color: #c5c5c5">➕ Créer un État des Ventes</button> *@
+                @* </div> *@
             </div>
             @if (TempData["Success"] != null)
             {
@@ -215,6 +215,12 @@
                 <div class="col-md-12">
                     <div class="card bg-white">
                         <div class="card-body mt-3">
+                            <div class="create-item" style="text-align: right;padding-bottom:15px">
+                                <button onclick="loadSalesReportForm('/AgentSaisie/AddEtatDesVentesArrivee')" class="btn"
+                                        style="background-color: #c5c5c5">
+                                    ➕ Créer un État des Ventes
+                                </button>
+                            </div>
                             <div class="table-responsive">
                                 <table id="salesReportsTable" class="table table-striped table-borderless"
                                     style="width:100%">
@@ -317,8 +323,8 @@
                         data: 'id',
                         render: function (data, type, row) {
                             return `
-                                <button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;"  data-id="${data}">👁️ Voir</button>
-                                <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑️ Supprimer</button>
+                                <button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;"  data-id="${data}">👁 Voir</button>
+                                <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>
                             `;
                         }
                     }

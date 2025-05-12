@@ -16,17 +16,306 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <link rel="stylesheet" href="~/css/LogIn.css">
+    <!-- Force hardware acceleration in Chrome -->
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
+        html {
+            transform: translateZ(0);
         }
 
+        :root {
+            --light-grey: #e8e5e9;
+            --win11-input-bg: rgba(0, 0, 0, 0.3);
+            --win11-blur: 15px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+            transition-duration: 0.3s;
+        }
+
+        /* Fix for background image */
+        body {
+            /* Use the correct path format for background images in CSS */
+            background-image: url('@Url.Content("~/images/Untitled design (2).png")');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: cover;
+            height: 100vh;
+            color: white;
+            /* Force hardware acceleration in Chrome */
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            -o-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 98%;
+            position: relative;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .avatar {
+            width: 170px;
+            height: 170px;
+            background: var(--light-grey);
+            border-radius: 50px;
+            font-size: 6rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .avatar svg {
+                width: 1em;
+                fill: #777;
+                margin-top: -0.05em;
+            }
+
+        .username {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+
+        /* Windows 11 style input field */
+        .win11-input-container {
+            position: relative;
+            width: 350px;
+            margin: 10px 0;
+            /* Create a new stacking context */
+            isolation: isolate;
+            z-index: 1;
+        }
+
+        /* Cross-browser transparent input styling */
+        .win11-input {
+            width: 100%;
+            height: 40px;
+            /* Multiple background declarations for better cross-browser support */
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: none !important;
+            border-radius: 4px;
+            color: white !important;
+            font-size: 16px;
+            padding: 0 40px 0 40px;
+            /* Apply all vendor prefixes for backdrop-filter */
+            -webkit-backdrop-filter: blur(var(--win11-blur));
+            -moz-backdrop-filter: blur(var(--win11-blur));
+            -o-backdrop-filter: blur(var(--win11-blur));
+            backdrop-filter: blur(var(--win11-blur));
+            /* Force hardware acceleration */
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            /* Remove default styling */
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            /* Ensure proper compositing */
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        /* Alternative method for Chrome */
+        @@supports (-webkit-backdrop-filter: none) {
+            .win11-input
+
+        {
+            -webkit-backdrop-filter: blur(var(--win11-blur));
+            backdrop-filter: blur(var(--win11-blur));
+        }
+
+        }
+
+        /* For browsers that don't support backdrop-filter */
+        @@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+            .win11-input
+
+        {
+            background-color: rgba(0, 0, 0, 0.6) !important; /* Darker fallback */
+        }
+
+        }
+
+        /* Ensure background color remains in all states */
+        .win11-input:hover,
+        .win11-input:focus,
+        .win11-input:active,
+        .win11-input:disabled {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            color: white !important;
+        }
+
+        .win11-input:focus {
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .win11-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Password dot */
+        .password-dot {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        /* Arrow button */
+        .arrow-button {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent !important;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            z-index: 2;
+        }
+
+        /* Legacy password input styling - keeping for compatibility */
+        .password {
+            position: relative;
+            color: var(--light-grey);
+            width: 100%;
+            max-width: 350px;
+        }
+
+            .password input {
+                color: #fff;
+                padding: 0.4rem 1rem;
+                border-radius: 0.3rem;
+                width: 70%;
+                margin-top: 1rem;
+                border: 0.13rem solid rgba(200, 200, 200, 0.2);
+                background: rgba(38, 38, 38, 0.5);
+                outline: none;
+                font-size: 1rem;
+            }
+
+                .password input:focus {
+                    border-bottom-color: currentcolor;
+                }
+
+                .password input::placeholder {
+                    color: currentcolor;
+                }
+
+            .password svg {
+                width: 1.5em;
+                fill: currentcolor;
+                position: absolute;
+                right: 0.5rem;
+                top: 42%;
+            }
+
+        .btn {
+            min-height: 2.5rem;
+            min-width: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+            .btn:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+
+        .bottom-right {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 1rem;
+            color: var(--light-grey);
+        }
+
+            .bottom-right svg {
+                width: 1.5em;
+                fill: currentcolor;
+            }
+
+        .bottom-left {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-direction: column;
+        }
+
+            .bottom-left .user .avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 1.3rem;
+            }
+
+            .bottom-left .user {
+                display: flex;
+                padding: 0.3rem 0.5rem;
+                gap: 0.5rem;
+                align-items: center;
+                font-weight: bold;
+                color: var(--light-grey);
+            }
+
+        /* Remember me checkbox */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--light-grey);
+            margin: 10px 0;
+            align-self: flex-start;
+            margin-left: 10px;
+        }
+
+        /* Validation messages */
+        .validation-message {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        /* Logo container */
         .logo-container {
             position: absolute;
             top: 30px;
-            left: 20px;
+            left: 30px;
         }
 
         .logo {
@@ -34,14 +323,42 @@
             height: auto;
         }
 
-        /* Add more CSS to style the form if needed */
+        /* Override any potential browser or framework styles */
+        input[type="email"].win11-input,
+        input[type="password"].win11-input,
+        input[type="text"].win11-input {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+            color: white !important;
+        }
+
+        /* Ensure autofill doesn't change background */
+        input.win11-input:-webkit-autofill,
+        input.win11-input:-webkit-autofill:hover,
+        input.win11-input:-webkit-autofill:focus,
+        input.win11-input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px rgba(0, 0, 0, 0.3) inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+            background-color: rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* Chrome-specific fixes */
+        @@media screen and (-webkit-min-device-pixel-ratio:0) {
+            .win11-input
+
+        {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            -webkit-backdrop-filter: blur(var(--win11-blur));
+        }
+
+        }
     </style>
 </head>
 <body>
-
     <section>
         <div class="logo-container">
-            <img src="~/images/Tunisair-Logo-Vector.svg-.png" alt="Logo" class="logo">
+            <img src="@Url.Content("~/images/Tunisair-Logo-Vector.svg-.png")" alt="Logo" class="logo">
         </div>
 
         <!-- Login Form -->
@@ -53,22 +370,21 @@
                 </svg>
             </div>
 
-            <!-- Email Input -->
-            <input asp-for="Email" placeholder="Email" />
-            <span asp-validation-for="Email"></span>
-
-            <!-- Password Input -->
-
-            <input asp-for="Password" placeholder="Password" type="password" />
-            <span asp-validation-for="Password"></span>
-
-            <!-- Remember Me -->
-            <div class="remember-me">
-                <input asp-for="RememberMe" type="checkbox" /> Remember Me
+            <!-- Email Input - Windows 11 Style -->
+            <div class="win11-input-container">
+                <input asp-for="Email" placeholder="Email" class="win11-input" />
+                <span asp-validation-for="Email" class="validation-message"></span>
             </div>
 
-            <!-- Submit Button -->
-            <button type="submit">Login</button>
+            <!-- Password Input - Windows 11 Style -->
+            <div class="win11-input-container">
+                <span class="password-dot"></span>
+                <input asp-for="Password" placeholder="Password" type="password" class="win11-input" />
+                <button type="submit" class="arrow-button">→</button>
+                <span asp-validation-for="Password" class="validation-message"></span>
+            </div>
+
+          
         </form>
 
         <div class="bottom-left">
@@ -92,7 +408,6 @@
                 <p>Other user</p>
             </div>
         </div>
-
     </section>
 
     <script src="~/js/Login.js"></script>

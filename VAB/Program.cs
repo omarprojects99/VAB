@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using VAB.Data;
 using Microsoft.AspNetCore.Identity;
 using VAB.Models;
-
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
+//using TextExtraction; pdf extractor
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -22,7 +24,16 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Account/Logout";
 });
 
-
+//#region Test===================================================================================================================
+//var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+//var logger = loggerFactory.CreateLogger<PdfTextExtractor>();
+//var extractor = new PdfTextExtractor(logger);
+//var textSections = await extractor.ExtractAsync("file.pdf");
+//foreach (var section in textSections)
+//{
+//    Console.WriteLine($"Title: {section.Title}, Type: {section.Type}, Content: {section.Content}");
+//}
+//#endregion                                                   pdf extractor
 
 var app = builder.Build();
 
@@ -59,5 +70,13 @@ app.MapControllerRoute(
 //        await userManager.CreateAsync(user, password);
 //    }
 //}
+// Configure culture
+var supportedCultures = new[] { new CultureInfo("fr-FR") };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("fr-FR"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 app.Run();

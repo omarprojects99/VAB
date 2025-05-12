@@ -89,6 +89,17 @@ namespace VAB.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
 
+            builder.Entity<Vol>()
+                .HasOne(v => v.FeuilleDeLignes)
+                .WithMany(f => f.Vols)
+                .HasForeignKey(v => v.FeuilleDeLignesId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Vol>()
+                .HasOne(v => v.EtatDesVentesArrivee)
+                .WithMany()
+                .HasForeignKey(v => v.EtatDesVentesArriveeId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
 

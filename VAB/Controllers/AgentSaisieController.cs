@@ -119,13 +119,58 @@ namespace VAB.Controllers
             foreach (var numero in vm.FeuilleDeLignesNumeros)
             {
                 if (numero <= 0) continue;
-                var f = await _context.FeuilleDeLignes.FirstOrDefaultAsync(x => x.Numero == numero);
+                var f = await _context.FeuilleDeLignes
+                    .Include(f => f.Vols)
+                    .FirstOrDefaultAsync(x => x.Numero == numero);
                 if (f == null)
                 {
                     ViewBag.ErrorMessage = $"Feuille de Lignes avec Numéro {numero} n'existe pas.";
                     return PartialView("AddEtatDeVenteArrivee", vm);
                 }
                 feuilles.Add(f);
+            }
+
+            // Validate Vol
+            Vol vol = null;
+            foreach (var feuille in feuilles)
+            {
+                vol = feuille.Vols.FirstOrDefault(v => v.Numero == vm.FlightNumber);
+                if (vol != null) break;
+            }
+            if (vol == null)
+            {
+                ViewBag.ErrorMessage = $"Le vol {vm.FlightNumber} n'existe pas dans les Feuilles de Lignes spécifiées.";
+                return PartialView("AddEtatDeVenteArrivee", vm);
+            }
+
+            // Log input and database values for debugging
+            Console.WriteLine($"Validating Vol: Numero={vm.FlightNumber}");
+            Console.WriteLine($"Input: Date={vm.FlightDate:yyyy-MM-dd}, DB: Date={vol.Date:yyyy-MM-dd}");
+            Console.WriteLine($"Input: Destination={vm.Destination}, DB: Destination={vol.Destination}");
+            Console.WriteLine($"Input: TypeVol={vm.FlightType}, DB: TypeVol={vol.TypeVol}");
+            Console.WriteLine($"Input: Heure={vm.FlightTime}, DB: Heure={vol.Heure}");
+            Console.WriteLine($"Input: NombrePassagers={vm.TotalPassengers}, DB: NombrePassagers={vol.NombrePassagers}");
+            Console.WriteLine($"Input: Aircraft={vm.Aircraft ?? "null"}, DB: Aircraft={vol.Aircraft ?? "null"}");
+
+            // Validate Vol details with case-insensitive string comparison
+            var errors = new List<string>();
+            if (vol.Date.Date != vm.FlightDate.Date)
+                errors.Add($"Date mismatch: Input={vm.FlightDate:yyyy-MM-dd}, DB={vol.Date:yyyy-MM-dd}");
+            if (!string.Equals(vol.Destination?.Trim(), vm.Destination?.Trim(), StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Destination mismatch: Input={vm.Destination}, DB={vol.Destination}");
+            if (!string.Equals(vol.TypeVol?.Trim(), vm.FlightType?.Trim(), StringComparison.OrdinalIgnoreCase))
+                errors.Add($"TypeVol mismatch: Input={vm.FlightType}, DB={vol.TypeVol}");
+            if (vol.Heure != vm.FlightTime)
+                errors.Add($"Heure mismatch: Input={vm.FlightTime}, DB={vol.Heure}");
+            if (vol.NombrePassagers != vm.TotalPassengers)
+                errors.Add($"NombrePassagers mismatch: Input={vm.TotalPassengers}, DB={vol.NombrePassagers}");
+            if (vol.Aircraft != null && vm.Aircraft != null && !string.Equals(vol.Aircraft.Trim(), vm.Aircraft.Trim(), StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Aircraft mismatch: Input={vm.Aircraft}, DB={vol.Aircraft}");
+
+            if (errors.Any())
+            {
+                ViewBag.ErrorMessage = "Les détails du vol ne correspondent pas aux informations de la Feuille de Lignes: " + string.Join("; ", errors);
+                return PartialView("AddEtatDeVenteArrivee", vm);
             }
 
             // Validate CC1
@@ -202,12 +247,20 @@ namespace VAB.Controllers
             var dynamicPncIds = new List<int>();
             if (vm.DynamicPncs != null && vm.DynamicPncs.Any())
             {
+                Console.WriteLine($"Received {vm.DynamicPncs.Count} dynamic PNCs");
+                var uniqueMatricules = new HashSet<string>();
                 foreach (var dynamicPnc in vm.DynamicPncs)
                 {
+                    Console.WriteLine($"Processing PNC: Name={dynamicPnc.Name}, Matricule={dynamicPnc.Matricule}");
                     if (string.IsNullOrEmpty(dynamicPnc.Name) || string.IsNullOrEmpty(dynamicPnc.Matricule))
                     {
-                        ViewBag.ErrorMessage = "Veuillez fournir à la fois le nom et le matricule pour chaque PNC dynamique.";
-                        return PartialView("AddEtatDeVenteArrivee", vm);
+                        Console.WriteLine($"Skipping empty PNC: Name={dynamicPnc.Name}, Matricule={dynamicPnc.Matricule}");
+                        continue;
+                    }
+                    if (!uniqueMatricules.Add(dynamicPnc.Matricule))
+                    {
+                        Console.WriteLine($"Skipping duplicate PNC matricule: {dynamicPnc.Matricule}");
+                        continue;
                     }
                     var pnc = await _context.Pncs.FirstOrDefaultAsync(p => p.Matricule == dynamicPnc.Matricule);
                     if (pnc == null)
@@ -222,6 +275,7 @@ namespace VAB.Controllers
                     }
                     dynamicPncIds.Add(pnc.PncId);
                 }
+                Console.WriteLine($"Unique PncIds: {string.Join(", ", dynamicPncIds)}");
             }
 
             // Create Equipage
@@ -232,19 +286,32 @@ namespace VAB.Controllers
                 Pnc1Id = pnc1.PncId,
                 Pnc2Id = pnc2?.PncId
             };
-
             _context.Equipages.Add(equipage);
             await _context.SaveChangesAsync();
+            Console.WriteLine($"Created Equipage with ID={equipage.EquipageId}");
 
             // Add Dynamic PNCs to PncEquipages
-            foreach (var pncId in dynamicPncIds)
+            try
             {
-                var pncEquipage = new PncEquipage
+                foreach (var pncId in dynamicPncIds)
                 {
-                    PncId = pncId,
-                    EquipageId = equipage.EquipageId
-                };
-                _context.PncEquipages.Add(pncEquipage);
+                    var pncEquipage = new PncEquipage
+                    {
+                        PncId = pncId,
+                        EquipageId = equipage.EquipageId
+                    };
+                    _context.PncEquipages.Add(pncEquipage);
+                    Console.WriteLine($"Added PncEquipage: PncId={pncId}, EquipageId={equipage.EquipageId}");
+                }
+                Console.WriteLine($"PncEquipages to save: {_context.ChangeTracker.Entries<PncEquipage>().Count(e => e.State == EntityState.Added)}");
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Saved {await _context.PncEquipages.CountAsync(pe => pe.EquipageId == equipage.EquipageId)} PncEquipages");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"PncEquipage save error: {ex.Message}");
+                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement des PNC dynamiques : {ex.Message}";
+                return PartialView("AddEtatDeVenteArrivee", vm);
             }
 
             // Create EtatDesVentesArrivee
@@ -271,10 +338,17 @@ namespace VAB.Controllers
             {
                 _context.EtatDesVentesArrivee.Add(etat);
                 await _context.SaveChangesAsync();
+                Console.WriteLine($"Saved EtatDesVentesArrivee: Numero={etat.Numero}, VolId={vol.Id}");
+
+                // Update Vol to link to EtatDesVentesArrivee
+                vol.EtatDesVentesArriveeId = etat.Id;
+                _context.Vols.Update(vol);
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement : {ex.Message}";
+                Console.WriteLine($"Etat save error: {ex.Message}");
+                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement de l'état : {ex.Message}";
                 return PartialView("AddEtatDeVenteArrivee", vm);
             }
 
@@ -355,6 +429,8 @@ namespace VAB.Controllers
             {
                 return NotFound("État des Ventes non trouvé ou vous n'êtes pas autorisé à le voir.");
             }
+            var vol = await _context.Vols
+        .FirstOrDefaultAsync(v => v.EtatDesVentesArriveeId == id);
 
             var vm = new EtatDesVentesArriveeViewModel
             {
@@ -375,10 +451,48 @@ namespace VAB.Controllers
                 {
                     Name = $"{pe.Pnc.Nom} {pe.Pnc.Prenom}",
                     Matricule = pe.Pnc.Matricule
-                }).ToList()
+                }).ToList() ?? new List<DynamicPnc>(),
+                // Vol details
+                FlightNumber = vol?.Numero ?? 0,
+                FlightDate = vol?.Date ?? DateTime.MinValue,
+                Destination = vol?.Destination,
+                Aircraft = vol?.Aircraft,
+                FlightTime = vol?.Heure ?? TimeSpan.Zero,
+                FlightType = vol?.TypeVol,
+                TotalPassengers = vol?.NombrePassagers ?? 0
             };
 
             return PartialView("ViewEtatDeVenteArrivee", vm);
+        }
+        public async Task<IActionResult> ValidateFlightNumber(int flightNumber, string feuilleNumeros)
+        {
+            if (string.IsNullOrEmpty(feuilleNumeros))
+            {
+                return Json(new { isValid = false, message = "Veuillez spécifier au moins un numéro de Feuille de Lignes." });
+            }
+
+            var numeroList = feuilleNumeros.Split(',').Select(n => int.TryParse(n, out int num) ? num : 0).Where(n => n > 0).ToList();
+            if (!numeroList.Any())
+            {
+                return Json(new { isValid = false, message = "Aucun numéro de Feuille de Lignes valide fourni." });
+            }
+
+            var feuille = await _context.FeuilleDeLignes
+                .Include(f => f.Vols)
+                .FirstOrDefaultAsync(f => numeroList.Contains(f.Numero));
+
+            if (feuille == null)
+            {
+                return Json(new { isValid = false, message = "Aucune Feuille de Lignes correspondante trouvée." });
+            }
+
+            var volExists = feuille.Vols.Any(v => v.Numero == flightNumber);
+            if (!volExists)
+            {
+                return Json(new { isValid = false, message = $"Le vol {flightNumber} n'existe pas dans les Feuilles de Lignes spécifiées." });
+            }
+
+            return Json(new { isValid = true });
         }
     }
 }

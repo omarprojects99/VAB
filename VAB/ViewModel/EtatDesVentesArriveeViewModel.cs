@@ -68,6 +68,45 @@ namespace VAB.ViewModel
         [Display(Name = "Tot Pax")]
         public int TotalPassengers { get; set; }
 
+        public List<ArticleVenteViewModel> ArticleVentes { get; set; } = new List<ArticleVenteViewModel>();
+
+        // Summary fields
+        [DataType(DataType.Currency)]
+        public decimal? TotalEncaisse { get; set; }
+
+        [DataType(DataType.Currency)]
+        public decimal? EcartPlus { get; set; }
+
+        [DataType(DataType.Currency)]
+        public decimal? EcartMoins { get; set; }
+
+    }
+    public class ArticleVenteViewModel
+    {
+        public int ArticleId { get; set; }
+        public int IdArticle { get; set; } // User inputs this
+        public string Description { get; set; }
+        public int CategorieId { get; set; }
+
+        [Display(Name = "Catégorie")]
+        public string CategorieDescription { get; set; }
+        public int QuantiteDotation { get; set; }
+        public int QuantiteComplementaire { get; set; }
+        public int QuantiteCasse { get; set; }
+        public int QuantiteOffert { get; set; }
+        public int QuantiteVendu { get; set; }
+        [Display(Name = "Total embarqué")]
+        public int TotalEmbarque => QuantiteDotation + QuantiteComplementaire;
+
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [RegularExpression(@"^\d+(\.\d{1,2})?$", ErrorMessage = "Le prix doit être un nombre décimal avec 2 décimales maximum.")]
+        public decimal PrixUnitaireHT { get; set; }
+
+        [Display(Name = "Valeur")]
+        public decimal Valeur => QuantiteVendu * PrixUnitaireHT;
+
+        [Display(Name = "Restant")]
+        public int Restant => TotalEmbarque - QuantiteCasse - QuantiteOffert - QuantiteVendu;
     }
     public class DynamicPnc
     {

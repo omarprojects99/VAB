@@ -445,15 +445,7 @@ namespace VAB.Controllers
                     IdArticle = model.IdArticle,
                     Description = model.Description,
                     CategorieId = model.CategorieId,
-                    QuantiteDotation = 0,
-                    QuantiteComplementaire = 0,
-                    TotalEmbarque = 0,
-                    QuantiteCasse = 0,
-                    QuantiteOffert = 0,
-                    QuantiteVendu = 0,
-                    PrixUnitaireHT = 0m,
-                    Valeur = 0m,
-                    Restant = 0,
+                   
                     PrixHistorique = new List<Prix>()
                 };
                 _context.Articles.Add(article);

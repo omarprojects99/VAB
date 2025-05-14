@@ -23,6 +23,7 @@ namespace VAB.Data
         public DbSet<Vol> Vols { get; set; }
         public DbSet<FeuilleDeLignes> FeuilleDeLignes { get; set; }
         public DbSet<FeuilleEtatDesVentesArrivee> FeuilleEtatDesVentesArrivee { get; set; }
+        public DbSet<ArticleVente> ArticleVentes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -100,6 +101,17 @@ namespace VAB.Data
                 .WithMany()
                 .HasForeignKey(v => v.EtatDesVentesArriveeId)
                 .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<ArticleVente>()
+                .HasOne(av => av.Article)
+                .WithMany()
+                .HasForeignKey(av => av.ArticleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ArticleVente>()
+                .HasOne(av => av.EtatDesVentesArrivee)
+                .WithMany(e => e.ArticleVentes)
+                .HasForeignKey(av => av.EtatDesVentesArriveeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
 
 

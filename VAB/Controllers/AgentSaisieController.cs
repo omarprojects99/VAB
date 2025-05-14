@@ -17,6 +17,10 @@ using VAB.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace VAB.Controllers
 {
@@ -89,10 +93,51 @@ namespace VAB.Controllers
         {
             ModelState.Remove("AgentSaisieId");
             ModelState.Remove("AgentSaisieName");
+            if (vm.ArticleVentes != null)
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    ModelState.Remove($"ArticleVentes[{vm.ArticleVentes.IndexOf(av)}].CategorieDescription");
+                }
+            }
+            if (vm.ArticleVentes != null)
+            {
+                for (int i = 0; i < vm.ArticleVentes.Count; i++)
+                {
+                    ModelState.Remove($"ArticleVentes[{i}].PrixUnitaireHT");
+                }
+            }
+            // After removing validation, manually set the PrixUnitaireHT from the database
+            if (vm.ArticleVentes != null)
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    if (av.ArticleId > 0)
+                    {
+                        // Get the correct price from the database
+                        var article = await _context.Articles.FindAsync(av.ArticleId);
+                        if (article != null)
+                        {
+                            // Use the database value instead of the form value
+                            av.PrixUnitaireHT = article.PrixUnitaireHT;
+                        }
+                    }
+                }
+            }
+            // Log ArticleVentes for debugging
+            Console.WriteLine($"Received ArticleVentes: Count={(vm.ArticleVentes?.Count ?? 0)}");
+            if (vm.ArticleVentes != null)
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    Console.WriteLine($"Article: ArticleId={av.ArticleId}, IdArticle={av.IdArticle}, PrixUnitaireHT={av.PrixUnitaireHT}, QuantiteVendu={av.QuantiteVendu}");
+                }
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.ErrorMessage = "Veuillez corriger les erreurs dans le formulaire.";
+                var errorss = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                ViewBag.ErrorMessage = "Veuillez corriger les erreurs dans le formulaire: " + string.Join("; ", errorss);
                 return PartialView("AddEtatDeVenteArrivee", vm);
             }
 
@@ -278,21 +323,71 @@ namespace VAB.Controllers
                 Console.WriteLine($"Unique PncIds: {string.Join(", ", dynamicPncIds)}");
             }
 
-            // Create Equipage
-            var equipage = new Equipage
-            {
-                Cc1Id = cc1.CcId,
-                Cc2Id = cc2?.CcId,
-                Pnc1Id = pnc1.PncId,
-                Pnc2Id = pnc2?.PncId
-            };
-            _context.Equipages.Add(equipage);
-            await _context.SaveChangesAsync();
-            Console.WriteLine($"Created Equipage with ID={equipage.EquipageId}");
 
-            // Add Dynamic PNCs to PncEquipages
+            // Validate ArticleVentes
+            var articleVentes = new List<ArticleVente>();
+            if (vm.ArticleVentes != null && vm.ArticleVentes.Any())
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    if (av.ArticleId <= 0 || av.IdArticle <= 0)
+                    {
+                        Console.WriteLine($"Skipping invalid article: ArticleId={av.ArticleId}, IdArticle={av.IdArticle}");
+                        continue;
+                    }
+
+                    var article = await _context.Articles
+                        .Include(a => a.Categorie)
+                        .FirstOrDefaultAsync(a => a.Id == av.ArticleId && a.IdArticle == av.IdArticle);
+                    if (article == null)
+                    {
+                        ViewBag.ErrorMessage = $"L'article avec ID {av.IdArticle} n'existe pas.";
+                        return PartialView("AddEtatDeVenteArrivee", vm);
+                    }
+
+                    // Validate PrixUnitaireHT with tolerance
+                    const decimal tolerance = 0.01m;
+                    if (Math.Abs(article.PrixUnitaireHT - av.PrixUnitaireHT) > tolerance)
+                    {
+                        ViewBag.ErrorMessage = $"Le prix unitaire HT pour l'article {av.IdArticle} ne correspond pas (DB: {article.PrixUnitaireHT}, Input: {av.PrixUnitaireHT}).";
+                        return PartialView("AddEtatDeVenteArrivee", vm);
+                    }
+
+                    var articleVente = new ArticleVente
+                    {
+                        ArticleId = av.ArticleId,
+                        QuantiteDotation = av.QuantiteDotation,
+                        QuantiteComplementaire = av.QuantiteComplementaire,
+                        QuantiteCasse = av.QuantiteCasse,
+                        QuantiteOffert = av.QuantiteOffert,
+                        QuantiteVendu = av.QuantiteVendu,
+                        PrixUnitaireHT = article.PrixUnitaireHT // Use DB value for consistency
+                    };
+                    articleVentes.Add(articleVente);
+                }
+            }
+
+            if (!articleVentes.Any())
+            {
+                ViewBag.ErrorMessage = "Veuillez ajouter au moins un article valide.";
+                return PartialView("AddEtatDeVenteArrivee", vm);
+            }
+
             try
             {
+                // Create Equipage
+                var equipage = new Equipage
+                {
+                    Cc1Id = cc1.CcId,
+                    Cc2Id = cc2?.CcId,
+                    Pnc1Id = pnc1.PncId,
+                    Pnc2Id = pnc2?.PncId
+                };
+                _context.Equipages.Add(equipage);
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Created Equipage with ID={equipage.EquipageId}");
+
+                // Add Dynamic PNCs to PncEquipages
                 foreach (var pncId in dynamicPncIds)
                 {
                     var pncEquipage = new PncEquipage
@@ -306,36 +401,36 @@ namespace VAB.Controllers
                 Console.WriteLine($"PncEquipages to save: {_context.ChangeTracker.Entries<PncEquipage>().Count(e => e.State == EntityState.Added)}");
                 await _context.SaveChangesAsync();
                 Console.WriteLine($"Saved {await _context.PncEquipages.CountAsync(pe => pe.EquipageId == equipage.EquipageId)} PncEquipages");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"PncEquipage save error: {ex.Message}");
-                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement des PNC dynamiques : {ex.Message}";
-                return PartialView("AddEtatDeVenteArrivee", vm);
-            }
 
-            // Create EtatDesVentesArrivee
-            var etat = new EtatDesVentesArrivee
-            {
-                Numero = vm.Numero,
-                DateEdition = vm.DateEdition,
-                EquipageId = equipage.EquipageId,
-                AgentSaisieId = user.Id,
-                FeuilleEtatDesVentes = new List<FeuilleEtatDesVentesArrivee>()
-            };
-
-            foreach (var f in feuilles)
-            {
-                var junction = new FeuilleEtatDesVentesArrivee
+                // Create EtatDesVentesArrivee
+                var etat = new EtatDesVentesArrivee
                 {
-                    FeuilleDeLignes = f,
-                    EtatDesVentesArrivee = etat
+                    Numero = vm.Numero,
+                    DateEdition = vm.DateEdition,
+                    EquipageId = equipage.EquipageId,
+                    AgentSaisieId = user.Id,
+                    TotalEncaisse = vm.TotalEncaisse,
+                    EcartPlus = vm.EcartPlus,
+                    EcartMoins = vm.EcartMoins,
+                    FeuilleEtatDesVentes = new List<FeuilleEtatDesVentesArrivee>(),
+                    ArticleVentes = articleVentes
                 };
-                etat.FeuilleEtatDesVentes.Add(junction);
-            }
 
-            try
-            {
+                foreach (var f in feuilles)
+                {
+                    var junction = new FeuilleEtatDesVentesArrivee
+                    {
+                        FeuilleDeLignes = f,
+                        EtatDesVentesArrivee = etat
+                    };
+                    etat.FeuilleEtatDesVentes.Add(junction);
+                }
+
+                foreach (var av in articleVentes)
+                {
+                    av.EtatDesVentesArrivee = etat;
+                }
+
                 _context.EtatDesVentesArrivee.Add(etat);
                 await _context.SaveChangesAsync();
                 Console.WriteLine($"Saved EtatDesVentesArrivee: Numero={etat.Numero}, VolId={vol.Id}");
@@ -344,16 +439,22 @@ namespace VAB.Controllers
                 vol.EtatDesVentesArriveeId = etat.Id;
                 _context.Vols.Update(vol);
                 await _context.SaveChangesAsync();
+
+                ViewBag.Success = true;
+                return PartialView("AddEtatDeVenteArrivee", new EtatDesVentesArriveeViewModel());
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"Database error: {dbEx.InnerException?.Message ?? dbEx.Message}");
+                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement des données: {dbEx.InnerException?.Message ?? dbEx.Message}";
+                return PartialView("AddEtatDeVenteArrivee", vm);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Etat save error: {ex.Message}");
-                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement de l'état : {ex.Message}";
+                Console.WriteLine($"General error: {ex.Message}");
+                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement de l'état: {ex.Message}";
                 return PartialView("AddEtatDeVenteArrivee", vm);
             }
-
-            ViewBag.Success = true;
-            return PartialView("AddEtatDeVenteArrivee", vm);
         }
 
         // GET: DataTable AJAX source
@@ -423,17 +524,46 @@ namespace VAB.Controllers
                 .Include(e => e.Equipage)
                 .ThenInclude(e => e.PncEquipages)
                 .ThenInclude(pe => pe.Pnc)
+                .Include(e => e.ArticleVentes) // Changed from ArticlesVendus to match your model
+                .ThenInclude(a => a.Article)
+                .ThenInclude(a => a.Categorie)
                 .FirstOrDefaultAsync(e => e.Id == id && e.AgentSaisieId == user.Id);
 
             if (etat == null)
             {
                 return NotFound("État des Ventes non trouvé ou vous n'êtes pas autorisé à le voir.");
             }
+
             var vol = await _context.Vols
-        .FirstOrDefaultAsync(v => v.EtatDesVentesArriveeId == id);
+                .FirstOrDefaultAsync(v => v.EtatDesVentesArriveeId == id);
+
+            // Create a list of ArticleVenteViewModel objects that match the structure expected by the view
+            var articleVentes = new List<ArticleVenteViewModel>();
+
+            if (etat.ArticleVentes != null)
+            {
+                foreach (var av in etat.ArticleVentes)
+                {
+                    articleVentes.Add(new ArticleVenteViewModel
+                    {
+                        ArticleId = av.ArticleId,
+                        IdArticle = av.Article.IdArticle, // Make sure this property exists in your Article model
+                        Description = av.Article.Description,
+                        CategorieId = av.Article.CategorieId,
+                        CategorieDescription = av.Article.Categorie.Description,
+                        QuantiteDotation = av.QuantiteDotation,
+                        QuantiteComplementaire = av.QuantiteComplementaire,
+                        QuantiteCasse = av.QuantiteCasse,
+                        QuantiteOffert = av.QuantiteOffert,
+                        QuantiteVendu = av.QuantiteVendu,
+                        PrixUnitaireHT = av.PrixUnitaireHT
+                    });
+                }
+            }
 
             var vm = new EtatDesVentesArriveeViewModel
             {
+                Id = etat.Id,
                 Numero = etat.Numero,
                 DateEdition = etat.DateEdition,
                 AgentSaisieId = etat.AgentSaisieId,
@@ -447,7 +577,7 @@ namespace VAB.Controllers
                 Pnc1Matricule = etat.Equipage.Pnc1.Matricule,
                 Pnc2Name = etat.Equipage.Pnc2 != null ? $"{etat.Equipage.Pnc2.Nom} {etat.Equipage.Pnc2.Prenom}" : null,
                 Pnc2Matricule = etat.Equipage.Pnc2?.Matricule,
-                DynamicPncs = etat.Equipage.PncEquipages.Select(pe => new DynamicPnc
+                DynamicPncs = etat.Equipage.PncEquipages?.Select(pe => new DynamicPnc
                 {
                     Name = $"{pe.Pnc.Nom} {pe.Pnc.Prenom}",
                     Matricule = pe.Pnc.Matricule
@@ -459,7 +589,13 @@ namespace VAB.Controllers
                 Aircraft = vol?.Aircraft,
                 FlightTime = vol?.Heure ?? TimeSpan.Zero,
                 FlightType = vol?.TypeVol,
-                TotalPassengers = vol?.NombrePassagers ?? 0
+                TotalPassengers = vol?.NombrePassagers ?? 0,
+                // Financial details
+                TotalEncaisse = etat.TotalEncaisse,
+                EcartPlus = etat.EcartPlus,
+                EcartMoins = etat.EcartMoins,
+                // Set the ArticleVentes property directly
+                ArticleVentes = articleVentes
             };
 
             return PartialView("ViewEtatDeVenteArrivee", vm);
@@ -494,5 +630,34 @@ namespace VAB.Controllers
 
             return Json(new { isValid = true });
         }
+        [HttpGet]
+        public async Task<IActionResult> GetArticleDetails(int idArticle)
+        {
+            var article = await _context.Articles
+                .Include(a => a.Categorie)
+                .FirstOrDefaultAsync(a => a.IdArticle == idArticle);
+
+            if (article == null)
+            {
+                return Json(new { success = false, message = $"Article avec ID {idArticle} n'existe pas." });
+            }
+
+            return Json(new
+            {
+                success = true,
+                article = new
+                {
+                    id = article.Id,
+                    idArticle = article.IdArticle,
+                    description = article.Description,
+                    categorieId = article.CategorieId,
+                    categorieDescription = article.Categorie.Description ?? "Unknown",
+                    prixUnitaireHT = article.PrixUnitaireHT.ToString("F2", CultureInfo.InvariantCulture)
+                }
+            });
+        }
+
+
+
     }
 }

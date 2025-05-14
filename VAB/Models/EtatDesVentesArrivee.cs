@@ -28,6 +28,12 @@ namespace VAB.Models
         // Many-to-many with FeuilleDeLignes
          public List<FeuilleEtatDesVentesArrivee> FeuilleEtatDesVentes { get; set; }
 
-      
+        public List<ArticleVente> ArticleVentes { get; set; } = new List<ArticleVente>();
+
+        public decimal? TotalEncaisse { get; set; }
+        public decimal? EcartPlus { get; set; }
+        public decimal? EcartMoins { get; set; }
+
+
     }
 }

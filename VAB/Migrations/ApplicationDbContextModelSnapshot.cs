@@ -177,31 +177,6 @@ namespace VAB.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("QuantiteCasse")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuantiteComplementaire")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuantiteDotation")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuantiteOffert")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuantiteVendu")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Restant")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalEmbarque")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Valeur")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategorieId");
@@ -209,7 +184,7 @@ namespace VAB.Migrations
                     b.ToTable("Articles");
                 });
 
-            modelBuilder.Entity("VAB.Models.Categorie", b =>
+            modelBuilder.Entity("VAB.Models.ArticleVente", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -217,9 +192,11 @@ namespace VAB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EtatDesVentesArriveeId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("PrixUnitaireHT")
                         .HasPrecision(18, 2)
@@ -240,15 +217,26 @@ namespace VAB.Migrations
                     b.Property<int>("QuantiteVendu")
                         .HasColumnType("int");
 
-                    b.Property<int>("Restant")
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.ToTable("ArticleVentes");
+                });
+
+            modelBuilder.Entity("VAB.Models.Categorie", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalEmbarque")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Valeur")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -346,12 +334,21 @@ namespace VAB.Migrations
                     b.Property<DateTime>("DateEdition")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("EcartMoins")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EcartPlus")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("EquipageId")
                         .HasColumnType("int");
 
                     b.Property<string>("Numero")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("TotalEncaisse")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -586,9 +583,6 @@ namespace VAB.Migrations
                     b.Property<int?>("EtatDesVentesArriveeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("EtatDesVentesArriveeId1")
-                        .HasColumnType("int");
-
                     b.Property<int?>("FeuilleDeLignesId")
                         .HasColumnType("int");
 
@@ -608,10 +602,6 @@ namespace VAB.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EtatDesVentesArriveeId");
-
-                    b.HasIndex("EtatDesVentesArriveeId1")
-                        .IsUnique()
-                        .HasFilter("[EtatDesVentesArriveeId1] IS NOT NULL");
 
                     b.HasIndex("FeuilleDeLignesId");
 
@@ -678,6 +668,25 @@ namespace VAB.Migrations
                         .IsRequired();
 
                     b.Navigation("Categorie");
+                });
+
+            modelBuilder.Entity("VAB.Models.ArticleVente", b =>
+                {
+                    b.HasOne("VAB.Models.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
+                        .WithMany("ArticleVentes")
+                        .HasForeignKey("EtatDesVentesArriveeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("EtatDesVentesArrivee");
                 });
 
             modelBuilder.Entity("VAB.Models.Equipage", b =>
@@ -788,10 +797,6 @@ namespace VAB.Migrations
                         .HasForeignKey("EtatDesVentesArriveeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("VAB.Models.EtatDesVentesArrivee", null)
-                        .WithOne("Vol")
-                        .HasForeignKey("VAB.Models.Vol", "EtatDesVentesArriveeId1");
-
                     b.HasOne("VAB.Models.FeuilleDeLignes", "FeuilleDeLignes")
                         .WithMany("Vols")
                         .HasForeignKey("FeuilleDeLignesId")
@@ -819,10 +824,9 @@ namespace VAB.Migrations
 
             modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
                 {
-                    b.Navigation("FeuilleEtatDesVentes");
+                    b.Navigation("ArticleVentes");
 
-                    b.Navigation("Vol")
-                        .IsRequired();
+                    b.Navigation("FeuilleEtatDesVentes");
                 });
 
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>

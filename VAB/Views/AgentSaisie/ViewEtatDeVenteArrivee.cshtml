@@ -50,7 +50,7 @@
     <div class="tables-container" style="display: flex; gap: 20px; margin-bottom: 15px;">
         <!-- PNC Dynamiques Table -->
         <div class="dynamic-pnc-section" style="flex: 1;">
-            <h4 class="form-title">PNCs</h4>
+            <h4 class="section-title">PNCs</h4>
             <table class="dynamic-pnc-table">
                 <thead>
                     <tr>
@@ -81,7 +81,7 @@
 
         <!-- Données Générales Table -->
         <div class="general-data-section" style="flex: 1;">
-            <h4 class="form-title">Données Générales</h4>
+            <h4 class="section-title">Données Générales</h4>
             <table class="table table-bordered modern-info-table">
                 <tr>
                     <td><strong>A/C</strong></td>
@@ -115,8 +115,134 @@
         </div>
     </div>
 
+    <!-- Articles Vendus Section -->
+    <h4 class="section-title">Articles Vendus</h4>
+    <div class="table-responsive">
+        <table id="article-table" class="modern-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Quantité Dotation</th>
+                    <th>Quantité Compl.</th>
+                    <th>Tot Em</th>
+                    <th>Quantité Casse</th>
+                    <th>Quantité Offerte</th>
+                    <th>Quantité Vendue</th>
+                    <th>Prix Unitaire HT</th>
+                    <th>Valeur</th>
+                    <th>Restant</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var groupedArticles = Model.ArticleVentes
+                    .GroupBy(av => av.CategorieId)
+                    .OrderBy(g => g.First().CategorieDescription);
+                }
+                @foreach (var group in groupedArticles)
+                {
+                    var categorie = group.First();
+                    <tr class="category-row">
+                        <td colspan="11">
+                            <span class="category-name">@categorie.CategorieDescription</span>
+                        </td>
+                    </tr>
+                    foreach (var article in group)
+                    {
+                        <tr class="article-row">
+                            <td><p class="form-control-static">@article.IdArticle</p></td>
+                            <td><p class="form-control-static">@article.Description</p></td>
+                            <td><p class="form-control-static">@article.QuantiteDotation</p></td>
+                            <td><p class="form-control-static">@article.QuantiteComplementaire</p></td>
+                            <td><p class="form-control-static">@(article.QuantiteDotation + article.QuantiteComplementaire)</p></td>
+                            <td><p class="form-control-static">@article.QuantiteCasse</p></td>
+                            <td><p class="form-control-static">@article.QuantiteOffert</p></td>
+                            <td><p class="form-control-static">@article.QuantiteVendu</p></td>
+                            <td><p class="form-control-static">@article.PrixUnitaireHT.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)</p></td>
+                            <td><p class="form-control-static">@((article.QuantiteVendu * article.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))</p></td>
+                            <td><p class="form-control-static">@(article.QuantiteDotation + article.QuantiteComplementaire - article.QuantiteCasse - article.QuantiteOffert - article.QuantiteVendu)</p></td>
+                        </tr>
+                    }
+                    <tr class="category-summary-row">
+                        <td>Total</td>
+                        <td>@categorie.CategorieDescription</td>
+                        <td colspan="2"></td>
+                        <td>
+                            <p class="form-control-static">
+                                @group.Sum(a => a.QuantiteDotation + a.QuantiteComplementaire)
+                            </p>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <p class="form-control-static">
+                                @group.Sum(a => a.QuantiteVendu)
+                            </p>
+                        </td>
+                        <td></td>
+                        <td>
+                            <p class="form-control-static">
+                                @group.Sum(a => a.QuantiteVendu * a.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+                            </p>
+                        </td>
+                        <td>
+                            <p class="form-control-static">
+                                @group.Sum(a => a.QuantiteDotation + a.QuantiteComplementaire - a.QuantiteCasse - a.QuantiteOffert - a.QuantiteVendu)
+                            </p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="9" style="text-align: right; font-weight: bold;">Grand Total:</td>
+                    <td class="grand-total-cell">
+                        <p class="form-control-static">
+                            @Model.ArticleVentes.Sum(a => a.QuantiteVendu * a.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+                        </p>
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary-table-container">
+        <table class="summary-table modern-table">
+            <tr>
+                <th colspan="2">Total encaissé</th>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p class="form-control-static">
+                        @(Model.TotalEncaisse.HasValue ? Model.TotalEncaisse.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="2">Écart</th>
+            </tr>
+            <tr>
+                <td style="text-align: center;">
+                    + <br> -
+                </td>
+                <td>
+                    <p class="form-control-static">
+                        @(Model.EcartPlus.HasValue ? Model.EcartPlus.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")
+                    </p>
+                    <p class="form-control-static">
+                        @(Model.EcartMoins.HasValue ? Model.EcartMoins.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-primary" onclick="printEtatVente()">Imprimer</button>
     </div>
 
     <style>
@@ -155,6 +281,14 @@
             border-bottom: 2px solid #600000;
         }
 
+        .section-title {
+            color: #600000;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
         .sales-form-modal .form-group {
             display: flex;
             align-items: center;
@@ -176,6 +310,7 @@
             background-color: #fff;
             display: inline-block;
             width: 100%;
+            margin: 0;
         }
 
         .info-table {
@@ -199,31 +334,73 @@
                 margin: 0;
             }
 
-        .dynamic-pnc-table, .modern-info-table {
+        .dynamic-pnc-table, .modern-info-table, .modern-table {
             width: 100%;
             border-collapse: collapse;
             background-color: white;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
         }
 
             .dynamic-pnc-table th, .dynamic-pnc-table td,
-            .modern-info-table th, .modern-info-table td {
+            .modern-info-table th, .modern-info-table td,
+            .modern-table th, .modern-table td {
                 border: 1px solid #eee;
                 padding: 6px;
                 text-align: left;
                 font-size: 13px;
             }
 
-            .dynamic-pnc-table th {
-                background-color: #f5f5f5;
+            .dynamic-pnc-table th, .modern-table th {
+                background-color: #600000;
+                color: white;
                 font-weight: bold;
+                text-align: center;
             }
 
-            .dynamic-pnc-table p {
+            .dynamic-pnc-table p, .modern-table p {
                 margin: 0;
             }
+
+        .category-row {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        .category-summary-row {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+        .category-name {
+            font-weight: bold;
+            padding: 5px;
+            display: inline-block;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .summary-table-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .summary-table {
+            width: 300px;
+            border-left: 3px solid #600000;
+        }
+
+        .grand-total-cell {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            color: #600000;
+        }
 
         .modal-footer {
             border-top: 3px solid #600000;
@@ -231,6 +408,7 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            margin-top: 20px;
         }
 
         .btn-secondary {
@@ -245,5 +423,49 @@
             .btn-secondary:hover {
                 background-color: #5a6268;
             }
+
+        .btn-primary {
+            background-color: #600000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-primary:hover {
+                background-color: #400000;
+            }
+
+        @@media print {
+            .modal-footer
+
+        {
+            display: none;
+        }
+
+        .sales-form-modal {
+            background-color: white;
+            padding: 0;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        body {
+            background-color: white;
+        }
+
+        .modal-body {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        }
     </style>
+
+    <script>
+        function printEtatVente() {
+            window.print();
+        }
+    </script>
 </div>

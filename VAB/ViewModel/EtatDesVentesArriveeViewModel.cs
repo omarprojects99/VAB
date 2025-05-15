@@ -69,6 +69,7 @@ namespace VAB.ViewModel
         public int TotalPassengers { get; set; }
 
         public List<ArticleVenteViewModel> ArticleVentes { get; set; } = new List<ArticleVenteViewModel>();
+        public List<ArticleVenteViewModel> ArticleVenteDepart { get; set; } = new List<ArticleVenteViewModel>();
 
         // Summary fields
         [DataType(DataType.Currency)]

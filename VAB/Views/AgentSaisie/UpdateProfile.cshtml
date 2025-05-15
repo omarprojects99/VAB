@@ -1,0 +1,82 @@
+@{
+    Layout = null;
+}
+@model VAB.ViewModel.UserManagementViewModel
+
+<!-- Modal Container -->
+<div class="modal-content" style="background-color: #1f1f1f; color: #f1f1f1; border-radius: 8px; overflow: hidden; font-family: 'Segoe UI', sans-serif;">
+
+    <!-- Modal Header -->
+    <div class="modal-header" style="background-color: #2a2a2a; padding: 1rem 1.5rem; border-bottom: 1px solid #444;">
+        <h5 class="modal-title" style="margin: 0; font-size: 1.25rem;">Update Profile</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem; color: #f1f1f1; background: none; border: none;">
+            &times;
+        </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body" style="padding: 2rem;">
+        <form id="UpdateProfileForm" asp-controller="AgentSaisie" asp-action="UpdateProfile" method="post" novalidate>
+
+            <!-- Full Name -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label asp-for="NomPrenom" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Full Name</label>
+                <input asp-for="NomPrenom" placeholder="Enter your full name"
+                       style="width: 100%; padding: 0.75rem; background-color: #2e2e2e; border: 1px solid #ff4d4d; border-radius: 6px; color: #fff;" />
+                <span asp-validation-for="NomPrenom" class="text-danger" style="color: #ff4d4d; font-size: 0.875rem;"></span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label asp-for="Email" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Email Address</label>
+                <input asp-for="Email" type="email" placeholder="you@example.com"
+                       style="width: 100%; padding: 0.75rem; background-color: #2e2e2e; border: 1px solid #ff4d4d; border-radius: 6px; color: #fff;" />
+                <span asp-validation-for="Email" class="text-danger" style="color: #ff4d4d; font-size: 0.875rem;"></span>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label asp-for="Telephone" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Phone Number</label>
+                <input asp-for="Telephone" placeholder="+216 12 345 678"
+                       style="width: 100%; padding: 0.75rem; background-color: #2e2e2e; border: 1px solid #ff4d4d; border-radius: 6px; color: #fff;" />
+                <span asp-validation-for="Telephone" class="text-danger" style="color: #ff4d4d; font-size: 0.875rem;"></span>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer" style="background-color: #2a2a2a; border-top: 1px solid #444; padding: 1rem 1.5rem; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                style="padding: 0.5rem 1rem; background-color: #444; border: none; border-radius: 6px; color: #f1f1f1; margin-right: 0.5rem;">
+            Cancel
+        </button>
+        <button type="submit" form="UpdateProfileForm" class="btn btn-primary"
+                style="padding: 0.5rem 1.2rem; background-color: #ff4d4d; border: none; border-radius: 6px; color: white;">
+            Save Changes
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#UpdateProfileForm').submit(function (event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: '@Url.Action("UpdateProfile", "AgentSaisie")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function () {
+                        $('#userModal').modal('hide');
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        $('#modalContent').html(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

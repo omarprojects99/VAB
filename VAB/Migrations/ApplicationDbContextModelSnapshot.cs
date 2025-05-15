@@ -226,6 +226,48 @@ namespace VAB.Migrations
                     b.ToTable("ArticleVentes");
                 });
 
+            modelBuilder.Entity("VAB.Models.ArticleVenteDepart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EtatDesVentesDepartId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PrixUnitaireHT")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("QuantiteCasse")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteComplementaire")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteDotation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteOffert")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteVendu")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("EtatDesVentesDepartId");
+
+                    b.ToTable("ArticleVenteDepart");
+                });
+
             modelBuilder.Entity("VAB.Models.Categorie", b =>
                 {
                     b.Property<int>("Id")
@@ -359,6 +401,46 @@ namespace VAB.Migrations
                     b.ToTable("EtatDesVentesArrivee");
                 });
 
+            modelBuilder.Entity("VAB.Models.EtatDesVentesDepart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgentSaisieId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateEdition")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("EcartMoins")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EcartPlus")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("EquipageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("TotalEncaisse")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentSaisieId");
+
+                    b.HasIndex("EquipageId");
+
+                    b.ToTable("EtatDesVentesDepart");
+                });
+
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>
                 {
                     b.Property<int>("Id")
@@ -397,6 +479,21 @@ namespace VAB.Migrations
                     b.HasIndex("EtatDesVentesArriveeId");
 
                     b.ToTable("FeuilleEtatDesVentesArrivee");
+                });
+
+            modelBuilder.Entity("VAB.Models.FeuilleEtatDesVentesDepart", b =>
+                {
+                    b.Property<int>("FeuilleDeLignesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EtatDesVentesDepartId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FeuilleDeLignesId", "EtatDesVentesDepartId");
+
+                    b.HasIndex("EtatDesVentesDepartId");
+
+                    b.ToTable("FeuilleEtatDesVentesDepart");
                 });
 
             modelBuilder.Entity("VAB.Models.Pnc", b =>
@@ -583,6 +680,9 @@ namespace VAB.Migrations
                     b.Property<int?>("EtatDesVentesArriveeId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("EtatDesVentesDepartId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("FeuilleDeLignesId")
                         .HasColumnType("int");
 
@@ -602,6 +702,8 @@ namespace VAB.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.HasIndex("EtatDesVentesDepartId");
 
                     b.HasIndex("FeuilleDeLignesId");
 
@@ -689,6 +791,25 @@ namespace VAB.Migrations
                     b.Navigation("EtatDesVentesArrivee");
                 });
 
+            modelBuilder.Entity("VAB.Models.ArticleVenteDepart", b =>
+                {
+                    b.HasOne("VAB.Models.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.EtatDesVentesDepart", "EtatDesVentesDepart")
+                        .WithMany("ArticleVentesDepart")
+                        .HasForeignKey("EtatDesVentesDepartId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("EtatDesVentesDepart");
+                });
+
             modelBuilder.Entity("VAB.Models.Equipage", b =>
                 {
                     b.HasOne("VAB.Models.Cc", "Cc1")
@@ -741,6 +862,25 @@ namespace VAB.Migrations
                     b.Navigation("Equipage");
                 });
 
+            modelBuilder.Entity("VAB.Models.EtatDesVentesDepart", b =>
+                {
+                    b.HasOne("VAB.Models.User", "AgentSaisie")
+                        .WithMany()
+                        .HasForeignKey("AgentSaisieId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Equipage", "Equipage")
+                        .WithMany()
+                        .HasForeignKey("EquipageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AgentSaisie");
+
+                    b.Navigation("Equipage");
+                });
+
             modelBuilder.Entity("VAB.Models.FeuilleEtatDesVentesArrivee", b =>
                 {
                     b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
@@ -756,6 +896,25 @@ namespace VAB.Migrations
                         .IsRequired();
 
                     b.Navigation("EtatDesVentesArrivee");
+
+                    b.Navigation("FeuilleDeLignes");
+                });
+
+            modelBuilder.Entity("VAB.Models.FeuilleEtatDesVentesDepart", b =>
+                {
+                    b.HasOne("VAB.Models.EtatDesVentesDepart", "EtatDesVentesDepart")
+                        .WithMany("FeuilleEtatDesVentes")
+                        .HasForeignKey("EtatDesVentesDepartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.FeuilleDeLignes", "FeuilleDeLignes")
+                        .WithMany("FeuilleEtatDesDepart")
+                        .HasForeignKey("FeuilleDeLignesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EtatDesVentesDepart");
 
                     b.Navigation("FeuilleDeLignes");
                 });
@@ -797,12 +956,19 @@ namespace VAB.Migrations
                         .HasForeignKey("EtatDesVentesArriveeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("VAB.Models.EtatDesVentesDepart", "EtatDesVentesDepart")
+                        .WithMany()
+                        .HasForeignKey("EtatDesVentesDepartId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("VAB.Models.FeuilleDeLignes", "FeuilleDeLignes")
                         .WithMany("Vols")
                         .HasForeignKey("FeuilleDeLignesId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("EtatDesVentesArrivee");
+
+                    b.Navigation("EtatDesVentesDepart");
 
                     b.Navigation("FeuilleDeLignes");
                 });
@@ -829,8 +995,17 @@ namespace VAB.Migrations
                     b.Navigation("FeuilleEtatDesVentes");
                 });
 
+            modelBuilder.Entity("VAB.Models.EtatDesVentesDepart", b =>
+                {
+                    b.Navigation("ArticleVentesDepart");
+
+                    b.Navigation("FeuilleEtatDesVentes");
+                });
+
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>
                 {
+                    b.Navigation("FeuilleEtatDesDepart");
+
                     b.Navigation("FeuilleEtatDesVentes");
 
                     b.Navigation("Vols");

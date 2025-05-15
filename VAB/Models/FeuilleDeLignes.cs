@@ -23,6 +23,7 @@ namespace VAB.Models
 
         // Many-to-many with EtatDesVentesArrivee
         public List<FeuilleEtatDesVentesArrivee> FeuilleEtatDesVentes { get; set; }
+        public List<FeuilleEtatDesVentesDepart> FeuilleEtatDesDepart { get; set; }
 
     }
 }

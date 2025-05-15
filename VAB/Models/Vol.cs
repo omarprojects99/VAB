@@ -34,5 +34,7 @@ namespace VAB.Models
 
         public int? EtatDesVentesArriveeId { get; set; }
         public EtatDesVentesArrivee EtatDesVentesArrivee { get; set; }
+        public int? EtatDesVentesDepartId { get; set; }
+        public EtatDesVentesDepart EtatDesVentesDepart { get; set; }
     }
 }

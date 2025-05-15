@@ -288,72 +288,110 @@
 @*             </div> *@
 @*         </div> *@
           <!--  Header BreadCrumb -->   
-          <!-- Create New User -->   
-        <div class="main-content">
+          <!-- Create New User -->
+<div class="identity-card-modal container-fluid px-0">
+   
+    <style>
+        .identity-card-modal .card {
+            background: linear-gradient(135deg, #fff0f0, #f8dada);
+            border: none;
+            border-radius: 0;
+            width: 100%;
+            box-shadow: none;
+            padding: 30px;
+            display: flex;
+            flex-direction: row; /* Ensures horizontal layout */
+            align-items: center;
+            gap: 30px;
+            margin: 0;
+        }
 
-            <div class="card bg-white">
-                <div class="card-body mt-5 mb-5">
+        .identity-card-modal .profile-photo {
+            border-radius: 50%;
+            border: 4px solid #8B0000;
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+        }
 
-                    <div class="viewuser row">
+        .identity-card-modal .user-info {
+            flex: 1;
+        }
 
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <div class="col-md-4">Name</div>
-                                <div class="col-md-8">
-                                        <td>@Model.NomPrenom</td>
+            .identity-card-modal .user-info h3 {
+                margin: 0;
+                color: #8B0000;
+                font-size: 2rem;
+                font-weight: 700;
+            }
 
-                                 </div>
-                            </div>
+        .identity-card-modal .badge-role {
+            background-color: #8B0000;
+            color: #fff;
+            font-size: 1rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
 
-                           
+        .identity-card-modal .info-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 25px;
+            font-size: 1rem;
+        }
 
-                           
+            .identity-card-modal .info-list li {
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-                           
+        .identity-card-modal .info-icon {
+            color: #8B0000;
+            font-size: 1.2rem;
+        }
 
-                            <div class="form-group row">
-                                <div class="col-md-4">E-Mail Address</div>
-                                <div class="col-md-8">
-                                        <td>@Model.Email</td>
+        .identity-card-modal .info-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
 
-                                 </div>
-                            </div>
-                                <div class="form-group row">
-                                    <div class="col-md-4">Phone number</div>
-                                    <div class="col-md-8">
-                                        <td>@Model.Telephone</td>
-                                    </div>
-                                </div>
-                            <div class="form-group row">
-                                <div class="col-md-4">Role</div>
-                                <div class="col-md-8">
-                                        <span class="badge badge-lg badge-secondary text-white"<tr>
-        
-        <td>@string.Join(", ", Model.Roles)</td>
-    </tr></span>
-                                 </div>
-                            </div>
-                          
+        .modal-body {
+            padding: 0;
+        }
+    </style>
 
-                        </div>
-                        <div class="col-md-6">
-                            <div class="user-thumb">
-                        <img id="profile-photo" src="https://militaryhealthinstitute.org/wp-content/uploads/sites/37/2021/08/blank-profile-picture-png.png" alt="">
-                            </div>
-
-                        </div>
-
-
-
-
-
-
-
-                    </div>
-
-                </div>
-            </div>
+    <div class="card">
+        <div>
+            <img class="profile-photo" src="https://militaryhealthinstitute.org/wp-content/uploads/sites/37/2021/08/blank-profile-picture-png.png" alt="Profile Photo">
         </div>
+
+        <div class="user-info">
+            <h3>@Model.NomPrenom</h3>
+            <div class="badge-role">@string.Join(", ", Model.Roles)</div>
+
+            <ul class="info-list">
+                <li>
+                    <i class="bi bi-envelope-fill info-icon"></i>
+                    <span><span class="info-label">Email:</span> @Model.Email</span>
+                </li>
+                <li>
+                    <i class="bi bi-telephone-fill info-icon"></i>
+                    <span><span class="info-label">Phone:</span> @Model.Telephone</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+
+
          <!-- Create New User-->   
 
 

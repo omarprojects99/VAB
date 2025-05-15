@@ -7,8 +7,21 @@
   Description: Free use for Backend Development.
   Version: 1.0
 */
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+window.alert = function (message) {
+    Swal.fire("Notice", message, "info");
+};
 
+window.confirm = function (message) {
+    return Swal.fire({
+        title: message,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel'
+    }).then((result) => result.isConfirmed);
+};
 
 
 (function ($) {

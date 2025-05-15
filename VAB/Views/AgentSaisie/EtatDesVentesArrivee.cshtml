@@ -43,6 +43,32 @@
     <link rel="stylesheet" href="~/css/sidebar.css">
     <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
+
+    <style>
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+    </style>
 </head>
 
 <body>
@@ -228,9 +254,10 @@
                                         <tr>
                                             <th>Numéro</th>
                                             <th>Date</th>
-                                            <th>PNC</th>
+                                            
                                             <th>Total Articles Vendus</th>
                                             <th>Revenu Total</th>
+                                            <th>Total Encaissé</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -301,34 +328,15 @@
                     url: '/AgentSaisie/GetEtatDesVentesArrivee',
                     dataSrc: ''
                 },
-                columns: [
-                    { data: 'numero' },
-                    {
-                        data: 'dateEdition',
-                        render: function (data) {
-                            return data ? new Date(data).toLocaleString() : '';
-                        },
-                        defaultContent: ''
-                    },
-                    { data: 'PNCName', defaultContent: '' },
-                    { data: 'TotalItemsSold', defaultContent: '0' },
-                    {
-                        data: 'TotalRevenue',
-                        render: function (data) {
-                            return data ? data.toFixed(2) : '0.00';
-                        },
-                        defaultContent: '0.00'
-                    },
-                    {
-                        data: 'id',
-                        render: function (data, type, row) {
-                            return `
-                                <button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;"  data-id="${data}">👁 Voir</button>
-                                <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>
-                            `;
-                        }
-                    }
-                ]
+                      columns: [
+            { data: 'numero' },
+            { data: 'dateEdition', render: function(data) { return data ? new Date(data).toLocaleString() : ''; }, defaultContent: '' },
+            
+            { data: 'totalItemsSold', defaultContent: '0', className: 'dt-right' },
+            { data: 'totalRevenue', render: function(data) { return data ? data.toFixed(2) : '0.00'; }, defaultContent: '0.00', className: 'dt-right' },
+            { data: 'totalEncaisse', render: function(data) { return data ? data.toFixed(2) : '0.00'; }, defaultContent: '0.00', className: 'dt-right' },
+            { data: 'id', render: function(data, type, row) { return `<button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">👁 Voir</button> <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>`; } }
+        ]
             });
 
             // Form submission via AJAX
@@ -427,6 +435,8 @@
             };
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 
 </html>

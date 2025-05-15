@@ -680,7 +680,8 @@
                         errorSpan.textContent = data.message;
                         row.classList.add('invalid');
                         resetArticleRow(row, index);
-                        alert(data.message);
+                        Swal.fire(data.message);
+
                     }
                 })
                 .catch(error => {
@@ -926,7 +927,22 @@
         document.getElementById('flightNumber').addEventListener('blur', validateFlightNumber);
         document.querySelectorAll('.feuille-numero').forEach(input => input.addEventListener('blur', validateFlightNumber));
         document.addEventListener('DOMContentLoaded', updateGrandTotal);
+                window.alert = function(message) {
+          Swal.fire("Notice", message, "info");
+        };
+
+        window.confirm = function(message) {
+          return Swal.fire({
+            title: message,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Cancel'
+          }).then((result) => result.isConfirmed);
+        };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </div>
 
 @section Scripts {

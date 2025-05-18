@@ -67,6 +67,16 @@
             background-color: #f8f9fa;
             border-color: #dee2e6;
         }
+
+        .validated {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-validated {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -273,6 +283,7 @@
                                             <th>Total Articles Vendus</th>
                                             <th>Revenu Total</th>
                                             <th>Total Encaissé</th>
+                                            <th>Statut Validation</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -353,6 +364,13 @@
             { data: 'totalItemsSold', defaultContent: '0', className: 'dt-right' },
             { data: 'totalRevenue', render: function(data) { return data ? data.toFixed(2) : '0.00'; }, defaultContent: '0.00', className: 'dt-right' },
             { data: 'totalEncaisse', render: function(data) { return data ? data.toFixed(2) : '0.00'; }, defaultContent: '0.00', className: 'dt-right' },
+                    {
+            data: 'isValidated',
+            render: function (data) {
+                return `<span class="${data ? 'validated' : 'not-validated'}">${data ? 'Validé' : 'Non validé'}</span>`;
+            },
+            defaultContent: '<span class="not-validated">Non validé</span>'
+        },
             { data: 'id', render: function(data, type, row) { return `<button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">👁 Voir</button> <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>`; } }
         ]
         });

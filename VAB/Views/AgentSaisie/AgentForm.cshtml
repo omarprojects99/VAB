@@ -1,4 +1,4 @@
-﻿@using TextExtraction
+﻿
 @* <!DOCTYPE html> *@
 
 @* <html lang="en"> *@
@@ -522,13 +522,13 @@
 @{
     
     Layout = null;
-    var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-var logger = loggerFactory.CreateLogger<PdfTextExtractor>();
-var extractor = new PdfTextExtractor(logger);
-var textSections = await extractor.ExtractAsync("file.pdf");
+//     var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+// var logger = loggerFactory.CreateLogger<PdfTextExtractor>();
+// var extractor = new PdfTextExtractor(logger);
+// var textSections = await extractor.ExtractAsync("file.pdf");
 
 }
-<div>@textSections[0].Content</div>
+@* <div>@textSections[0].Content</div> *@
 <div class="modal-header bg-gradient-red text-white">
     <h5 class="modal-title fw-bold" id="salesModalLabel">Créer un État des Ventes Arrivée</h5>
     <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>

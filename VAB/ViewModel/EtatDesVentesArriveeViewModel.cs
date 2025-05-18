@@ -80,6 +80,7 @@ namespace VAB.ViewModel
 
         [DataType(DataType.Currency)]
         public decimal? EcartMoins { get; set; }
+        public bool IsValidated { get; set; } // New field
 
     }
     public class ArticleVenteViewModel

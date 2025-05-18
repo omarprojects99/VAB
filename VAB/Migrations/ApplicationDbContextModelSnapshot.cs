@@ -385,6 +385,9 @@ namespace VAB.Migrations
                     b.Property<int>("EquipageId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Numero")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -424,6 +427,9 @@ namespace VAB.Migrations
 
                     b.Property<int>("EquipageId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Numero")
                         .IsRequired()

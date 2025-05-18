@@ -29,5 +29,7 @@ namespace VAB.Models
         public decimal? TotalEncaisse { get; set; }
         public decimal? EcartPlus { get; set; }
         public decimal? EcartMoins { get; set; }
+        
+        public Boolean IsValidated { get; set; }
     }
 }

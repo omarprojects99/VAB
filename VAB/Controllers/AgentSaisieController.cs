@@ -964,7 +964,8 @@ namespace VAB.Controllers
                      
                         totalItemsSold = e.ArticleVentes.Sum(av => av.QuantiteVendu),
                         totalRevenue = e.ArticleVentes.Sum(av => av.QuantiteVendu * av.PrixUnitaireHT),
-                        totalEncaisse = e.TotalEncaisse
+                        totalEncaisse = e.TotalEncaisse,
+                        isValidated = e.IsValidated
                     })
                     .ToList();
                 return Json(etats);
@@ -993,7 +994,9 @@ namespace VAB.Controllers
 
                         totalItemsSold = e.ArticleVentesDepart.Sum(av => av.QuantiteVendu),
                         totalRevenue = e.ArticleVentesDepart.Sum(av => av.QuantiteVendu * av.PrixUnitaireHT),
-                        totalEncaisse = e.TotalEncaisse
+                        totalEncaisse = e.TotalEncaisse,
+                         isValidated = e.IsValidated
+
                     })
                     .ToList();
                 return Json(etats);

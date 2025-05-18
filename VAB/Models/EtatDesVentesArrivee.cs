@@ -33,6 +33,7 @@ namespace VAB.Models
         public decimal? TotalEncaisse { get; set; }
         public decimal? EcartPlus { get; set; }
         public decimal? EcartMoins { get; set; }
+        public bool IsValidated { get; set; } // New field
 
 
     }

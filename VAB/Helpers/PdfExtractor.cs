@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Tesseract;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
-
+using Microsoft.Extensions.Logging;
 namespace TextExtraction
 {
     /// <summary>
@@ -22,7 +22,7 @@ namespace TextExtraction
         public PdfTextExtractor(ILogger<PdfTextExtractor> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _tessdataPath = @"C:\Users\MSI\Desktop\pfe\VAB\VAB\Helpers\tessdata";
+            _tessdataPath = "C:\\Users\\MSI\\Desktop\\pfe\\VAB\\VAB\\Helpers\\tessdata\\";
             _logger.LogInformation($"Using Tesseract data path: {_tessdataPath}");
         }
 
@@ -202,7 +202,7 @@ namespace TextExtraction
         }
     }
 
-  
+
     public class TextSection
     {
         public string Title { get; set; }

@@ -1,0 +1,323 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model IEnumerable<dynamic>
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <title>Responsable Catering Dashboard</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        #salesReportsTable th, #salesReportsTable td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #salesReportsTable .dt-right {
+            text-align: right;
+        }
+
+        .alert {
+            margin-bottom: 1rem;
+        }
+
+        .validated {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-validated {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="ResponsableCatering" asp-action="CateringDashboard" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <div class="collapse navbar-collapse pr-3">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="ResponsableCatering" asp-action="AccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li>
+                        <a href="#">
+                            <div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>@User.Identity.Name
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="ResponsableCatering" asp-action="AccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Account Settings
+                        </a>
+                    </li>
+                    <li><a asp-controller="Account" asp-action="Logout"><i class="material-icons mr-2">exit_to_app</i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                                <i class="material-icons">dashboard</i>Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">État des Ventes Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">receipt</i>État des Ventes Arrivée</li>
+                    </ol>
+                </nav>
+            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="card bg-white">
+                        <div class="card-body mt-3">
+                            <div class="table-responsive">
+                                <table id="salesReportsTable" class="table table-striped table-borderless" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Numéro</th>
+                                            <th>Date</th>
+                                            <th>Agent Saisie</th>
+                                            <th>Total Articles Vendus</th>
+                                            <th>Revenu Total</th>
+                                            <th>Total Encaissé</th>
+                                            <th>Statut Validation</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="modal fade" id="viewEtatModal" tabindex="-1" role="dialog" aria-labelledby="viewEtatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content" id="viewEtatModalContent">
+            </div>
+        </div>
+    </div>
+    <form id="antiForgeryForm">@Html.AntiForgeryToken()</form>
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/script.js"></script>
+    <script>
+        $(document).ready(function () {
+            var salesTable = $('#salesReportsTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [10, 15, 25],
+                ajax: {
+                    url: '/ResponsableCatering/GetEtatDesVentesArrivee',
+                    dataSrc: '',
+                    error: function (xhr, error, thrown) {
+                        console.error('DataTable AJAX error:', xhr.status, thrown, xhr.responseText);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: 'Erreur lors du chargement des données : ' + (xhr.responseJSON?.error || xhr.statusText),
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                    }
+                },
+                columns: [
+                    { data: 'numero', defaultContent: 'N/A' },
+                    {
+                        data: 'dateEdition',
+                        render: function (data) {
+                            return data ? new Date(data).toLocaleString() : '';
+                        },
+                        defaultContent: ''
+                    },
+                    { data: 'agentSaisie', defaultContent: 'Unknown' },
+                    { data: 'totalItemsSold', defaultContent: '0', className: 'dt-right' },
+                    {
+                        data: 'totalRevenue',
+                        render: function (data) {
+                            return data ? data.toFixed(2) : '0.00';
+                        },
+                        defaultContent: '0.00',
+                        className: 'dt-right'
+                    },
+                    {
+                        data: 'totalEncaisse',
+                        render: function (data) {
+                            return data ? data.toFixed(2) : '0.00';
+                        },
+                        defaultContent: '0.00',
+                        className: 'dt-right'
+                    },
+                    {
+                        data: 'isValidated',
+                        render: function (data) {
+                            return `<span class="${data ? 'validated' : 'not-validated'}">${data ? 'Validé' : 'Non validé'}</span>`;
+                        },
+                        defaultContent: '<span class="not-validated">Non validé</span>'
+                    },
+                    {
+                        data: 'id',
+                        render: function (data) {
+                            return `<button class="btn btn-sm btn-secondary view-sales-btn" style="padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">👁 Voir</button>`;
+                        }
+                    }
+                ]
+            });
+
+            $(document).on('click', '.view-sales-btn', function () {
+                var id = $(this).data('id');
+                console.log('View button clicked, ID:', id);
+                $.ajax({
+                    url: '/ResponsableCatering/ViewEtatDesVentesArrivee?id=' + id,
+                    type: 'GET',
+                    success: function (data) {
+                        console.log('View modal loaded successfully for ID:', id);
+                        $('#viewEtatModalContent').html(data);
+                        $('#viewEtatModal').modal('show');
+                    },
+                    error: function (xhr) {
+                        console.error('View modal error:', xhr.status, xhr.statusText, xhr.responseText);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: 'Erreur lors du chargement des détails : ' + (xhr.responseText || xhr.statusText),
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

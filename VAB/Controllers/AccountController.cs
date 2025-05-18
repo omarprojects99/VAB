@@ -39,10 +39,10 @@ namespace VAB.Controllers
                         return RedirectToAction("Dashboard", "Admin");
                     else if (roles.Contains("AgentSaisie"))
                         return RedirectToAction("AgentDashboard", "AgentSaisie");
-                    else if (roles.Contains("Chef"))
-                        return RedirectToAction("Dashboard", "ResponsableCatering");
+                    else if (roles.Contains("ResponsableCatering"))
+                        return RedirectToAction("CateringDashboard", "ResponsableCatering");
                     else if (roles.Contains("DGF"))
-                        return RedirectToAction("Dashboard", "DGF");
+                        return RedirectToAction("DGFDashboard", "DGF");
                     else
                         return RedirectToAction("Index", "Home");
                 }

@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using VAB.Data;
+using VAB.Hubs;
 using VAB.Models;
 using VAB.ViewModel;
 
@@ -14,16 +16,31 @@ namespace VAB.Controllers
     [Authorize(Roles = "ResponsableCatering")]
     public class ResponsableCateringController : Controller
     {
-        private readonly UserManager<User> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly ILogger<AgentSaisieController> _logger;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public ResponsableCateringController(UserManager<User> userManager, ApplicationDbContext context)
+        public ResponsableCateringController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AgentSaisieController> logger, IHubContext<NotificationHub> hubContext)
         {
-            _userManager = userManager;
             _context = context;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _logger = logger;
+            _hubContext = hubContext;
+
         }
 
         public IActionResult CateringDashboard()
+        {
+            return View();
+        }
+        public IActionResult EtatDesOffresArrivee()
+        {
+            return View();
+        }
+        public IActionResult EtatDesOffresDepart()
         {
             return View();
         }
@@ -306,39 +323,64 @@ namespace VAB.Controllers
                 return StatusCode(500, "Erreur serveur lors du chargement des détails.");
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> ValidateEtatDesVentesArrivee([FromBody] ValidateEtatRequest request)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("ValidateEtatDesVentesArrivee: Invalid model for ID={Id}", request.Id);
+                    return Json(new { success = false, error = "Requête invalide." });
+                }
+
                 var etat = await _context.EtatDesVentesArrivee
                     .FirstOrDefaultAsync(e => e.Id == request.Id);
 
                 if (etat == null)
                 {
-                    Console.WriteLine($"ValidateEtatDesVentesArrivee: No Etat found for ID={request.Id}");
+                    _logger.LogWarning("ValidateEtatDesVentesArrivee: No Etat found for ID={Id}", request.Id);
                     return Json(new { success = false, error = "État des Ventes non trouvé." });
                 }
 
                 if (etat.IsValidated)
                 {
-                    Console.WriteLine($"ValidateEtatDesVentesArrivee: Etat ID={request.Id} is already validated");
+                    _logger.LogWarning("ValidateEtatDesVentesArrivee: Etat ID={Id} is already validated", request.Id);
                     return Json(new { success = false, error = "État déjà validé." });
                 }
 
                 etat.IsValidated = true;
                 await _context.SaveChangesAsync();
 
-                Console.WriteLine($"ValidateEtatDesVentesArrivee: Successfully validated Etat ID={request.Id}");
-                return Json(new { success = true });
+                if (!string.IsNullOrEmpty(etat.AgentSaisieId))
+                {
+                    var message = $"État de vente numéro {etat.Numero} est validé.";
+                    _logger.LogInformation("Sending notification to AgentSaisieId={AgentSaisieId}, Message={Message}", etat.AgentSaisieId, message);
+                    await _hubContext.Clients.User(etat.AgentSaisieId).SendAsync("ReceiveNotification", message);
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = etat.AgentSaisieId,
+                        Name = message,
+                        CreatedAt = System.DateTime.UtcNow,
+                        IsRead = false
+                    });
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Notification saved for AgentSaisieId={AgentSaisieId}, Etat ID={Id}", etat.AgentSaisieId, request.Id);
+                }
+                else
+                {
+                    _logger.LogWarning("ValidateEtatDesVentesArrivee: AgentSaisieId is null for Etat ID={Id}", request.Id);
+                }
+
+                return Json(new { success = true, message = "État validé avec succès." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ValidateEtatDesVentesArrivee Error: ID={request.Id}, Message={ex.Message}, StackTrace={ex.StackTrace}");
+                _logger.LogError(ex, "ValidateEtatDesVentesArrivee Error: ID={Id}", request.Id);
                 return Json(new { success = false, error = "Erreur serveur lors de la validation." });
             }
         }
+
         [HttpPost]
         public async Task<IActionResult> ValidateEtatDesVentesDepart([FromBody] ValidateEtatRequest request)
         {
@@ -371,6 +413,242 @@ namespace VAB.Controllers
                 return Json(new { success = false, error = "Erreur serveur lors de la validation." });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetEtatDesOffresArrivee()
+        {
+            _logger.LogInformation("Fetching all EtatDesOffresArrivee");
+            try
+            {
+                var offres = await _context.EtatDesOffresArrivee
+                    .Include(e => e.ArticleOffres)
+                    .ThenInclude(ao => ao.Article)
+                    .Select(e => new
+                    {
+                        id = e.Id,
+                        numero = e.Numero,
+                        dateEdition = e.DateEdition,
+                        totalItemsSold = e.ArticleOffres.Sum(ao => ao.QuantiteOffert),
+                        totalRevenue = e.ArticleOffres.Sum(ao => ao.QuantiteOffert * ao.Article.PrixUnitaireHT),
+                        totalEncaisse = e.ArticleOffres.Sum(ao => ao.QuantiteOffert * ao.Article.PrixUnitaireHT), // Adjust as needed
+                        isValidated = e.IsValidated
+                    })
+                    .ToListAsync();
+                return Json(offres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching EtatDesOffresArrivee");
+                return StatusCode(500, "Erreur lors de la récupération des états des offres.");
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetEtatDesOffresDepart()
+        {
+            _logger.LogInformation("Fetching all EtatDesOffresDepart");
+            try
+            {
+                var offres = await _context.EtatDesOffresDepart
+                    .Include(e => e.ArticleOffreDepart)
+                    .ThenInclude(ao => ao.Article)
+                    .Select(e => new
+                    {
+                        id = e.Id,
+                        numero = e.Numero,
+                        dateEdition = e.DateEdition,
+                        totalItemsSold = e.ArticleOffreDepart.Sum(ao => ao.QuantiteOffert),
+                        totalRevenue = e.ArticleOffreDepart.Sum(ao => ao.QuantiteOffert * ao.Article.PrixUnitaireHT),
+                        totalEncaisse = e.ArticleOffreDepart.Sum(ao => ao.QuantiteOffert * ao.Article.PrixUnitaireHT), // Adjust as needed
+                        isValidated = e.IsValidated
+                    })
+                    .ToListAsync();
+                return Json(offres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching EtatDesOffresDepart");
+                return StatusCode(500, "Erreur lors de la récupération des états des offres.");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ValidateEtatDesOffresArrivee([FromBody] ValidateEtatRequest request)
+        {
+            try
+            {
+                var etat = await _context.EtatDesOffresArrivee
+                    .FirstOrDefaultAsync(e => e.Id == request.Id);
+
+                if (etat == null)
+                {
+                    Console.WriteLine($"ValidateEtatDesOffresArrivee: No Etat found for ID={request.Id}");
+                    return Json(new { success = false, error = "État des Offres non trouvé." });
+                }
+
+                if (etat.IsValidated)
+                {
+                    Console.WriteLine($"ValidateEtatDesOffresArrivee: Etat ID={request.Id} is already validated");
+                    return Json(new { success = false, error = "État déjà validé." });
+                }
+
+                etat.IsValidated = true;
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"ValidateEtatDesOffresArrivee: Successfully validated Etat ID={request.Id}");
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ValidateEtatDesOffresArrivee Error: ID={request.Id}, Message={ex.Message}, StackTrace={ex.StackTrace}");
+                return Json(new { success = false, error = "Erreur serveur lors de la validation." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ValidateEtatDesOffresDepart([FromBody] ValidateEtatRequest request)
+        {
+            try
+            {
+                var etat = await _context.EtatDesOffresDepart
+                    .FirstOrDefaultAsync(e => e.Id == request.Id);
+
+                if (etat == null)
+                {
+                    Console.WriteLine($"ValidateEtatDesOffresDepart: No Etat found for ID={request.Id}");
+                    return Json(new { success = false, error = "État des Offres non trouvé." });
+                }
+
+                if (etat.IsValidated)
+                {
+                    Console.WriteLine($"ValidateEtatDesOffresDepart: Etat ID={request.Id} is already validated");
+                    return Json(new { success = false, error = "État déjà validé." });
+                }
+
+                etat.IsValidated = true;
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"ValidateEtatDesOffresDepart: Successfully validated Etat ID={request.Id}");
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ValidateEtatDesOffresDepart Error: ID={request.Id}, Message={ex.Message}, StackTrace={ex.StackTrace}");
+                return Json(new { success = false, error = "Erreur serveur lors de la validation." });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> ViewEtatDesOffresArrivee(int id)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _logger.LogWarning("ViewEtatDesOffresArrivee: User not authenticated");
+                    return Unauthorized("Utilisateur non connecté.");
+                }
+
+                var etat = await _context.EtatDesOffresArrivee
+                    .Include(e => e.ArticleOffres)
+                    .ThenInclude(ao => ao.Article)
+                    .ThenInclude(a => a.Categorie)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (etat == null)
+                {
+                    _logger.LogWarning($"ViewEtatDesOffresArrivee: No Etat found for ID={id}");
+                    return NotFound("État des Offres non trouvé.");
+                }
+
+                var vm = new EtatDesOffresArriveeViewModel
+                {
+                    Id = etat.Id,
+                    Numero = etat.Numero , // Handle null Numero
+                    DateEdition = etat.DateEdition,
+                    IsValidated = etat.IsValidated,
+                    ArticleOffres = etat.ArticleOffres?.Select(ao => new ArticleOffreViewModel
+                    {
+                        ArticleId = ao.ArticleId,
+                        IdArticle = ao.Article?.IdArticle ?? 0,
+                        Description = ao.Article?.Description ?? "Unknown",
+                        CategorieId = ao.Article?.CategorieId ?? 0,
+                        CategorieDescription = ao.Article?.Categorie?.Description ?? "Unknown",
+                        QuantiteDotation = ao.QuantiteDotation,
+                        QuantiteComplementaire = ao.QuantiteComplementaire,
+                        QuantiteCasse = ao.QuantiteCasse,
+                        QuantiteOffert = ao.QuantiteOffert,
+                        RetourConsig = ao.RetourConsig
+                        // No need to set TotalEmbarque, Deficite, or Restant; they are computed
+                    }).ToList() ?? new List<ArticleOffreViewModel>()
+                };
+
+                _logger.LogInformation($"ViewEtatDesOffresArrivee: Successfully loaded Etat ID={id}");
+                return PartialView("ViewEtatDesOffresArrivee", vm);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ViewEtatDesOffresArrivee Error: ID={id}");
+                return StatusCode(500, "Erreur serveur lors du chargement des détails.");
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> ViewEtatDesOffresDepart(int id)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    _logger.LogWarning("ViewEtatDesOffresArrivee: User not authenticated");
+                    return Unauthorized("Utilisateur non connecté.");
+                }
+
+                var etat = await _context.EtatDesOffresDepart
+                    .Include(e => e.ArticleOffreDepart)
+                    .ThenInclude(ao => ao.Article)
+                    .ThenInclude(a => a.Categorie)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (etat == null)
+                {
+                    _logger.LogWarning($"ViewEtatDesOffresArrivee: No Etat found for ID={id}");
+                    return NotFound("État des Offres non trouvé.");
+                }
+
+                var vm = new EtatDesOffresDepartViewModel
+                {
+                    Id = etat.Id,
+                    Numero = etat.Numero, // Handle null Numero
+                    DateEdition = etat.DateEdition,
+                    IsValidated = etat.IsValidated,
+                    ArticleOffreDepart = etat.ArticleOffreDepart?.Select(ao => new ArticleOffreDepartViewModel
+                    {
+                        ArticleId = ao.ArticleId,
+                        IdArticle = ao.Article?.IdArticle ?? 0,
+                        Description = ao.Article?.Description ?? "Unknown",
+                        CategorieId = ao.Article?.CategorieId ?? 0,
+                        CategorieDescription = ao.Article?.Categorie?.Description ?? "Unknown",
+                        QuantiteDotation = ao.QuantiteDotation,
+                        QuantiteComplementaire = ao.QuantiteComplementaire,
+                        QuantiteCasse = ao.QuantiteCasse,
+                        QuantiteOffert = ao.QuantiteOffert,
+                        RetourConsig = ao.RetourConsig
+                        // No need to set TotalEmbarque, Deficite, or Restant; they are computed
+                    }).ToList() ?? new List<ArticleOffreDepartViewModel>()
+                };
+
+                _logger.LogInformation($"ViewEtatDesOffresDepart: Successfully loaded Etat ID={id}");
+                return PartialView("ViewEtatDesOffresDepart", vm);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ViewEtatDesOffresDepart Error: ID={id}");
+                return StatusCode(500, "Erreur serveur lors du chargement des détails.");
+            }
+        }
+
+
+
+
     }
 
     public class ValidateEtatRequest

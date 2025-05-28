@@ -3,11 +3,427 @@
 *@
 @{
 }
-<html xmlns="http://www.w3.org/1999/xhtml">
+@model IEnumerable<dynamic>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title></title>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <title>Agent de Saisie Dashboard</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+    <link href="~/css/normalize.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        .validated {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-validated {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Etat des Offres depart</h1>
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard"
+                           id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <div class="collapse navbar-collapse pr-3" id="#">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li>
+                        <a href="#">
+                            <div class="user-photo">
+                                <img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt="">
+                            </div>@User.Identity.Name
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Account Settings
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout">
+                            <i class="material-icons mr-2">exit_to_app</i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                <i class="material-icons">dashboard</i>Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">
+                                                État des Ventes Départ
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">
+                                                État des Ventes Arrivée
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">
+                                                État des Offres Départ
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">
+                                                État des Offres Arrivée
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="material-icons">receipt</i>État des Offres
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="card bg-white">
+                        <div class="card-body mt-3">
+                            <div class="create-item" style="text-align: right;padding-bottom:15px">
+                                <button onclick="loadSalesReportForm('/AgentSaisie/AddEtatDesOffresDepart')" class="btn" style="background-color: #c5c5c5">
+                                    ➕ Créer un État des Offres
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="salesReportsTable" class="table table-striped table-borderless" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Numéro</th>
+                                            <th>Date</th>
+                                            <th>Total Articles Offterte</th>
+                                            <th> Total. Restant</th>
+                                          
+                                            <th>Statut Validation</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal fade" id="salesModal" tabindex="-1" role="dialog" aria-labelledby="salesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content" id="modalContent">
+                <div class="modal-header bg-gradient-dark-red text-white">
+                    <h5 class="modal-title fw-bold" id="salesModalLabel">Créer un État des Offres Arrivée</h5>
+                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- AJAX will load the partial here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-primary" form="salesForm">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewEtatModal" tabindex="-1" role="dialog" aria-labelledby="viewEtatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content" id="viewEtatModalContent">
+                <!-- AJAX will load the partial here -->
+            </div>
+        </div>
+    </div>
+
+    <form id="antiForgeryForm">@Html.AntiForgeryToken()</form>
+
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/Chart.bundle.min.js"></script>
+    <script src="~/js/chartfunction.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function () {
+            var salesTable = $('#salesReportsTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [10, 15, 25],
+                ajax: {
+                    url: '/AgentSaisie/GetEtatDesOffresDepart', // Updated to fetch offers, not sales
+                    dataSrc: ''
+                },
+                columns: [
+                    { data: 'numero' },
+                    { data: 'dateEdition', render: function(data) { return data ? new Date(data).toLocaleString() : ''; }, defaultContent: '' },
+                    { data: 'totalItemsSold', defaultContent: '0', className: 'dt-right' },
+                    { data: 'totalRevenue', defaultContent: '0', className: 'dt-right' },
+                   
+                    {
+                        data: 'isValidated',
+                        render: function (data) {
+                            return `<span class="${data ? 'validated' : 'not-validated'}">${data ? 'Validé' : 'Non validé'}</span>`;
+                        },
+                        defaultContent: '<span class="not-validated">Non validé</span>'
+                    },
+                    {
+                        data: 'id',
+                        render: function(data, type, row) {
+                            return `<button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">👁 Voir</button> <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>`;
+                        }
+                    }
+                ]
+            });
+
+            $(document).on('submit', '#salesForm', function (e) {
+                e.preventDefault();
+                var $form = $(this);
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: $form.attr('method'),
+                    data: $form.serialize(),
+                    success: function (html) {
+                        $('#salesModal .modal-body').html(html);
+                        if ($('#formSuccess').length) {
+                            $('#salesModal').modal('hide');
+                            var $msg = $('<div class="alert alert-success">✅ État des Offres enregistré avec succès</div>');
+                            $('.page-content-wrapper').prepend($msg);
+                            setTimeout(function () {
+                                $msg.fadeOut(500, function () {
+                                    $(this).remove();
+                                });
+                            }, 5000);
+                            if ($.fn.DataTable && $('#salesReportsTable').length) {
+                                $('#salesReportsTable').DataTable().ajax.reload(null, false);
+                            }
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('Form submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                        Swal.fire('Erreur', 'Erreur lors de l\'enregistrement : ' + xhr.status + ' - ' + xhr.statusText, 'error');
+                    }
+                });
+            });
+
+            window.loadSalesReportForm = function (url) {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (html) {
+                        console.log('Form loaded successfully');
+                        $('#salesModal .modal-body').html(html);
+                        $('#salesModal').modal('show');
+                    },
+                    error: function (xhr) {
+                        console.error('Error loading form:', xhr.status, xhr.statusText, xhr.responseText);
+                        Swal.fire('Erreur', 'Erreur lors du chargement du formulaire : ' + xhr.status + ' - ' + xhr.statusText, 'error');
+                    }
+                });
+            };
+
+            $(document).on('click', '.view-sales-btn', function () {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '/AgentSaisie/ViewEtatDesOffresDepart?id=' + id, // Updated to view offers
+                    type: 'GET',
+                    success: function (data) {
+                        $('#viewEtatModalContent').html(data);
+                        $('#viewEtatModal').modal('show');
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Erreur', 'Erreur lors du chargement des détails : ' + xhr.status + ' - ' + xhr.statusText, 'error');
+                    }
+                });
+            });
+
+            window.deleteSalesReport = function (numero) {
+                Swal.fire({
+                    title: 'Êtes-vous sûr de vouloir supprimer cet État des Offres ?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
+                        $.ajax({
+                            url: '/AgentSaisie/DeleteEtatDesOffresDepartByNumero', // Updated to delete offers
+                            type: 'POST',
+                            data: { numero: numero, __RequestVerificationToken: token },
+                            success: function (response) {
+                                if (response.success) {
+                                    var $msg = $('<div class="alert alert-success">✅ Supprimé avec succès</div>');
+                                    $('.page-content-wrapper').prepend($msg);
+                                    setTimeout(function () {
+                                        $msg.fadeOut(500, function () {
+                                            $(this).remove();
+                                        });
+                                    }, 5000);
+                                    salesTable.ajax.reload(null, false);
+                                } else {
+                                    Swal.fire('Erreur', 'Erreur : ' + response.message, 'error');
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire('Erreur', 'Erreur serveur : ' + xhr.status + ' - ' + xhr.statusText, 'error');
+                            }
+                        });
+                    }
+                });
+            };
+        });
+    </script>
 </body>
 </html>

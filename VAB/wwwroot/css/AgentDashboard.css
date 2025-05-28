@@ -1,0 +1,33 @@
+﻿
+.notification-dropdown .dropdown-menu {
+    width: 500px;
+    z-index: 1000;
+}
+
+.notification-list-container {
+    max-height: 120px; /* ~3 notifications at ~40px each */
+    overflow-y: auto;
+}
+
+.notification-item {
+    white-space: normal;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.7em;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+    min-width: 200px;
+}

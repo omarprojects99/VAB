@@ -1,0 +1,144 @@
+﻿@{
+    ViewData["Title"] = "Extracted Table Data";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .header-section {
+            background-color: #e6f2ff;
+            font-weight: bold;
+        }
+
+        .subheader {
+            background-color: #f0f7ff;
+        }
+
+        .signature-row td {
+            padding: 15px 0;
+            border-bottom: 2px solid #333;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+            .btn:hover {
+                background-color: #45a049;
+            }
+
+        .json-view {
+            display: none;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Extracted Table Data</h2>
+
+    @if (ViewBag.TableData != null)
+    {
+        <div id="extractedTable">
+            @{
+                var jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(ViewBag.TableData);
+                var document = jsonData.document;
+                var page = document.page;
+                var rows = page.row;
+            }
+
+            <table>
+                <!-- Process and display table data here -->
+                @foreach (var row in rows)
+                {
+                    <tr>
+                        @foreach (var column in row.column)
+                        {
+                            <td>
+                                @if (column.text != null)
+                                {
+                                    if (column.text is Newtonsoft.Json.Linq.JObject)
+                                    {
+                                        @column.text["#text"]
+                                    }
+                                    else
+                                    {
+                                        @column.text
+                                    }
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </table>
+        </div>
+
+        <button onclick="toggleJsonView()" class="btn">Toggle JSON View</button>
+        <pre id="jsonView" class="json-view">@Html.Raw(ViewBag.TableData)</pre>
+    }
+    else
+    {
+        <p>No data extracted.</p>
+    }
+
+    <a href="@Url.Action("Upload", "Pdf")" class="btn">Upload Another File</a>
+
+    <script>
+        function toggleJsonView() {
+            var jsonView = document.getElementById("jsonView");
+            var extractedTable = document.getElementById("extractedTable");
+
+            if (jsonView.style.display === "none") {
+                jsonView.style.display = "block";
+                extractedTable.style.display = "none";
+            } else {
+                jsonView.style.display = "none";
+                extractedTable.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

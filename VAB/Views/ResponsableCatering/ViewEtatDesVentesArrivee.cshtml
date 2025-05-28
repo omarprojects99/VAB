@@ -46,9 +46,7 @@
         </tr>
     </table>
 
-    <!-- Combined PNC Dynamiques and Données Générales Section -->
     <div class="tables-container" style="display: flex; gap: 20px; margin-bottom: 15px;">
-        <!-- PNC Dynamiques Table -->
         <div class="dynamic-pnc-section" style="flex: 1;">
             <h4 class="section-title">PNCs</h4>
             <table class="dynamic-pnc-table">
@@ -79,7 +77,6 @@
             </table>
         </div>
 
-        <!-- Données Générales Table -->
         <div class="general-data-section" style="flex: 1;">
             <h4 class="section-title">Données Générales</h4>
             <table class="table table-bordered modern-info-table">
@@ -115,7 +112,6 @@
         </div>
     </div>
 
-    <!-- Articles Vendus Section -->
     <h4 class="section-title">Articles Vendus</h4>
     <div class="table-responsive">
         <table id="article-table" class="modern-table">
@@ -168,29 +164,13 @@
                         <td>Total</td>
                         <td>@categorie.CategorieDescription</td>
                         <td colspan="2"></td>
-                        <td>
-                            <p class="form-control-static">
-                                @group.Sum(a => a.QuantiteDotation + a.QuantiteComplementaire)
-                            </p>
-                        </td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteDotation + a.QuantiteComplementaire)</p></td>
                         <td></td>
                         <td></td>
-                        <td>
-                            <p class="form-control-static">
-                                @group.Sum(a => a.QuantiteVendu)
-                            </p>
-                        </td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteVendu)</p></td>
                         <td></td>
-                        <td>
-                            <p class="form-control-static">
-                                @group.Sum(a => a.QuantiteVendu * a.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
-                            </p>
-                        </td>
-                        <td>
-                            <p class="form-control-static">
-                                @group.Sum(a => a.QuantiteDotation + a.QuantiteComplementaire - a.QuantiteCasse - a.QuantiteOffert - a.QuantiteVendu)
-                            </p>
-                        </td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteVendu * a.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteDotation + a.QuantiteComplementaire - a.QuantiteCasse - a.QuantiteOffert - a.QuantiteVendu)</p></td>
                     </tr>
                 }
             </tbody>
@@ -198,9 +178,7 @@
                 <tr>
                     <td colspan="9" style="text-align: right; font-weight: bold;">Grand Total:</td>
                     <td class="grand-total-cell">
-                        <p class="form-control-static">
-                            @Model.ArticleVentes.Sum(a => a.QuantiteVendu * a.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
-                        </p>
+                        <p class="form-control-static">@Model.ArticleVentes.Sum(a => a.QuantiteVendu * a.PrixUnitaireHT).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)</p>
                     </td>
                     <td></td>
                 </tr>
@@ -208,322 +186,309 @@
         </table>
     </div>
 
-    <!-- Summary Section -->
     <div class="summary-table-container">
         <table class="summary-table modern-table">
             <tr>
                 <th colspan="2">Total encaissé</th>
             </tr>
             <tr>
-                <td colspan="2">
-                    <p class="form-control-static">
-                        @(Model.TotalEncaisse.HasValue ? Model.TotalEncaisse.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")
-                    </p>
-                </td>
+                <td colspan="2"><p class="form-control-static">@(Model.TotalEncaisse.HasValue ? Model.TotalEncaisse.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")</p></td>
             </tr>
             <tr>
                 <th colspan="2">Écart</th>
             </tr>
             <tr>
-                <td style="text-align: center;">
-                    + <br> -
-                </td>
+                <td style="text-align: center;">+ <br> -</td>
                 <td>
-                    <p class="form-control-static">
-                        @(Model.EcartPlus.HasValue ? Model.EcartPlus.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")
-                    </p>
-                    <p class="form-control-static">
-                        @(Model.EcartMoins.HasValue ? Model.EcartMoins.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")
-                    </p>
+                    <p class="form-control-static">@(Model.EcartPlus.HasValue ? Model.EcartPlus.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")</p>
+                    <p class="form-control-static">@(Model.EcartMoins.HasValue ? Model.EcartMoins.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "0.00")</p>
                 </td>
             </tr>
         </table>
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
         <button type="button" class="btn btn-primary" onclick="printEtatVente()">Imprimer</button>
-        <button type="button" class="btn btn-valide" onclick="validateEtatVente(@Model.Id)">Valide</button>
+        @if (!Model.IsValidated)
+        {
+            <button type="button" class="btn btn-valide" onclick="validateEtatVente(@Model.Id)">Valide</button>
+        }
     </div>
+</div>
 
-    <style>
-        .sales-form-modal {
-            font-family: 'Segoe UI', Arial, sans-serif;
+<style>
+    .sales-form-modal {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 13px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        color: #333;
+    }
+
+    .header-section {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .company-title {
+        color: #600000;
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 22px;
+    }
+
+    .location-info {
+        color: #555;
+        margin-bottom: 15px;
+        font-style: italic;
+    }
+
+    .form-title {
+        text-align: center;
+        color: #600000;
+        font-weight: bold;
+        margin: 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #600000;
+    }
+
+    .section-title {
+        color: #600000;
+        font-weight: bold;
+        margin: 15px 0 10px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .sales-form-modal .form-group {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 8px 0;
+    }
+
+        .sales-form-modal .form-group label {
+            margin: 0;
+            font-weight: 500;
+        }
+
+    .form-control-static {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 5px 8px;
+        font-size: 13px;
+        background-color: #fff;
+        display: inline-block;
+        width: 100%;
+        margin: 0;
+    }
+
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+        .info-table td {
+            border: 1px solid #eee;
+            padding: 6px;
+            text-align: left;
             font-size: 13px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            color: #333;
         }
 
-        .header-section {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .company-title {
-            color: #600000;
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 22px;
-        }
-
-        .location-info {
-            color: #555;
-            margin-bottom: 15px;
-            font-style: italic;
-        }
-
-        .form-title {
-            text-align: center;
-            color: #600000;
-            font-weight: bold;
-            margin: 20px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #600000;
-        }
-
-        .section-title {
-            color: #600000;
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .sales-form-modal .form-group {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-            margin: 8px 0;
-        }
-
-            .sales-form-modal .form-group label {
-                margin: 0;
-                font-weight: 500;
-            }
-
-        .form-control-static {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 5px 8px;
-            font-size: 13px;
-            background-color: #fff;
-            display: inline-block;
-            width: 100%;
+        .info-table p {
             margin: 0;
         }
 
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    .dynamic-pnc-table, .modern-info-table, .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+    }
+
+        .dynamic-pnc-table th, .dynamic-pnc-table td,
+        .modern-info-table th, .modern-info-table td,
+        .modern-table th, .modern-table td {
+            border: 1px solid #eee;
+            padding: 6px;
+            text-align: left;
+            font-size: 13px;
         }
 
-            .info-table td {
-                border: 1px solid #eee;
-                padding: 6px;
-                text-align: left;
-                font-size: 13px;
-            }
-
-            .info-table p {
-                margin: 0;
-            }
-
-        .dynamic-pnc-table, .modern-info-table, .modern-table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-        }
-
-            .dynamic-pnc-table th, .dynamic-pnc-table td,
-            .modern-info-table th, .modern-info-table td,
-            .modern-table th, .modern-table td {
-                border: 1px solid #eee;
-                padding: 6px;
-                text-align: left;
-                font-size: 13px;
-            }
-
-            .dynamic-pnc-table th, .modern-table th {
-                background-color: #600000;
-                color: white;
-                font-weight: bold;
-                text-align: center;
-            }
-
-            .dynamic-pnc-table p, .modern-table p {
-                margin: 0;
-            }
-
-        .category-row {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-
-        .category-summary-row {
-            background-color: #eee;
-            font-weight: bold;
-        }
-
-        .category-name {
-            font-weight: bold;
-            padding: 5px;
-            display: inline-block;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-            margin-bottom: 20px;
-        }
-
-        .summary-table-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .summary-table {
-            width: 300px;
-            border-left: 3px solid #600000;
-        }
-
-        .grand-total-cell {
-            font-weight: bold;
-            background-color: #f0f0f0;
-            color: #600000;
-        }
-
-        .modal-footer {
-            border-top: 3px solid #600000;
-            padding: 15px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-            .btn-secondary:hover {
-                background-color: #5a6268;
-            }
-
-        .btn-primary {
+        .dynamic-pnc-table th, .modern-table th {
             background-color: #600000;
             color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
         }
 
-            .btn-primary:hover {
-                background-color: #400000;
-            }
-
-        .btn-valide {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+        .dynamic-pnc-table p, .modern-table p {
+            margin: 0;
         }
 
-            .btn-valide:hover {
-                background-color: #218838;
-            }
+    .category-row {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
 
-        @@media print {
-            .modal-footer {
-                display: none;
-            }
+    .category-summary-row {
+        background-color: #eee;
+        font-weight: bold;
+    }
 
-            .sales-form-modal {
-                background-color: white;
-                padding: 0;
-                max-height: none !important;
-                overflow: visible !important;
-            }
+    .category-name {
+        font-weight: bold;
+        padding: 5px;
+        display: inline-block;
+    }
 
-            body {
-                background-color: white;
-            }
+    .table-responsive {
+        overflow-x: auto;
+        margin-bottom: 20px;
+    }
 
-            .modal-body {
-                max-height: none !important;
-                overflow: visible !important;
-            }
+    .summary-table-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .summary-table {
+        width: 300px;
+        border-left: 3px solid #600000;
+    }
+
+    .grand-total-cell {
+        font-weight: bold;
+        background-color: #f0f0f0;
+        color: #600000;
+    }
+
+    .modal-footer {
+        border-top: 3px solid #600000;
+        padding: 15px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
         }
-    </style>
 
-    <script>
-        function printEtatVente() {
-            window.print();
+    .btn-primary {
+        background-color: #600000;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background-color: #400000;
         }
 
-        function validateEtatVente(id) {
-            console.log('validateEtatVente called with ID:', id);
-            fetch('/ResponsableCatering/ValidateEtatDesVentesArrivee', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                },
-                body: JSON.stringify({ id: id })
-            })
-            .then(response => {
-                console.log('Fetch response received:', response);
-                if (!response.ok) {
-                    throw new Error('Erreur lors de la validation: ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                if (data.success) {
-                    // Update DataTable
-                    const table = $('#salesReportsTable').DataTable();
-                    console.log('DataTable instance:', table);
-                    const row = table.rows(function (idx, data, node) {
-                        console.log('Checking row data ID:', data.id);
-                        return data.id === id;
-                    });
-                    console.log('Found rows:', row.length);
-                    if (row.length > 0) {
-                        // Update the specific cell for isValidated
-                        const rowNode = row.nodes()[0];
-                        table.cell(rowNode, 6).data(true).draw(false); // Column 6 is isValidated
-                        console.log('Updated isValidated to true for row with ID:', id);
-                    } else {
-                        console.warn('No row found for   ID:', id);
-                    }
-                    alert('État validé avec succès.');
+    .btn-valide {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-valide:hover {
+            background-color: #218838;
+        }
+    @@media print {
+        .modal-footer
+
+    {
+        display: none;
+    }
+
+    .sales-form-modal {
+        background-color: white;
+        padding: 0;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    body {
+        background-color: white;
+    }
+
+    .modal-body {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    }
+</style>
+
+<script>
+    function printEtatVente() {
+        window.print();
+    }
+
+    function validateEtatVente(id) {
+        console.log('validateEtatVente called with ID:', id);
+        fetch('@Url.Action("ValidateEtatDesVentesArrivee", "ResponsableCatering")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify({ id: id })
+        })
+        .then(response => {
+            console.log('Fetch response received:', response);
+            if (!response.ok) {
+                throw new Error('Erreur lors de la validation: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                alert('État validé avec succès.');
+                // Close modal
+                $('#salesModal').modal('hide');
+                // Reload parent DataTable
+                if ($.fn.DataTable.isDataTable('#salesReportsTable')) {
+                    $('#salesReportsTable').DataTable().ajax.reload();
                 } else {
-                    alert('Erreur: ' + data.error);
+                    console.warn('DataTable #salesReportsTable not found');
+                    location.reload();
                 }
-            })
-            .catch(error => {
-                console.error('Erreur lors de la validation:', error);
-                alert('Erreur lors de la validation: ' + error.message);
-            });
-        }
-    </script>
-</div>
+            } else {
+                alert('Erreur: ' + (data.error || 'Validation failed'));
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la validation:', error);
+            alert('Erreur lors de la validation: ' + error.message);
+        });
+    }
+</script>

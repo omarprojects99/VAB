@@ -43,42 +43,8 @@
     <link rel="stylesheet" href="~/css/sidebar.css">
     <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
+   
 
-    <style>
-        .dataTables_paginate .pagination .page-item.active .page-link {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: white;
-        }
-
-        .dataTables_paginate .pagination .page-item .page-link {
-            color: #6c757d;
-            background-color: white;
-            border-color: #dee2e6;
-        }
-
-            .dataTables_paginate .pagination .page-item .page-link:hover {
-                background-color: #5a6268;
-                border-color: #5a6268;
-                color: white;
-            }
-
-        .dataTables_paginate .pagination .page-item.disabled .page-link {
-            color: #6c757d;
-            background-color: #f8f9fa;
-            border-color: #dee2e6;
-        }
-
-        .validated {
-            color: green;
-            font-weight: bold;
-        }
-
-        .not-validated {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
 </head>
 
 <body>
@@ -93,8 +59,8 @@
             <div class="navigation">
                 <nav class="navbar navbar-expand-lg navbar-bg">
                     <div class="brand-logo">
-                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="EtatDesVentes"
-                            id="menu-action">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard"
+                           id="menu-action">
                             <div class="logo-tunisair">
                                 <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
                             </div>
@@ -117,16 +83,14 @@
                             <li class="nav-item dropdown show">
                                 @if (User.Identity.IsAuthenticated)
                                 {
-                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown"
-                                        aria-expanded="true">
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
                                         <div class="user-photo">
-                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png"
-                                                style="border-radius: 50%;" alt="">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
                                         </div>
                                         @User.Identity.Name
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        <a asp-controller="AgentSaisie" asp-action="AccountSettings" class="dropdown-item">
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
                                             <i class="material-icons">supervisor_account</i> Account Settings
                                         </a>
                                         <div class="menu-dropdown-divider"></div>
@@ -453,6 +417,23 @@
             };
         });
     </script>
+    <script>
+        $(document).ready(function () {
+            const sidebar = $('.sidebar');
+            const overlay = $('<div class="sidebar-overlay"></div>').appendTo('body');
+
+            $('.navbar-toggler').on('click', function () {
+                sidebar.toggleClass('show');
+                overlay.toggleClass('show');
+            });
+
+            overlay.on('click', function () {
+                sidebar.removeClass('show');
+                overlay.removeClass('show');
+            });
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>

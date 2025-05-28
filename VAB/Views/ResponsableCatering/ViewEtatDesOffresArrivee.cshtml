@@ -1,0 +1,370 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.EtatDesOffresArriveeViewModel
+@{
+    Layout = null;
+}
+
+<div class="modal-body offres-form-modal" style="max-height: 70vh; overflow-y: auto;">
+    <div class="header-section">
+        <h3 class="company-title">TUNISAIR</h3>
+        <div class="location-info">VAB TUNIS<br>Carthage</div>
+        <div class="form-group">
+            <label>Date et Heure d'Édition:</label>
+            <p class="form-control-static">@Model.DateEdition.ToString("yyyy-MM-dd HH:mm")</p>
+        </div>
+        
+    </div>
+
+    <h3 class="form-title">ETAT DES OFFRES ARRIVEE N° <span class="form-control-static d-inline-block w-auto">@Model.Numero</span></h3>
+    <p>Statut: <span class="@(Model.IsValidated ? "validated" : "not-validated")">@(Model.IsValidated ? "Validé" : "Non validé")</span></p>
+
+    <h4 class="section-title">Articles Offerts</h4>
+    <div class="table-responsive">
+        <table id="article-table" class="modern-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Quantité Dotation</th>
+                    <th>Quantité Compl.</th>
+                    <th>Tot Em</th>
+                    <th>Quantité Casse</th>
+                    <th>Quantité Offerte</th>
+                    <th>Retour Consig</th>
+                    <th>Déficite</th>
+                    <th>Restant</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var groupedArticles = Model.ArticleOffres
+                    .GroupBy(ao => ao.CategorieId)
+                    .OrderBy(g => g.First().CategorieDescription);
+                }
+                @foreach (var group in groupedArticles)
+                {
+                    var categorie = group.First();
+                    <tr class="category-row">
+                        <td colspan="10">
+                            <span class="category-name">@categorie.CategorieDescription</span>
+                        </td>
+                    </tr>
+                    foreach (var article in group)
+                    {
+                        <tr class="article-row">
+                            <td><p class="form-control-static">@article.IdArticle</p></td>
+                            <td><p class="form-control-static">@article.Description</p></td>
+                            <td><p class="form-control-static">@article.QuantiteDotation</p></td>
+                            <td><p class="form-control-static">@article.QuantiteComplementaire</p></td>
+                            <td><p class="form-control-static">@article.TotalEmbarque</p></td>
+                            <td><p class="form-control-static">@article.QuantiteCasse</p></td>
+                            <td><p class="form-control-static">@article.QuantiteOffert</p></td>
+                            <td><p class="form-control-static">@article.RetourConsig</p></td>
+                            <td><p class="form-control-static">@article.Deficite</p></td>
+                            <td><p class="form-control-static">@article.Restant</p></td>
+                        </tr>
+                    }
+                    <tr class="category-summary-row">
+                        <td>Total</td>
+                        <td>@categorie.CategorieDescription</td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteDotation)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteComplementaire)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.TotalEmbarque)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteCasse)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.QuantiteOffert)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.RetourConsig)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.Deficite)</p></td>
+                        <td><p class="form-control-static">@group.Sum(a => a.Restant)</p></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-primary" onclick="printEtatOffre()">Imprimer</button>
+        @if (!Model.IsValidated)
+        {
+            <button type="button" class="btn btn-valide" onclick="validateEtatOffre(@Model.Id)">Valider</button>
+        }
+    </div>
+
+    <style>
+        .offres-form-modal {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .header-section {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .company-title {
+            color: #600000;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .location-info {
+            color: #555;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #600000;
+            font-weight: bold;
+            margin: 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #600000;
+        }
+
+        .section-title {
+            color: #600000;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .offres-form-modal .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+            .offres-form-modal .form-group label {
+                margin: 0;
+                font-weight: 500;
+            }
+
+        .form-control-static {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 13px;
+            background-color: #fff;
+            display: inline-block;
+            width: 100%;
+            margin: 0;
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+            .modern-table th, .modern-table td {
+                border: 1px solid #eee;
+                padding: 6px;
+                text-align: center;
+                font-size: 13px;
+            }
+
+            .modern-table th {
+                background-color: #600000;
+                color: white;
+                font-weight: bold;
+            }
+
+            .modern-table p {
+                margin: 0;
+            }
+
+        .category-row {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        .category-summary-row {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+        .category-name {
+            font-weight: bold;
+            padding: 5px;
+            display: inline-block;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            border-top: 3px solid #600000;
+            padding: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-secondary:hover {
+                background-color: #5a6268;
+            }
+
+        .btn-primary {
+            background-color: #600000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-primary:hover {
+                background-color: #400000;
+            }
+
+        .btn-valide {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-valide:hover {
+                background-color: #218838;
+            }
+
+        .validated {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-validated {
+            color: red;
+            font-weight: bold;
+        }
+
+        @@media print {
+            .modal-footer
+
+        {
+            display: none;
+        }
+
+        .offres-form-modal {
+            background-color: white;
+            padding: 0;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        body {
+            background-color: white;
+        }
+
+        .modal-body {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        }
+    </style>
+
+    <script>
+        function printEtatOffre() {
+            window.print();
+        }
+
+        function validateEtatOffre(id) {
+            console.log('validateEtatOffre called with ID:', id);
+            fetch('/ResponsableCatering/ValidateEtatDesOffresArrivee', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => {
+                console.log('Fetch response received:', response);
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la validation: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    // Update DataTable
+                    const table = $('#offresReportsTable').DataTable();
+                    console.log('DataTable instance:', table);
+                    const row = table.rows(function (idx, data, node) {
+                        console.log('Checking row data ID:', data.id);
+                        return data.id === id;
+                    });
+                    console.log('Found rows:', row.length);
+                    if (row.length > 0) {
+                        // Update the specific cell for isValidated
+                        const rowNode = row.nodes()[0];
+                        table.cell(rowNode, 4).data(true).draw(false); // Column 4 is isValidated
+                        console.log('Updated isValidated to true for row with ID:', id);
+                    } else {
+                        console.warn('No row found for ID:', id);
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Succès',
+                        text: 'État validé avec succès.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $('#viewEtatModal').modal('hide');
+                        table.ajax.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: data.error,
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la validation:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Erreur lors de la validation: ' + error.message,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            });
+        }
+    </script>
+</div>

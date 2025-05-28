@@ -1,0 +1,803 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Tableau de bord - Agent Saisie";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent de Saisie Dashboard</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        /* File Upload Styles */
+        .upload-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+        }
+
+        .upload-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            .upload-header h2 {
+                color: #2c3e50;
+                font-size: 1.8rem;
+                margin-bottom: 8px;
+            }
+
+            .upload-header p {
+                color: #7f8c8d;
+                font-size: 1rem;
+            }
+
+        .dropbox {
+            width: 100%;
+            height: 220px;
+            border: 3px dashed #4e5058;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #f0f7ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 20px;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+            .dropbox:hover {
+                background-color: #e6f0ff;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            }
+
+            .dropbox.dragover {
+                background-color: #e6f0ff;
+                border-color: #000000;
+                transform: scale(1.02);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+        .dropbox-icon {
+            font-size: 40px;
+            color: #555556;
+            margin-bottom: 10px;
+        }
+
+        .dropbox-text {
+            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .dropbox-subtext {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        .browse-btn {
+            background-color: #4c6fff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+            .browse-btn:hover {
+                background-color: #3451b2;
+            }
+
+        .file-previews {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .file-preview {
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+            .file-preview:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            }
+
+        .preview-img-container {
+            height: 150px;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+        }
+
+        .file-icon {
+            font-size: 60px;
+            color: #4c6fff;
+        }
+
+        .file-info {
+            padding: 12px;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .file-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .remove-btn {
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .remove-btn:hover {
+                background-color: #d9363e;
+            }
+
+        .upload-stats {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stats-title {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .stats-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            color: #4c6fff;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .progress-bar {
+            height: 8px;
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4c6fff;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .upload-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4c6fff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+
+            .upload-notification.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+                pointer-events: all;
+            }
+
+            .upload-notification.success {
+                background-color: #52c41a;
+            }
+
+            .upload-notification.error {
+                background-color: #ff4d4f;
+            }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.5);
+            width: 100%;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 3s linear;
+        }
+
+        .upload-notification.show .notification-progress {
+            transform: scaleX(1);
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .file-previews
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        .dropbox {
+            height: 180px;
+        }
+
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading spinner -->
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <div class="collapse navbar-collapse pr-3" id="#">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>@User.Identity.Name</a></li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Account Settings
+                        </a>
+                    </li>
+                    <li><a asp-controller="Account" asp-action="Logout"><i class="material-icons mr-2">exit_to_app</i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                <i class="material-icons">dashboard</i>Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a asp-controller="AgentSaisie" asp-action="Extract">
+                                <i class="material-icons">scanner</i>Scanner
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="upload-container">
+                <div class="upload-header">
+                    <h2>Upload PDF or Image File</h2>
+                    <p>Drag & drop files or click to browse</p>
+                </div>
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+
+                <form asp-controller="Pdf" asp-action="ExtractTable" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <div class="dropbox" id="dropbox">
+                        <div class="dropbox-icon"><i class="material-icons">cloud_upload</i></div>
+                        <div class="dropbox-text">Drop files here</div>
+                        <div class="dropbox-subtext">Supported formats: JPEG, PNG, PDF (Max 5MB)</div>
+                        <button type="button" class="browse-btn">Browse Files</button>
+                        <input type="file" name="uploadedFile" id="fileInput" accept=".pdf,image/*" hidden>
+                    </div>
+
+                    <div class="upload-stats" id="uploadStats">
+                        <div class="stats-header">
+                            <div class="stats-title">Upload Summary</div>
+                        </div>
+                        <div class="stats-info">
+                            <div class="stat-item">
+                                <div class="stat-value" id="fileCount">0</div>
+                                <div class="stat-label">Files</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalSize">0 KB</div>
+                                <div class="stat-label">Total Size</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="empty-state" id="emptyState">
+                        No files uploaded yet
+                    </div>
+
+                    <div class="file-previews" id="filePreviews"></div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn" style="display: none;">
+                        Extract Table
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <div class="upload-notification" id="notification">
+        <span id="notificationText">File uploaded successfully!</span>
+        <div class="notification-progress"></div>
+    </div>
+
+    <div class="modal fade" id="salesModal" tabindex="-1" aria-labelledby="salesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" id="modalContent">
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/Chart.bundle.min.js"></script>
+    <script src="~/js/chartfunction.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+        // File Upload Script
+        const dropbox = document.getElementById('dropbox');
+        const fileInput = document.getElementById('fileInput');
+        const filePreviews = document.getElementById('filePreviews');
+        const notification = document.getElementById('notification');
+        const browseBtn = document.querySelector('.browse-btn');
+        const uploadStats = document.getElementById('uploadStats');
+        const fileCountEl = document.getElementById('fileCount');
+        const totalSizeEl = document.getElementById('totalSize');
+        const progressFill = document.getElementById('progressFill');
+        const emptyState = document.getElementById('emptyState');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+
+        let fileCount = 0;
+        let totalSize = 0;
+
+        // Initialize display
+        updateDisplay();
+
+        // Prevent default behavior for drag and drop events
+        dropbox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropbox.classList.add('dragover');
+        });
+
+        dropbox.addEventListener('dragleave', () => {
+            dropbox.classList.remove('dragover');
+        });
+
+        // Handle file drop
+        dropbox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropbox.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        // Handle file selection through the input
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            handleFiles(files);
+        });
+
+        // Trigger file input when dropbox or browse button is clicked
+        dropbox.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        browseBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            fileInput.click();
+        });
+
+        // Handle files
+        function handleFiles(files) {
+            const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+            const maxSize = 5 * 1024 * 1024; // 5 MB
+
+            if (files.length > 0) {
+                let validFiles = 0;
+                let invalidFiles = 0;
+
+                Array.from(files).forEach(file => {
+                    if (!allowedTypes.includes(file.type)) {
+                        showNotification(`${file.name} is not a valid file type.`, 'error');
+                        invalidFiles++;
+                        return;
+                    }
+
+                    if (file.size > maxSize) {
+                        showNotification(`${file.name} is too large. Maximum file size is 5 MB.`, 'error');
+                        invalidFiles++;
+                        return;
+                    }
+
+                    // Handle valid file
+                    displayFilePreview(file);
+                    validFiles++;
+                });
+
+                if (validFiles > 0) {
+                    simulateUpload(validFiles);
+                    showNotification(`${validFiles} file${validFiles !== 1 ? 's' : ''} added successfully.`, 'success');
+                    submitBtn.style.display = 'block';
+                }
+
+                if (invalidFiles > 0) {
+                    showNotification(`${invalidFiles} file${invalidFiles !== 1 ? 's' : ''} not added due to errors.`, 'error');
+                }
+            }
+        }
+
+        function displayFilePreview(file) {
+            const reader = new FileReader();
+            const fileId = `file-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+            reader.onload = function(event) {
+                const preview = document.createElement('div');
+                preview.classList.add('file-preview');
+                preview.id = fileId;
+
+                // Format file size
+                const fileSize = formatFileSize(file.size);
+
+                // Determine if it's an image or PDF
+                const isImage = file.type.startsWith('image/');
+
+                let previewContent;
+                if (isImage) {
+                    previewContent = `<img src="${event.target.result}" class="preview-img">`;
+                } else {
+                    previewContent = `<div class="file-icon"><i class="material-icons">picture_as_pdf</i></div>`;
+                }
+
+                preview.innerHTML = `
+                    <div class="preview-img-container">
+                        ${previewContent}
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${fileSize}</div>
+                        <div class="file-actions">
+                            <button class="remove-btn">Remove</button>
+                        </div>
+                    </div>
+                `;
+
+                // Add remove functionality
+                const removeBtn = preview.querySelector('.remove-btn');
+                removeBtn.addEventListener('click', () => {
+                    removeFile(fileId, file.size);
+                });
+
+                filePreviews.appendChild(preview);
+
+                // Update statistics
+                fileCount++;
+                totalSize += file.size;
+                updateDisplay();
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function removeFile(fileId, size) {
+            const fileElement = document.getElementById(fileId);
+            if (fileElement) {
+                // Animate removal
+                fileElement.style.opacity = '0';
+                fileElement.style.transform = 'scale(0.9)';
+
+                setTimeout(() => {
+                    fileElement.remove();
+
+                    // Update statistics
+                    fileCount--;
+                    totalSize -= size;
+                    updateDisplay();
+
+                    showNotification('File removed', 'success');
+
+                    if (fileCount === 0) {
+                        submitBtn.style.display = 'none';
+                    }
+                }, 300);
+            }
+
+            resetFileInput();
+        }
+
+        function updateDisplay() {
+            fileCountEl.textContent = fileCount;
+            totalSizeEl.textContent = formatFileSize(totalSize);
+
+            if (fileCount > 0) {
+                uploadStats.style.display = 'block';
+                emptyState.style.display = 'none';
+                progressFill.style.width = '100%';
+            } else {
+                uploadStats.style.display = 'none';
+                emptyState.style.display = 'block';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showNotification(message, type = 'success') {
+            // Clear any existing timeout
+            clearTimeout(notification.timeout);
+
+            // Hide notification if it's already showing
+            notification.classList.remove('show', 'success', 'error');
+
+            // Set content and show
+            document.getElementById('notificationText').textContent = message;
+            notification.classList.add('show', type);
+
+            // Reset progress bar
+            const progressBar = notification.querySelector('.notification-progress');
+            progressBar.style.transition = 'none';
+            progressBar.style.transform = 'scaleX(0)';
+
+            // Force reflow to restart animation
+            void notification.offsetWidth;
+
+            // Start progress animation
+            progressBar.style.transition = 'transform 3s linear';
+            progressBar.style.transform = 'scaleX(1)';
+
+            // Auto-hide after 3 seconds
+            notification.timeout = setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function simulateUpload(fileCount) {
+            // This would be where you'd actually upload to a server
+            // For now we're just showing the progress visually
+            progressFill.style.width = '0%';
+
+            setTimeout(() => {
+                progressFill.style.width = '30%';
+
+                setTimeout(() => {
+                    progressFill.style.width = '60%';
+
+                    setTimeout(() => {
+                        progressFill.style.width = '100%';
+                    }, 200);
+                }, 200);
+            }, 100);
+        }
+
+        // Reset the file input after a file is removed
+        function resetFileInput() {
+            fileInput.value = '';
+        }
+
+        // Form submission handler
+        uploadForm.addEventListener('submit', function(e) {
+            if (fileCount === 0) {
+                e.preventDefault();
+                showNotification('Please select a file to upload', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,23 +1,17 @@
-﻿@* @{ *@
-@*     ViewData["Title"] = "Upload PDF"; *@
-@* } *@
+﻿@{
+    ViewData["Title"] = "Upload PDF or Image";
+}
 
-@* <h2>Upload a PDF File</h2> *@
+<h2>Upload PDF or Image File</h2>
 
-@* <form asp-action="UploadPdfFile" asp-controller="Pdf" method="post" enctype="multipart/form-data"> *@
-@*     <div class="form-group"> *@
-@*         <label for="pdfFile">Choose a PDF file:</label> *@
-@*         <input type="file" name="pdfFile" class="form-control" accept=".pdf" required /> *@
-@*     </div> *@
-@*     <button type="submit" class="btn btn-primary">Extract Text</button> *@
-@* </form> *@
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
-@* @if (!ViewData.ModelState.IsValid) *@
-@* { *@
-@*     <div class="alert alert-danger"> *@
-@*         @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors)) *@
-@*         { *@
-@*             <p>@error.ErrorMessage</p> *@
-@*         } *@
-@*     </div> *@
-@* } *@
+<form asp-controller="Pdf" asp-action="ExtractTable" method="post" enctype="multipart/form-data">
+    <div class="form-group mb-3">
+        <input type="file" name="uploadedFile" accept=".pdf,image/*" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Extract Table</button>
+</form>

@@ -1,99 +1,111 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-//using Microsoft.Extensions.Logging;
-//using System.Threading.Tasks;
-//using System.IO;
-//using TextExtraction;
-//using Microsoft.EntityFrameworkCore;
-//using UglyToad.PdfPig;
-//using VAB.Models;
-//using Microsoft.AspNetCore.Identity;
-//using VAB.Data;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Newtonsoft.Json.Linq;
 
-//public class PdfController : Controller
-//{
-    
-    
-    
-//    private readonly ApplicationDbContext _context;
-//    public PdfController( ApplicationDbContext context)
-//    {
-       
-//        _context = context;
-//    }
-//    private readonly PdfTextExtractor _pdfTextExtractor;
+public class PdfController : Controller
+{
+    private readonly string apiKey = "[REDACTED]";
 
-//    public PdfController(ILogger<PdfTextExtractor> logger)
-//    {
-//        _pdfTextExtractor = new PdfTextExtractor(logger);
-//    }
+    [HttpPost]
+    public async Task<IActionResult> ExtractTable(IFormFile uploadedFile)
+    {
+        if (uploadedFile == null || uploadedFile.Length == 0)
+        {
+            TempData["Error"] = "Please upload a valid PDF or image file.";
+            return RedirectToAction("Index");
+        }
 
-//    [HttpGet]
-//    public IActionResult Upload()
-//    {
-//        return View();
-//    }
-//    [HttpPost]
-//    public async Task<IActionResult> Upload(IFormFile pdfFile)
-//    {
-//        if (pdfFile == null || pdfFile.Length == 0)
-//        {
-//            ModelState.AddModelError("", "Veuillez sélectionner un fichier PDF.");
-//            return View("Index");
-//        }
+        // Upload file to PDF.co
+        var uploadResult = await UploadFileToPdfCo(uploadedFile);
+        if (!uploadResult.success)
+        {
+            TempData["Error"] = "File upload failed: " + uploadResult.error;
+            return RedirectToAction("Index");
+        }
 
-//        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
-//        Directory.CreateDirectory(uploadPath);
+        // Extract table from uploaded file URL
+        var tableResult = await ExtractTableFromPdf(uploadResult.url);
+        if (!tableResult.success)
+        {
+            TempData["Error"] = "Table extraction failed: " + tableResult.error;
+            return RedirectToAction("Index");
+        }
 
-//        var filePath = Path.Combine(uploadPath, pdfFile.FileName);
+        // Pass extracted table JSON to the view
+        ViewBag.TableData = tableResult.data;
+        return View("TableResult");
+    }
 
-//        using (var stream = new FileStream(filePath, FileMode.Create))
-//        {
-//            await pdfFile.CopyToAsync(stream);
-//        }
+    private async Task<(bool success, string url, string error)> UploadFileToPdfCo(IFormFile file)
+    {
+        using (var client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("x-api-key", apiKey);
 
-//        // Extract data from PDF
-//        var etat = ExtractEtatDesVentesFromPdf(filePath);
-//        if (etat != null)
-//        {
-//            _context.EtatDesVentesArrivee.Add(etat);
-//            await _context.SaveChangesAsync();
-//        }
+            using (var content = new MultipartFormDataContent())
+            using (var stream = file.OpenReadStream())
+            {
+                content.Add(new StreamContent(stream), "file", file.FileName);
 
-//        return RedirectToAction("Index");
-//    }
-//    private EtatDesVentesArrivee ExtractEtatDesVentesFromPdf(string path)
-//    {
-//        using var pdf = PdfDocument.Open(path);
-//        var etat = new EtatDesVentesArrivee
-//        {
-//            Numero = Guid.NewGuid().ToString().Substring(0, 8),
-//            DateEdition = DateTime.Now,
-//            EquipageId = 1, // you may set this dynamically
-//            AgentSaisieId = "default",
-//            ArticleVentes = new List<ArticleVente>()
-//        };
+                var response = await client.PostAsync("https://api.pdf.co/v1/file/upload", content);
+                var json = await response.Content.ReadAsStringAsync();
+                var obj = JObject.Parse(json);
 
-//        foreach (var page in pdf.GetPages())
-//        {
-//            var lines = page.Text.Split('\n');
-//            foreach (var line in lines)
-//            {
-//                var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-//                if (parts.Length >= 3 && int.TryParse(parts[1], out int qty) && decimal.TryParse(parts[2], out decimal price))
-//                {
-//                    etat.ArticleVentes.Add(new ArticleVente
-//                    {
-//                        NomArticle = parts[0],
-//                        Quantite = qty,
-//                        PrixUnitaire = price
-//                    });
-//                }
-//            }
-//        }
+                if (obj["error"].Value<bool>() == false)
+                {
+                    return (true, obj["url"].Value<string>(), null);
+                }
+                else
+                {
+                    return (false, null, obj["message"].Value<string>());
+                }
+            }
+        }
+    }
 
-//        etat.TotalEncaisse = etat.ArticleVentes.Sum(a => a.Total);
-//        return etat;
-//    }
+    private async Task<(bool success, string data, string error)> ExtractTableFromPdf(string fileUrl)
+    {
+        using (var client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("x-api-key", apiKey);
 
+            var payload = new
+            {
+                url = fileUrl,
+                pages = "0-",
+                inline = true,
+                async = false,
+                tableDetection = true, // Enable table detection
+                outputFormat = "json" // Ensure JSON output
+            };
 
-//}
+            var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var response = await client.PostAsync("https://api.pdf.co/v1/pdf/convert/to/json", content);
+            var json = await response.Content.ReadAsStringAsync();
+            var obj = JObject.Parse(json);
+
+            if (obj["error"].Value<bool>() == false)
+            {
+                var extractedData = obj["body"].ToString();
+                return (true, extractedData, null);
+            }
+            else
+            {
+                return (false, null, obj["message"].Value<string>());
+            }
+        }
+    }
+
+   
+
+    public IActionResult TableResult()
+    {
+        return View();
+    }
+}

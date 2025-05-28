@@ -4,11 +4,14 @@ using Microsoft.AspNetCore.Identity;
 using VAB.Models;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
+using VAB.Hubs;
 //using TextExtraction; pdf extractor
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSignalR(); // Add SignalR
 
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -49,12 +52,13 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
+app.MapHub<NotificationHub>("/notificationHub");
 // add first Admin
 //using (var scope = app.Services.CreateScope())
 //{

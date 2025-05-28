@@ -1,0 +1,700 @@
+﻿@model VAB.ViewModel.EtatDesOffresDepartViewModel
+@using VAB.ViewModel
+@{
+    Layout = null;
+}
+
+<div class="offers-form-modal" style="max-height: 70vh; overflow-y: auto;">
+    <form asp-action="AddEtatDesOffresDepart" asp-controller="AgentSaisie" method="post" id="salesForm">
+        @Html.AntiForgeryToken()
+        <div class="header-section">
+            <h3 class="company-title">TUNISAIR</h3>
+            <div class="location-info">VAB TUNIS<br>Carthage</div>
+            <div class="form-group">
+                <label asp-for="DateEdition"></label>
+                <input asp-for="DateEdition" type="datetime-local" class="form-control" />
+                <span asp-validation-for="DateEdition" class="text-danger"></span>
+            </div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <p>@error.ErrorMessage</p>
+                    }
+                </div>
+            }
+            @if (ViewBag.Success != null && (bool)ViewBag.Success)
+            {
+                <input type="hidden" id="formSuccess" value="true" />
+            }
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+            }
+        </div>
+
+        <h3 class="form-title">ETAT DES OFFRES DEPART N° <input asp-for="Numero" class="form-control d-inline-block w-auto" required /></h3>
+        <span asp-validation-for="Numero" class="text-danger"></span>
+        <div class="action-buttons">
+            <button type="button" class="add-row-btn" onclick="addArticleRow()">Ajouter Article</button>
+            
+        </div>
+
+        <div class="table-responsive">
+            <table id="article-table" class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Quantité Dotation</th>
+                        <th>Quantité Compl.</th>
+                        <th>Tot Em</th>
+                        <th>Quantité Casse</th>
+                        <th>Quantité Offerte</th>
+                        <th>Retour Consig</th>
+                        <th>Déficite</th>
+                        <th>Restant</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="article-tbody">
+                    @{
+                        var groupedArticles = Model.ArticleOffreDepart
+                        ?.GroupBy(ao => ao.CategorieId)
+                        .OrderBy(g => g.FirstOrDefault()?.CategorieDescription ?? "")
+                        ?? Enumerable.Empty<IGrouping<int, ArticleOffreDepartViewModel>>();
+                        int articleIndex = 0;
+                    }
+                    @foreach (var group in groupedArticles)
+                    {
+                        var categorie = group.FirstOrDefault();
+                        if (categorie != null)
+                        {
+                            <tr class="category-row" data-categorie-id="@categorie.CategorieId">
+                                <td colspan="11">
+                                    <span class="category-name">@categorie.CategorieDescription</span>
+                                </td>
+                            </tr>
+                            foreach (var article in group)
+                            {
+                                <tr class="article-row">
+                                    <td>
+                                        <input type="hidden" name="ArticleOffreDepart[@articleIndex].ArticleId" value="@article.ArticleId" />
+                                        <input type="hidden" name="ArticleOffreDepart[@articleIndex].CategorieId" value="@article.CategorieId" />
+                                        <input type="number" name="ArticleOffreDepart[@articleIndex].IdArticle" class="small-input form-control id-article" value="@article.IdArticle" onchange="fetchArticleDetails(this, @articleIndex)" required />
+                                        <span class="error-message text-danger"></span>
+                                    </td>
+                                    <td><input type="text" name="ArticleOffreDepart[@articleIndex].Description" class="form-control article-description" value="@article.Description" readonly /></td>
+                                    <td><input type="number" name="ArticleOffreDepart[@articleIndex].QuantiteDotation" class="small-input form-control quantity-input" min="0" value="@article.QuantiteDotation" onchange="updateRow(this)" /></td>
+                                    <td><input type="number" name="ArticleOffreDepart[@articleIndex].QuantiteComplementaire" class="small-input form-control quantity-input" min="0" value="@article.QuantiteComplementaire" onchange="updateRow(this)" /></td>
+                                    <td><input type="number" class="small-input form-control" value="@article.TotalEmbarque" readonly /></td>
+                                    <td><input type="number" name="ArticleOffreDepart[@articleIndex].QuantiteCasse" class="small-input form-control quantity-input" min="0" value="@article.QuantiteCasse" onchange="updateRow(this)" /></td>
+                                    <td><input type="number" name="ArticleOffreDepart[@articleIndex].QuantiteOffert" class="small-input form-control quantity-input" min="0" value="@article.QuantiteOffert" onchange="updateRow(this)" /></td>
+                                    <td><input type="number" name="ArticleOffreDepart[@articleIndex].RetourConsig" class="small-input form-control quantity-input" min="0" value="@article.RetourConsig" onchange="updateRow(this)" /></td>
+                                    <td><input type="number" class="small-input form-control" value="@article.Deficite" readonly /></td>
+                                    <td><input type="number" class="form-control" value="@article.Restant" readonly /></td>
+                                    <td><button type="button" class="delete-row-btn" onclick="deleteArticleRow(this)">X</button></td>
+                                </tr>
+                                articleIndex++;
+                            }
+                            <tr class="category-summary-row" data-categorie-id="@categorie.CategorieId">
+                                <td>Total</td>
+                                <td>@categorie.CategorieDescription</td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+<style>
+    .offers-form-modal {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 13px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        color: #333;
+    }
+
+    .header-section {
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .company-title {
+        color: #600000;
+        font-weight: bold;
+        margin-bottom: 5px;
+        font-size: 22px;
+    }
+
+    .location-info {
+        color: #555;
+        margin-bottom: 15px;
+        font-style: italic;
+    }
+
+    .form-title {
+        text-align: center;
+        color: #600000;
+        font-weight: bold;
+        margin: 20px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #600000;
+    }
+
+    .action-buttons {
+        margin: 20px 0;
+        display: flex;
+        gap: 10px;
+    }
+
+    .offers-form-modal .form-group {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 8px 0;
+    }
+
+        .offers-form-modal .form-group label {
+            margin: 0;
+            font-weight: 500;
+        }
+
+    .offers-form-modal .form-control {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 5px 8px;
+        font-size: 13px;
+        transition: border-color 0.2s;
+    }
+
+        .offers-form-modal .form-control:focus {
+            border-color: #600000;
+            box-shadow: 0 0 0 0.2rem rgba(96, 0, 0, 0.25);
+            outline: none;
+        }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+        .modern-table th {
+            background-color: #600000;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .modern-table td {
+            border: 1px solid #eee;
+            padding: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+    .offers-form-modal .small-input {
+        width: 95%;
+    }
+
+    .offers-form-modal .add-row-btn,
+    .offers-form-modal .btn-primary {
+        margin: 0;
+        padding: 8px 15px;
+        font-size: 13px;
+        cursor: pointer;
+        background-color: #600000;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+        .offers-form-modal .add-row-btn:hover,
+        .offers-form-modal .btn-primary:hover {
+            background-color: #400000;
+        }
+
+    .offers-form-modal .delete-row-btn {
+        padding: 3px 8px;
+        font-size: 11px;
+        color: white;
+        background-color: #600000;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+        .offers-form-modal .delete-row-btn:hover {
+            background-color: #400000;
+        }
+
+    .offers-form-modal .category-row {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+
+    .offers-form-modal .category-summary-row {
+        background-color: #eee;
+        font-weight: bold;
+    }
+
+        .offers-form-modal .category-row td,
+        .offers-form-modal .category-summary-row td {
+            text-align: left !important;
+        }
+
+    .offers-form-modal .article-row {
+        background-color: #ffffff;
+    }
+
+        .offers-form-modal .article-row.invalid {
+            background-color: #ffe6e6;
+        }
+
+    .offers-form-modal .error-message {
+        display: block;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    .offers-form-modal .category-name {
+        width: 120px;
+        border: 1px solid #ddd;
+        padding: 5px;
+        border-radius: 4px;
+    }
+
+    .offers-form-modal .category-total-input {
+        width: 60px;
+        font-weight: bold;
+    }
+
+    .table-responsive {
+        margin-top: 20px;
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        overflow-x: auto;
+        border-left: 3px solid #600000;
+    }
+
+    .offers-form-modal .alert-danger {
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .offers-form-modal .text-danger {
+        display: block;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #600000;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+        .btn-primary:hover {
+            background-color: #400000;
+        }
+</style>
+
+<script>
+    let articleIndex = @(Model.ArticleOffreDepart?.Count ?? 0);
+    console.log('Initial articleIndex:', articleIndex);
+
+    function addArticleRow() {
+        console.log('Adding new article row, current index:', articleIndex);
+        const tbody = document.getElementById('article-tbody');
+        const row = document.createElement('tr');
+        row.className = 'article-row';
+        row.innerHTML = `
+            <td>
+                <input type="hidden" name="ArticleOffreDepart[${articleIndex}].ArticleId" value="0" />
+                <input type="hidden" name="ArticleOffreDepart[${articleIndex}].CategorieId" value="0" />
+                <input type="number" name="ArticleOffreDepart[${articleIndex}].IdArticle" class="small-input form-control id-article" onchange="fetchArticleDetails(this, ${articleIndex})" required />
+                <span class="error-message text-danger"></span>
+            </td>
+            <td><input type="text" name="ArticleOffreDepart[${articleIndex}].Description" class="form-control article-description" readonly /></td>
+            <td><input type="number" name="ArticleOffreDepart[${articleIndex}].QuantiteDotation" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+            <td><input type="number" name="ArticleOffreDepart[${articleIndex}].QuantiteComplementaire" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+            <td><input type="number" class="small-input form-control" readonly /></td>
+            <td><input type="number" name="ArticleOffreDepart[${articleIndex}].QuantiteCasse" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+            <td><input type="number" name="ArticleOffreDepart[${articleIndex}].QuantiteOffert" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+            <td><input type="number" name="ArticleOffreDepart[${articleIndex}].RetourConsig" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+            <td><input type="number" class="small-input form-control" readonly /></td>
+            <td><input type="number" class="form-control" readonly /></td>
+            <td><button type="button" class="delete-row-btn" onclick="deleteArticleRow(this)">X</button></td>
+        `;
+        tbody.appendChild(row);
+        articleIndex++;
+        console.log('New row added, updated articleIndex:', articleIndex);
+    }
+
+    function fetchArticleDetails(input, index) {
+        const idArticle = input.value;
+        console.log(`Fetching article details for IdArticle: ${idArticle}, index: ${index}`);
+        const row = input.closest('tr');
+        const errorSpan = row.querySelector('.error-message') || document.createElement('span');
+        errorSpan.className = 'error-message text-danger';
+        row.querySelector('td').appendChild(errorSpan);
+
+        if (!idArticle || idArticle <= 0) {
+            console.warn('Invalid IdArticle:', idArticle);
+            errorSpan.textContent = 'Veuillez entrer un code article valide.';
+            resetArticleRow(row, index);
+            return;
+        }
+
+        fetch(`/AgentSaisie/GetArticleDetails?idArticle=${idArticle}`)
+            .then(response => {
+                console.log('Fetch response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetch response data:', data);
+                if (data.success) {
+                    errorSpan.textContent = '';
+                    const articleIdInput = row.querySelector(`input[name="ArticleOffreDepart[${index}].ArticleId"]`);
+                    const categorieIdInput = row.querySelector(`input[name="ArticleOffreDepart[${index}].CategorieId"]`);
+                    const descriptionInput = row.querySelector(`input[name="ArticleOffreDepart[${index}].Description"]`);
+                    if (articleIdInput && categorieIdInput && descriptionInput) {
+                        articleIdInput.value = data.article.id;
+                        categorieIdInput.value = data.article.categorieId;
+                        descriptionInput.value = data.article.description;
+                        row.classList.remove('invalid');
+                        updateCategoryGrouping(row, data.article.categorieId, data.article.categorieDescription);
+                        updateRow(row.querySelector('.quantity-input'));
+                    } else {
+                        console.error('Input elements not found for index:', index);
+                        errorSpan.textContent = 'Erreur: Champs de formulaire manquants.';
+                    }
+                } else {
+                    console.warn('Article fetch failed:', data.message);
+                    errorSpan.textContent = data.message;
+                    row.classList.add('invalid');
+                    resetArticleRow(row, index);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: data.message,
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                errorSpan.textContent = 'Erreur lors de la récupération de l\'article.';
+                row.classList.add('invalid');
+                resetArticleRow(row, index);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Erreur lors de la récupération de l\'article: ' + error.message,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            });
+    }
+
+    function resetArticleRow(row, index) {
+        console.log('Resetting row for index:', index);
+        const inputs = {
+            articleId: row.querySelector(`input[name="ArticleOffreDepart[${index}].ArticleId"]`),
+            categorieId: row.querySelector(`input[name="ArticleOffreDepart[${index}].CategorieId"]`),
+            description: row.querySelector(`input[name="ArticleOffreDepart[${index}].Description"]`),
+            quantiteDotation: row.querySelector(`input[name="ArticleOffreDepart[${index}].QuantiteDotation"]`),
+            quantiteComplementaire: row.querySelector(`input[name="ArticleOffreDepart[${index}].QuantiteComplementaire"]`),
+            quantiteCasse: row.querySelector(`input[name="ArticleOffreDepart[${index}].QuantiteCasse"]`),
+            quantiteOffert: row.querySelector(`input[name="ArticleOffreDepart[${index}].QuantiteOffert"]`),
+            retourConsig: row.querySelector(`input[name="ArticleOffreDepart[${index}].RetourConsig"]`),
+        };
+        const readonlyInputs = row.querySelectorAll('input[readonly]');
+
+        if (Object.values(inputs).every(input => input)) {
+            inputs.articleId.value = 0;
+            inputs.categorieId.value = 0;
+            inputs.description.value = '';
+            inputs.quantiteDotation.value = '';
+            inputs.quantiteComplementaire.value = '';
+            inputs.quantiteCasse.value = '';
+            inputs.quantiteOffert.value = '';
+            inputs.retourConsig.value = '';
+            if (readonlyInputs.length >= 3) {
+                readonlyInputs[0].value = ''; // TotalEmbarque
+                readonlyInputs[1].value = ''; // Deficite
+                readonlyInputs[2].value = ''; // Restant
+            }
+            row.classList.add('invalid');
+            console.log('Row reset successfully for index:', index);
+        } else {
+            console.error('Missing input elements for reset, index:', index);
+        }
+    }
+
+    function updateCategoryGrouping(row, categorieId, categorieDescription) {
+        console.log('Updating category grouping for categorieId:', categorieId);
+        const tbody = document.getElementById('article-tbody');
+        let categoryRow = tbody.querySelector(`.category-row[data-categorie-id="${categorieId}"]`);
+        let summaryRow = tbody.querySelector(`.category-summary-row[data-categorie-id="${categorieId}"]`);
+
+        if (!categoryRow) {
+            categoryRow = document.createElement('tr');
+            categoryRow.className = 'category-row';
+            categoryRow.dataset.categorieId = categorieId;
+            categoryRow.innerHTML = `<td colspan="11"><span class="category-name">${categorieDescription || 'Unknown'}</span></td>`;
+            tbody.insertBefore(categoryRow, row);
+
+            summaryRow = document.createElement('tr');
+            summaryRow.className = 'category-summary-row';
+            summaryRow.dataset.categorieId = categorieId;
+            summaryRow.innerHTML = `
+                <td>Total</td>
+                <td>${categorieDescription || 'Unknown'}</td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td><input type="number" class="category-total-input form-control" readonly /></td>
+                <td></td>
+            `;
+            tbody.insertBefore(summaryRow, row.nextSibling);
+            console.log('Created new category and summary rows for categorieId:', categorieId);
+        } else {
+            const categoryNameSpan = categoryRow.querySelector('.category-name');
+            if (categoryNameSpan && (!categoryNameSpan.textContent || categoryNameSpan.textContent === 'Unknown')) {
+                categoryNameSpan.textContent = categorieDescription || 'Unknown';
+            }
+            const summaryCategoryCell = summaryRow.querySelector('td:nth-child(2)');
+            if (summaryCategoryCell && (!summaryCategoryCell.textContent || summaryCategoryCell.textContent === 'Unknown')) {
+                summaryCategoryCell.textContent = categorieDescription || 'Unknown';
+            }
+        }
+
+        let nextRow = categoryRow.nextElementSibling;
+        while (nextRow && (nextRow.className.includes('article-row') || nextRow.className.includes('category-summary-row'))) {
+            if (nextRow.className.includes('category-summary-row')) {
+                tbody.insertBefore(row, nextRow);
+                break;
+            }
+            nextRow = nextRow.nextElementSibling;
+        }
+        updateCategorySummary(categorieId);
+    }
+
+    function updateRow(input) {
+        console.log('Updating row for input:', input.name);
+        const row = input.closest('tr');
+        if (row.classList.contains('invalid')) {
+            console.warn('Row is invalid, skipping update');
+            return;
+        }
+
+        const inputs = {
+            dotation: row.querySelector('input[name$=".QuantiteDotation"]'),
+            complementaire: row.querySelector('input[name$=".QuantiteComplementaire"]'),
+            casse: row.querySelector('input[name$=".QuantiteCasse"]'),
+            offert: row.querySelector('input[name$=".QuantiteOffert"]'),
+            retourConsig: row.querySelector('input[name$=".RetourConsig"]'),
+        };
+
+        if (Object.values(inputs).every(input => input)) {
+            const dotation = parseInt(inputs.dotation.value) || 0;
+            const complementaire = parseInt(inputs.complementaire.value) || 0;
+            const casse = parseInt(inputs.casse.value) || 0;
+            const offert = parseInt(inputs.offert.value) || 0;
+            const retourConsig = parseInt(inputs.retourConsig.value) || 0;
+
+            const totalEmbarque = dotation + complementaire;
+            const deficite = totalEmbarque - (casse + offert + retourConsig);
+            const restant = totalEmbarque - casse - offert;
+
+            const readonlyInputs = row.querySelectorAll('input[readonly]');
+            if (readonlyInputs.length >= 3) {
+                readonlyInputs[0].value = totalEmbarque;
+                readonlyInputs[1].value = deficite;
+                readonlyInputs[2].value = restant;
+            }
+
+            const categorieId = row.querySelector('input[name$=".CategorieId"]').value;
+            updateCategorySummary(categorieId);
+            console.log('Row updated: TotalEmbarque=', totalEmbarque, 'Deficite=', deficite, 'Restant=', restant);
+        } else {
+            console.error('Missing inputs for row update');
+        }
+    }
+
+    function updateCategorySummary(categorieId) {
+        console.log('Updating category summary for categorieId:', categorieId);
+        const summaryRow = document.querySelector(`.category-summary-row[data-categorie-id="${categorieId}"]`);
+        if (!summaryRow) {
+            console.warn('No summary row found for categorieId:', categorieId);
+            return;
+        }
+
+        const rows = Array.from(document.querySelectorAll('.article-row')).filter(row => {
+            const catId = row.querySelector(`input[name$=".CategorieId"]`)?.value;
+            return catId == categorieId && !row.classList.contains('invalid');
+        });
+
+        let totalDotation = 0, totalComplementaire = 0, totalEmbarque = 0, totalCasse = 0, totalOffert = 0, totalRetourConsig = 0, totalDeficite = 0, totalRestant = 0;
+        rows.forEach(row => {
+            const inputs = {
+                dotation: row.querySelector('input[name$=".QuantiteDotation"]'),
+                complementaire: row.querySelector('input[name$=".QuantiteComplementaire"]'),
+                casse: row.querySelector('input[name$=".QuantiteCasse"]'),
+                offert: row.querySelector('input[name$=".QuantiteOffert"]'),
+                retourConsig: row.querySelector('input[name$=".RetourConsig"]'),
+            };
+            const readonlyInputs = row.querySelectorAll('input[readonly]');
+            totalDotation += parseInt(inputs.dotation?.value) || 0;
+            totalComplementaire += parseInt(inputs.complementaire?.value) || 0;
+            totalEmbarque += parseInt(readonlyInputs[0]?.value) || 0;
+            totalCasse += parseInt(inputs.casse?.value) || 0;
+            totalOffert += parseInt(inputs.offert?.value) || 0;
+            totalRetourConsig += parseInt(inputs.retourConsig?.value) || 0;
+            totalDeficite += parseInt(readonlyInputs[1]?.value) || 0;
+            totalRestant += parseInt(readonlyInputs[2]?.value) || 0;
+        });
+
+        const inputs = summaryRow.querySelectorAll('.category-total-input');
+        if (inputs.length >= 8) {
+            inputs[0].value = totalDotation;
+            inputs[1].value = totalComplementaire;
+            inputs[2].value = totalEmbarque;
+            inputs[3].value = totalCasse;
+            inputs[4].value = totalOffert;
+            inputs[5].value = totalRetourConsig;
+            inputs[6].value = totalDeficite;
+            inputs[7].value = totalRestant;
+            console.log('Category summary updated for categorieId:', categorieId, 'Totals:', {
+                totalDotation, totalComplementaire, totalEmbarque, totalCasse, totalOffert, totalRetourConsig, totalDeficite, totalRestant
+            });
+        } else {
+            console.error('Insufficient category total inputs');
+        }
+    }
+
+    function deleteArticleRow(button) {
+        console.log('Deleting article row');
+        const row = button.closest('tr');
+        const categorieId = row.querySelector('input[name$=".CategorieId"]')?.value;
+        row.remove();
+
+        const remainingRows = Array.from(document.querySelectorAll('.article-row')).filter(r => {
+            return r.querySelector(`input[name$=".CategorieId"]`)?.value == categorieId;
+        });
+        if (remainingRows.length === 0) {
+            const categoryRow = document.querySelector(`.category-row[data-categorie-id="${categorieId}"]`);
+            const summaryRow = document.querySelector(`.category-summary-row[data-categorie-id="${categorieId}"]`);
+            categoryRow?.remove();
+            summaryRow?.remove();
+            console.log('Removed category and summary rows for categorieId:', categorieId);
+        }
+
+        updateCategorySummary(categorieId);
+        reindexArticles();
+    }
+
+    function reindexArticles() {
+        console.log('Reindexing articles');
+        const rows = document.querySelectorAll('#article-tbody .article-row');
+        articleIndex = rows.length;
+        rows.forEach((row, index) => {
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (input.name?.includes('ArticleOffreDepart')) {
+                    const name = input.name.replace(/ArticleOffreDepart\[\d+\]/, `ArticleOffreDepart[${index}]`);
+                    input.name = name;
+                }
+            });
+            const idArticleInput = row.querySelector('.id-article');
+            if (idArticleInput) {
+                idArticleInput.setAttribute('onchange', `fetchArticleDetails(this, ${index})`);
+            }
+        });
+        console.log('Reindexed to articleIndex:', articleIndex);
+    }
+
+    document.getElementById('salesForm').addEventListener('submit', function (event) {
+        console.log('Form submission triggered');
+        const invalidRows = document.querySelectorAll('.article-row.invalid');
+        if (invalidRows.length > 0) {
+            console.warn('Form submission blocked due to invalid rows:', invalidRows.length);
+            event.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Erreur',
+                text: 'Veuillez corriger les articles invalides avant de soumettre le formulaire.',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        const formData = new FormData(event.target);
+        console.log('Form data:', Object.fromEntries(formData));
+    });
+
+    $(document).ready(function () {
+        console.log('Document ready, checking formSuccess');
+        if ($('#formSuccess').val() === 'true') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Succès',
+                text: 'État des offres départ enregistré avec succès.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    });
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -30,31 +30,67 @@ namespace VAB.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly ILogger<AgentSaisieController> _logger;
 
-        public AgentSaisieController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager)
+        public AgentSaisieController(ApplicationDbContext context, UserManager<User> userManager, SignInManager<User> signInManager, ILogger<AgentSaisieController> logger)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;
 
         }
 
         // GET: AgentSaisie/AgentDashboard
         public IActionResult AgentDashboard()
         {
-            var now = DateTime.Now;
-            var startOfMonth = new DateTime(now.Year, now.Month, 1);
 
-            // Optional: get the first day of next month
-            var startOfNextMonth = startOfMonth.AddMonths(1);
 
-            var countThisMonth = _context.EtatDesVentesArrivee
-                .Where(e => e.DateEdition >= startOfMonth && e.DateEdition < startOfNextMonth)
-                .Count();
+            try
+            {
+                var now = DateTime.Now; // May 23, 2025, 02:27 AM CET
+                var startOfMonth = new DateTime(now.Year, now.Month, 1); // May 1, 2025
+                var startOfNextMonth = startOfMonth.AddMonths(1); // June 1, 2025
 
-            ViewBag.CountThisMonth = countThisMonth;
+                // Count EtatDesOffresArrivee for this month
+                var countOffersArriveeThisMonth = _context.EtatDesOffresArrivee
+                    .Where(e => e.DateEdition >= startOfMonth && e.DateEdition < startOfNextMonth)
+                    .Count();
 
-            return View();
+                // Count EtatDesOffresDepart for this month
+                var countOffersDepartThisMonth = _context.EtatDesOffresDepart
+                    .Where(e => e.DateEdition >= startOfMonth && e.DateEdition < startOfNextMonth)
+                    .Count();
+
+                // Count EtatDesVentesArrivee for this month
+                var countSalesArriveeThisMonth = _context.EtatDesVentesArrivee
+                    .Where(e => e.DateEdition >= startOfMonth && e.DateEdition < startOfNextMonth)
+                    .Count();
+
+                // Count EtatDesVentesDepart for this month
+                var countSalesDepartThisMonth = _context.EtatDesVentesDepart
+                    .Where(e => e.DateEdition >= startOfMonth && e.DateEdition < startOfNextMonth)
+                    .Count();
+
+                ViewBag.CountOffersArriveeThisMonth = countOffersArriveeThisMonth;
+                ViewBag.CountOffersDepartThisMonth = countOffersDepartThisMonth;
+                ViewBag.CountSalesArriveeThisMonth = countSalesArriveeThisMonth;
+                ViewBag.CountSalesDepartThisMonth = countSalesDepartThisMonth;
+
+                _logger.LogInformation("Counts for {Month}/{Year}: OffersArrivee={OffersArrivee}, OffersDepart={OffersDepart}, SalesArrivee={SalesArrivee}, SalesDepart={SalesDepart}",
+                    now.Month, now.Year, countOffersArriveeThisMonth, countOffersDepartThisMonth, countSalesArriveeThisMonth, countSalesDepartThisMonth);
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching dashboard counts");
+                ViewBag.CountOffersArriveeThisMonth = 0;
+                ViewBag.CountOffersDepartThisMonth = 0;
+                ViewBag.CountSalesArriveeThisMonth = 0;
+                ViewBag.CountSalesDepartThisMonth = 0;
+                return View();
+            }
         }
 
         // GET: AgentSaisie/AgentForm
@@ -572,7 +608,23 @@ namespace VAB.Controllers
         // GET: Load the form
         public IActionResult AddEtatDesVentesArrivee()
         {
-            return PartialView("AddEtatDeVenteArrivee", new EtatDesVentesArriveeViewModel());
+            _logger.LogInformation("Entering AddEtatDesOffresArrivee GET action");
+            try
+            {
+                var model = new EtatDesVentesArriveeViewModel
+                {
+                    DateEdition = DateTime.Now,
+                   
+                };
+                _logger.LogInformation("Model created, returning partial view AddEtatDesVentesArrivee");
+                return PartialView("AddEtatDeVenteArrivee", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddEtatDesVentesArrivee GET action");
+                return StatusCode(500, "Erreur lors du chargement du formulaire.");
+            }
+            
         }
 
         // POST: Save the form
@@ -1297,7 +1349,441 @@ namespace VAB.Controllers
 
             return View("AgentAccountSettings", model);
         }
+        // GET: AgentSaisie/AddEtatDesOffresArrivee
+        [HttpGet]
+        public IActionResult AddEtatDesOffresArrivee()
+        {
+            _logger.LogInformation("Entering AddEtatDesOffresArrivee GET action");
+            try
+            {
+                var model = new EtatDesOffresArriveeViewModel
+                {
+                    DateEdition = DateTime.Now,
+                    ArticleOffres = new List<ArticleOffreViewModel>()
+                };
+                _logger.LogInformation("Model created, returning partial view AddEtatDesOffresArrivee");
+                return PartialView("AddEtatDeOffreArrivee", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddEtatDesOffresArrivee GET action");
+                return StatusCode(500, "Erreur lors du chargement du formulaire.");
+            }
+        }
+        [HttpGet]
+        public IActionResult AddEtatDesOffresDepart()
+        {
+            _logger.LogInformation("Entering AddEtatDesOffresDepart GET action");
+            try
+            {
+                var model = new EtatDesOffresDepartViewModel
+                {
+                    DateEdition = DateTime.Now,
+                    ArticleOffreDepart = new List<ArticleOffreDepartViewModel>()
+                };
+                _logger.LogInformation("Model created, returning partial view AddEtatDesOffresDepart");
+                return PartialView("AddEtatDesOffresDepart", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddEtatDesOffresDepart GET action");
+                return StatusCode(500, "Erreur lors du chargement du formulaire.");
+            }
+        }
 
+
+        // POST: AgentSaisie/AddEtatDesOffresArrivee
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddEtatDesOffresArrivee(EtatDesOffresArriveeViewModel viewModel)
+        {
+
+            ModelState.Remove("AgentSaisieId");
+            ModelState.Remove("AgentSaisieName");
+            _logger.LogInformation("Entering AddEtatDesOffresArrivee POST action");
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Model state is invalid");
+                return PartialView("AddEtatDeOffreArrivee", viewModel);
+            }
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = "Utilisateur non connecté. Veuillez vous reconnecter.";
+                return PartialView("AddEtatDeOffreArrivee", viewModel);
+            }
+            // Validate article existence and uniqueness
+            var articleIds = viewModel.ArticleOffres.Select(a => a.ArticleId).ToList();
+            var existingArticles = await _context.Articles
+                .Where(a => articleIds.Contains(a.Id))
+                .ToListAsync();
+
+            if (existingArticles.Count != articleIds.Count)
+            {
+                _logger.LogWarning("Some specified articles do not exist");
+                ViewBag.ErrorMessage = "Certains articles spécifiés n'existent pas.";
+                return PartialView("AddEtatDeOffreArrivee", viewModel);
+            }
+
+            // Check for duplicate IdArticle entries
+            var duplicateIds = viewModel.ArticleOffres
+                .GroupBy(a => a.IdArticle)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicateIds.Any())
+            {
+                _logger.LogWarning("Duplicate article codes detected");
+                ViewBag.ErrorMessage = "Des codes articles en double ont été détectés.";
+                return PartialView("AddEtatDeOffreArrivee", viewModel);
+            }
+
+            try
+            {
+                var etat = new EtatDesOffresArrivee
+                {
+                    Numero = viewModel.Numero,
+                    DateEdition = viewModel.DateEdition,
+                    AgentSaisieId = user.Id,
+                    IsValidated = false,
+                    ArticleOffres = viewModel.ArticleOffres.Select(a => new ArticleOffre
+                    {
+                        ArticleId = a.ArticleId,
+                        QuantiteDotation = a.QuantiteDotation,
+                        QuantiteComplementaire = a.QuantiteComplementaire,
+                        QuantiteCasse = a.QuantiteCasse,
+                        QuantiteOffert = a.QuantiteOffert,
+                        RetourConsig = a.RetourConsig
+                    }).ToList()
+                };
+
+                _context.EtatDesOffresArrivee.Add(etat);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully saved EtatDesOffresArrivee with ID {Id}", etat.Id);
+                ViewBag.Success = true;
+                viewModel = new EtatDesOffresArriveeViewModel
+                {
+                    DateEdition = DateTime.Now,
+                    ArticleOffres = new List<ArticleOffreViewModel>()
+                };
+                return PartialView("AddEtatDeOffreArrivee", viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving EtatDesOffresArrivee");
+                ViewBag.ErrorMessage = "Une erreur s'est produite lors de l'enregistrement. Veuillez réessayer.";
+                return PartialView("AddEtatDeOffreArrivee", viewModel);
+            }
+        }
+        // POST: AgentSaisie/AddEtatDesOffresDepart
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddEtatDesOffresDepart(EtatDesOffresDepartViewModel viewModel)
+        {
+            _logger.LogInformation("Entering AddEtatDesOffresDepart POST action");
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Model state is invalid");
+                return PartialView("AddEtatDesOffresDepart", viewModel);
+            }
+
+            // Check if ArticleOffreDepart is empty
+            if (viewModel.ArticleOffreDepart == null || !viewModel.ArticleOffreDepart.Any())
+            {
+                _logger.LogWarning("No articles provided in EtatDesOffresDepart");
+                ViewBag.ErrorMessage = "Veuillez ajouter au moins un article.";
+                return PartialView("AddEtatDesOffresDepart", viewModel);
+            }
+
+            // Validate article existence and uniqueness
+            var articleIds = viewModel.ArticleOffreDepart.Select(a => a.ArticleId).ToList();
+            var existingArticles = await _context.Articles
+                .Where(a => articleIds.Contains(a.Id))
+                .ToListAsync();
+
+            if (existingArticles.Count != articleIds.Count)
+            {
+                _logger.LogWarning("Some specified articles do not exist");
+                ViewBag.ErrorMessage = "Certains articles spécifiés n'existent pas.";
+                return PartialView("AddEtatDesOffresDepart", viewModel);
+            }
+
+            // Check for duplicate IdArticle entries
+            var duplicateIds = viewModel.ArticleOffreDepart
+                .GroupBy(a => a.IdArticle)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicateIds.Any())
+            {
+                _logger.LogWarning("Duplicate article codes detected");
+                ViewBag.ErrorMessage = "Des codes articles en double ont été détectés.";
+                return PartialView("AddEtatDesOffresDepart", viewModel);
+            }
+
+            try
+            {
+                var etat = new EtatDesOffresDepart
+                {
+                    Numero = viewModel.Numero,
+                    DateEdition = viewModel.DateEdition,
+                    IsValidated = false,
+                    ArticleOffreDepart = viewModel.ArticleOffreDepart.Select(a => new ArticleOffreDepart
+                    {
+                        ArticleId = a.ArticleId,
+                        QuantiteDotation = a.QuantiteDotation,
+                        QuantiteComplementaire = a.QuantiteComplementaire,
+                        QuantiteCasse = a.QuantiteCasse,
+                        QuantiteOffert = a.QuantiteOffert,
+                        RetourConsig = a.RetourConsig
+                    }).ToList()
+                };
+
+                _context.EtatDesOffresDepart.Add(etat);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully saved EtatDesOffresDepart with ID {Id}", etat.Id);
+                ViewBag.Success = true;
+                viewModel = new EtatDesOffresDepartViewModel
+                {
+                    DateEdition = DateTime.Now,
+                    ArticleOffreDepart = new List<ArticleOffreDepartViewModel>()
+                };
+                return PartialView("AddEtatDesOffresDepart", viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving EtatDesOffresDepart");
+                ViewBag.ErrorMessage = "Une erreur s'est produite lors de l'enregistrement. Veuillez réessayer.";
+                return PartialView("AddEtatDesOffresDepart", viewModel);
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetEtatDesOffresArrivee()
+        {
+            _logger.LogInformation("Fetching all EtatDesOffresArrivee");
+            try
+            {
+                var offres = await _context.EtatDesOffresArrivee
+                    .Include(e => e.ArticleOffres)
+                    .ThenInclude(ao => ao.Article)
+                    .Select(e => new
+                    {
+                        id = e.Id,
+                        numero = e.Numero,
+                        dateEdition = e.DateEdition,
+                        totalItemsSold = e.ArticleOffres.Sum(ao => ao.QuantiteOffert),
+                        totalRevenue = e.ArticleOffres.Sum(ao => ao.QuantiteDotation + ao.QuantiteComplementaire - ao.QuantiteCasse - ao.QuantiteOffert),
+                        totalEncaisse = e.ArticleOffres.Sum(ao => ao.QuantiteOffert * ao.Article.PrixUnitaireHT), // Adjust as needed
+                        isValidated = e.IsValidated
+                    })
+                    .ToListAsync();
+                return Json(offres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching EtatDesOffresArrivee");
+                return StatusCode(500, "Erreur lors de la récupération des états des offres.");
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetEtatDesOffresDepart()
+        {
+            _logger.LogInformation("Fetching all EtatDesOffresDepart");
+            try
+            {
+                var offres = await _context.EtatDesOffresDepart
+                    .Include(e => e.ArticleOffreDepart)
+                    .ThenInclude(ao => ao.Article)
+                    .Select(e => new
+                    {
+                        id = e.Id,
+                        numero = e.Numero ?? "N/A",
+                        dateEdition = e.DateEdition,
+                        totalItemsSold = e.ArticleOffreDepart != null ? e.ArticleOffreDepart.Sum(ao => ao.QuantiteOffert) : 0,
+                        totalRevenue = e.ArticleOffreDepart.Sum(ao => ao.QuantiteDotation + ao.QuantiteComplementaire - ao.QuantiteCasse - ao.QuantiteOffert),
+                       
+                        isValidated = e.IsValidated
+                    })
+                    .ToListAsync();
+                _logger.LogInformation($"GetEtatDesOffresDepart: Retrieved {offres.Count} records");
+                return Json(offres);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching EtatDesOffresDepart");
+                return StatusCode(500, "Erreur lors de la récupération des états des offres.");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteEtatDesOffresArriveeByNumero(string numero)
+        {
+            _logger.LogInformation("Deleting EtatDesOffresArrivee with Numero {Numero}", numero);
+            try
+            {
+                var etat = await _context.EtatDesOffresArrivee
+                    .FirstOrDefaultAsync(e => e.Numero == numero);
+                if (etat == null)
+                {
+                    _logger.LogWarning("EtatDesOffresArrivee with Numero {Numero} not found", numero);
+                    return Json(new { success = false, message = "État non trouvé." });
+                }
+
+                _context.EtatDesOffresArrivee.Remove(etat);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully deleted EtatDesOffresArrivee with Numero {Numero}", numero);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting EtatDesOffresArrivee with Numero {Numero}", numero);
+                return Json(new { success = false, message = "Erreur lors de la suppression." });
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteEtatDesOffresDepartByNumero(string numero)
+        {
+            _logger.LogInformation("Deleting EtatDesOffresDepart with Numero {Numero}", numero);
+            try
+            {
+                var etat = await _context.EtatDesOffresDepart
+                    .FirstOrDefaultAsync(e => e.Numero == numero);
+                if (etat == null)
+                {
+                    _logger.LogWarning("EtatDesOffresArrivee with Numero {Numero} not found", numero);
+                    return Json(new { success = false, message = "État non trouvé." });
+                }
+
+                _context.EtatDesOffresDepart.Remove(etat);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully deleted EtatDesOffresDepart with Numero {Numero}", numero);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting EtatDesOffresDepart with Numero {Numero}", numero);
+                return Json(new { success = false, message = "Erreur lors de la suppression." });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewEtatDesOffresArrivee(int id)
+        {
+            _logger.LogInformation("Viewing EtatDesOffresArrivee with ID {Id}", id);
+            try
+            {
+                var etat = await _context.EtatDesOffresArrivee
+                    .Include(e => e.ArticleOffres)
+                    .ThenInclude(ao => ao.Article)
+                    .ThenInclude(a => a.Categorie)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (etat == null)
+                {
+                    _logger.LogWarning("EtatDesOffresArrivee with ID {Id} not found", id);
+                    return NotFound();
+                }
+
+                var model = new EtatDesOffresArriveeViewModel
+                {
+                    Id = etat.Id,
+                    Numero = etat.Numero,
+                    DateEdition = etat.DateEdition,
+                    IsValidated = etat.IsValidated,
+                    ArticleOffres = etat.ArticleOffres.Select(ao => new ArticleOffreViewModel
+                    {
+                        ArticleId = ao.ArticleId,
+                        IdArticle = ao.Article.IdArticle,
+                        Description = ao.Article.Description,
+                        CategorieId = ao.Article.CategorieId,
+                        CategorieDescription = ao.Article.Categorie?.Description ?? "Unknown",
+                        QuantiteDotation = ao.QuantiteDotation,
+                        QuantiteComplementaire = ao.QuantiteComplementaire,
+                        QuantiteCasse = ao.QuantiteCasse,
+                        QuantiteOffert = ao.QuantiteOffert,
+                        RetourConsig = ao.RetourConsig
+                    }).ToList()
+                };
+
+                return PartialView("ViewEtatDesOffresArrivee", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error viewing EtatDesOffresArrivee with ID {Id}", id);
+                return StatusCode(500, "Erreur lors de la récupération des détails.");
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> ViewEtatDesOffresDepart(int id)
+        {
+            _logger.LogInformation("Viewing EtatDesOffresDepart with ID {Id}", id);
+            try
+            {
+                var etat = await _context.EtatDesOffresDepart
+                    .Include(e => e.ArticleOffreDepart)
+                    .ThenInclude(ao => ao.Article)
+                    .ThenInclude(a => a.Categorie)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (etat == null)
+                {
+                    _logger.LogWarning("EtatDesOffresDepart with ID {Id} not found", id);
+                    return NotFound();
+                }
+
+                var model = new EtatDesOffresArriveeViewModel
+                {
+                    Id = etat.Id,
+                    Numero = etat.Numero,
+                    DateEdition = etat.DateEdition,
+                    IsValidated = etat.IsValidated,
+                    ArticleOffres = etat.ArticleOffreDepart.Select(ao => new ArticleOffreViewModel
+                    {
+                        ArticleId = ao.ArticleId,
+                        IdArticle = ao.Article.IdArticle,
+                        Description = ao.Article.Description,
+                        CategorieId = ao.Article.CategorieId,
+                        CategorieDescription = ao.Article.Categorie?.Description ?? "Unknown",
+                        QuantiteDotation = ao.QuantiteDotation,
+                        QuantiteComplementaire = ao.QuantiteComplementaire,
+                        QuantiteCasse = ao.QuantiteCasse,
+                        QuantiteOffert = ao.QuantiteOffert,
+                        RetourConsig = ao.RetourConsig
+                    }).ToList()
+                };
+
+                return PartialView("ViewEtatDesOffresDepart", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error viewing EtatDesOffresDepart with ID {Id}", id);
+                return StatusCode(500, "Erreur lors de la récupération des détails.");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkNotificationsRead(string userId)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync();
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        public IActionResult Extract()
+        {
+            return View();
+        }
 
     }
 }

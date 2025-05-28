@@ -184,6 +184,82 @@ namespace VAB.Migrations
                     b.ToTable("Articles");
                 });
 
+            modelBuilder.Entity("VAB.Models.ArticleOffre", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EtatDesOffresArriveeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteCasse")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteComplementaire")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteDotation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteOffert")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RetourConsig")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("EtatDesOffresArriveeId");
+
+                    b.ToTable("ArticleOffres");
+                });
+
+            modelBuilder.Entity("VAB.Models.ArticleOffreDepart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EtatDesOffresDepartId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteCasse")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteComplementaire")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteDotation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteOffert")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RetourConsig")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("EtatDesOffresDepartId");
+
+                    b.ToTable("ArticleOffreDepart");
+                });
+
             modelBuilder.Entity("VAB.Models.ArticleVente", b =>
                 {
                     b.Property<int>("Id")
@@ -361,6 +437,58 @@ namespace VAB.Migrations
                     b.ToTable("Equipages");
                 });
 
+            modelBuilder.Entity("VAB.Models.EtatDesOffresArrivee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgentSaisieId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateEdition")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentSaisieId");
+
+                    b.ToTable("EtatDesOffresArrivee");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesOffresDepart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateEdition")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EtatDesOffresDepart");
+                });
+
             modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
                 {
                     b.Property<int>("Id")
@@ -500,6 +628,33 @@ namespace VAB.Migrations
                     b.HasIndex("EtatDesVentesDepartId");
 
                     b.ToTable("FeuilleEtatDesVentesDepart");
+                });
+
+            modelBuilder.Entity("VAB.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("VAB.Models.Pnc", b =>
@@ -778,6 +933,44 @@ namespace VAB.Migrations
                     b.Navigation("Categorie");
                 });
 
+            modelBuilder.Entity("VAB.Models.ArticleOffre", b =>
+                {
+                    b.HasOne("VAB.Models.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.EtatDesOffresArrivee", "EtatDesOffresArrivee")
+                        .WithMany("ArticleOffres")
+                        .HasForeignKey("EtatDesOffresArriveeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("EtatDesOffresArrivee");
+                });
+
+            modelBuilder.Entity("VAB.Models.ArticleOffreDepart", b =>
+                {
+                    b.HasOne("VAB.Models.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.EtatDesOffresDepart", "EtatDesOffresDepart")
+                        .WithMany("ArticleOffreDepart")
+                        .HasForeignKey("EtatDesOffresDepartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("EtatDesOffresDepart");
+                });
+
             modelBuilder.Entity("VAB.Models.ArticleVente", b =>
                 {
                     b.HasOne("VAB.Models.Article", "Article")
@@ -847,6 +1040,17 @@ namespace VAB.Migrations
                     b.Navigation("Pnc1");
 
                     b.Navigation("Pnc2");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesOffresArrivee", b =>
+                {
+                    b.HasOne("VAB.Models.User", "AgentSaisie")
+                        .WithMany()
+                        .HasForeignKey("AgentSaisieId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AgentSaisie");
                 });
 
             modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>
@@ -992,6 +1196,16 @@ namespace VAB.Migrations
             modelBuilder.Entity("VAB.Models.Equipage", b =>
                 {
                     b.Navigation("PncEquipages");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesOffresArrivee", b =>
+                {
+                    b.Navigation("ArticleOffres");
+                });
+
+            modelBuilder.Entity("VAB.Models.EtatDesOffresDepart", b =>
+                {
+                    b.Navigation("ArticleOffreDepart");
                 });
 
             modelBuilder.Entity("VAB.Models.EtatDesVentesArrivee", b =>

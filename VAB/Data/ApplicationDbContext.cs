@@ -27,7 +27,11 @@ namespace VAB.Data
         public DbSet<FeuilleEtatDesVentesDepart> FeuilleEtatDesVentesDepart { get; set; }
         public DbSet<ArticleVente> ArticleVentes { get; set; }
         public DbSet<ArticleVenteDepart> ArticleVenteDepart { get; set; }
-
+        public DbSet<EtatDesOffresArrivee> EtatDesOffresArrivee  { get; set; }
+        public DbSet<EtatDesOffresDepart> EtatDesOffresDepart { get; set; }
+        public DbSet<ArticleOffre> ArticleOffres { get; set; }
+        public DbSet<ArticleOffreDepart> ArticleOffreDepart { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

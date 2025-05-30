@@ -32,6 +32,13 @@ namespace VAB.Data
         public DbSet<ArticleOffre> ArticleOffres { get; set; }
         public DbSet<ArticleOffreDepart> ArticleOffreDepart { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+
+        public DbSet<SalesComparison> SalesComparisons { get; set; }
+        public DbSet<ComparisonArticle> ComparisonArticles { get; set; }
+
+        public DbSet<OffersComparison> OffersComparisons { get; set; }
+        public DbSet<ComparisonOfferArticle> ComparisonOfferArticles { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

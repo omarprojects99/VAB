@@ -1,0 +1,753 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Tableau de bord - Responsable Catering";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catering Dashboard</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        :root {
+            --bg-color: #f1f1f1;
+            --card-width: 300px;
+            --card-height: 400px;
+            --black: #080808;
+            --white: #fafafa;
+            --accent: #ff2d55;
+            --grid-color: rgba(0, 0, 0, 0.08);
+            --frame-color: rgba(8, 8, 8, 0.8);
+            --transition-slow: 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-fast: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            padding: 5vh 0;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .carousel-track {
+            display: flex;
+            justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 40px 0;
+            gap: 40px;
+        }
+
+        .deconstructed-card {
+            position: relative;
+            width: var(--card-width);
+            height: var(--card-height);
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+
+        .card-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform var(--transition-slow), opacity var(--transition-slow);
+        }
+
+        .card-image {
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .wave-svg {
+            width: 100%;
+            height: 100%;
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card-frame {
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .frame-path {
+            fill: none;
+            stroke: var(--frame-color);
+            stroke-width: 1;
+            stroke-dasharray: 1520;
+            stroke-dashoffset: 1520;
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card-content {
+            z-index: 2;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .sales-content .content-text,
+        .sales-content .meta-text,
+        .sales-content .cta-text,
+        .offers-content .content-text,
+        .offers-content .meta-text,
+        .offers-content .cta-text {
+            color: var(--white);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .sales-content .meta-line,
+        .offers-content .meta-line {
+            background-color: var(--white);
+        }
+
+        .sales-content .cta-box,
+        .offers-content .cta-box {
+            background-color: var(--white);
+        }
+
+        .sales-content .cta-link:hover .cta-text,
+        .offers-content .cta-link:hover .cta-text {
+            color: var(--black) !important;
+        }
+
+        .content-fragment {
+            position: relative;
+        }
+
+        .fragment-heading {
+            margin-top: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-text {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            transition: transform var(--transition-fast), opacity var(--transition-fast);
+            transform: translateY(10px);
+            opacity: 0.7;
+        }
+
+        .content-subtext {
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            margin-top: 1rem;
+            opacity: 1.5;
+            transform: translateY(10px);
+            transition: transform var(--transition-fast), opacity var(--transition-fast);
+            color:aliceblue;
+        }
+
+        .fragment-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .meta-line {
+            width: 40px;
+            height: 1px;
+            background-color: var(--black);
+            transform: scaleX(0.5);
+            transform-origin: left;
+            transition: transform var(--transition-fast);
+        }
+
+        .meta-text {
+            font-family: "Space Mono", monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            opacity: 0.6;
+            transform: translateX(-5px);
+            transition: transform var(--transition-fast), opacity var(--transition-fast);
+        }
+
+        .fragment-body {
+            max-width: 85%;
+            margin: 1.5rem 0;
+        }
+
+            .fragment-body .content-text {
+                font-size: 0.9rem;
+                font-weight: 400;
+                line-height: 1.5;
+                letter-spacing: normal;
+                opacity: 0.6;
+            }
+
+        .fragment-cta {
+            margin-top: auto;
+            overflow: visible;
+        }
+
+        .cta-link {
+            text-decoration: none;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .cta-box {
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: calc(100% + 20px);
+            height: 100%;
+            background-color: var(--black);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition-fast);
+        }
+
+        .cta-text {
+            position: relative;
+            font-family: "Space Mono", monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--black);
+            transition: color var(--transition-fast);
+            transform: translateX(-5px);
+            opacity: 0.7;
+            transition: transform var(--transition-fast), opacity var(--transition-fast), color var(--transition-fast);
+        }
+
+        .deconstructed-card:hover .frame-path {
+            stroke-dashoffset: 0;
+        }
+
+        .deconstructed-card:hover .content-text,
+        .deconstructed-card:hover .content-subtext {
+            transform: translateY(0);
+            opacity: 1;
+            transition-delay: 0.05s;
+        }
+
+        .deconstructed-card:hover .fragment-body .content-text {
+            transition-delay: 0.1s;
+            opacity: 1;
+        }
+
+        .deconstructed-card:hover .meta-text {
+            transform: translateX(0);
+            opacity: 1;
+            transition-delay: 0.15s;
+        }
+
+        .deconstructed-card:hover .meta-line {
+            transform: scaleX(1);
+            transition-delay: 0.05s;
+        }
+
+        .deconstructed-card:hover .wave-svg {
+            transform: scale(1.05);
+        }
+
+        .deconstructed-card:hover .cta-text {
+            transform: translateX(0);
+            opacity: 1;
+            transition-delay: 0.2s;
+        }
+
+        .deconstructed-card:hover .cta-link:hover .cta-box {
+            transform: scaleX(1);
+        }
+
+        .deconstructed-card:hover .cta-link:hover .cta-text {
+            color: var(--white);
+        }
+
+        .sales-content .card-image svg {
+            background: linear-gradient(135deg, #66171f, #8a2a34);
+        }
+
+        .offers-content .card-image svg {
+            background: linear-gradient(135deg, #4a0e14, #6f1e25);
+        }
+
+        .dots-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--black);
+            border-radius: 50%;
+            opacity: 0.3;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+            .dot.active {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+
+        @@media (max-width: 768px) {
+            : root
+
+        {
+            --card-width: 280px;
+            --card-height: 380px;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .content-text {
+            font-size: 1.8rem;
+        }
+
+        .carousel-track {
+            gap: 20px;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading spinner -->
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <div class="collapse navbar-collapse pr-3">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>@User.Identity.Name</a></li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Account Settings
+                        </a>
+                    </li>
+                    <li><a asp-controller="Account" asp-action="Logout"><i class="material-icons mr-2">exit_to_app</i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                                <i class="material-icons">dashboard</i>Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="CompareCatring">
+                                <i class="material-icons">dashboard</i>Confrontation
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">receipt</i>Confrontation</li>
+                    </ol>
+                </nav>
+            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+            <div class="carousel">
+                <div class="carousel-track">
+                    <!-- Card 1: Sales Comparison -->
+                    <article class="deconstructed-card">
+                        <div class="card-layer card-image">
+                            <svg class="wave-svg" viewBox="0 0 300 400" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="salesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#66171f" />
+                                        <stop offset="100%" stop-color="#8a2a34" />
+                                    </linearGradient>
+                                    <linearGradient id="waveSalesGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#7a1f28" />
+                                        <stop offset="50%" stop-color="#9e323d" />
+                                        <stop offset="100%" stop-color="#7a1f28" />
+                                    </linearGradient>
+                                    <linearGradient id="waveSalesGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#9e323d" />
+                                        <stop offset="50%" stop-color="#b23a46" />
+                                        <stop offset="100%" stop-color="#9e323d" />
+                                    </linearGradient>
+                                </defs>
+                                <rect width="100%" height="100%" fill="url(#salesGradient)" />
+                                <path d="M0,230 C30,220 60,240 90,230 C120,220 150,240 180,230 C210,220 240,240 270,230 C290,225 295,230 300,225 L300,400 L0,400 Z" fill="url(#waveSalesGradient1)" opacity="0.8" />
+                                <path d="M0,260 C40,250 80,270 120,260 C160,250 200,270 240,260 C280,250 290,260 300,255 L300,400 L0,400 Z" fill="url(#waveSalesGradient2)" opacity="0.9" />
+                                <path d="M0,290 C50,280 100,300 150,290 C200,280 250,300 300,290 L300,400 L0,400 Z" fill="#c64854" opacity="0.9" />
+                            </svg>
+                        </div>
+                        <div class="card-layer card-frame">
+                            <svg viewBox="0 0 300 400" preserveAspectRatio="none">
+                                <path class="frame-path" d="M 20,20 H 280 V 380 H 20 Z" />
+                            </svg>
+                        </div>
+                        <div class="card-layer card-content sales-content">
+                            <div class="content-fragment fragment-heading">
+                                <h2 class="content-text">Etat des ventes</h2>
+                                <h3 class="content-subtext">CONFRONTATION</h3>
+                            </div>
+                            <div class="content-fragment fragment-meta">
+                                <div class="meta-line"></div>
+                                <span class="meta-text">CATERING</span>
+                            </div>
+                            <div class="content-fragment fragment-body">
+                                <p class="content-text">Comparez les rapports de ventes entre le départ et l’arrivée pour identifier les écarts.</p>
+                            </div>
+                            <div class="content-fragment fragment-cta">
+                                <a asp-controller="ResponsableCatering" asp-action="CompareCatring" class="cta-link">
+                                    <div class="cta-box"></div>
+                                    <span class="cta-text">OUVRE COMPARISON</span>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Card 2: Offers Comparison -->
+                    <article class="deconstructed-card">
+                        <div class="card-layer card-image">
+                            <svg class="wave-svg" viewBox="0 0 300 400" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="offersGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#4a0e14" />
+                                        <stop offset="100%" stop-color="#6f1e25" />
+                                    </linearGradient>
+                                    <linearGradient id="waveOffersGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#561219" />
+                                        <stop offset="50%" stop-color="#7b262c" />
+                                        <stop offset="100%" stop-color="#561219" />
+                                    </linearGradient>
+                                    <linearGradient id="waveOffersGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#7b262c" />
+                                        <stop offset="50%" stop-color="#8c2e34" />
+                                        <stop offset="100%" stop-color="#7b262c" />
+                                    </linearGradient>
+                                </defs>
+                                <rect width="100%" height="100%" fill="url(#offersGradient)" />
+                                <path d="M0,230 C30,220 60,240 90,230 C120,220 150,240 180,230 C210,220 240,240 270,230 C290,225 295,230 300,225 L300,400 L0,400 Z" fill="url(#waveOffersGradient1)" opacity="0.8" />
+                                <path d="M0,260 C40,250 80,270 120,260 C160,250 200,270 240,260 C280,250 290,260 300,255 L300,400 L0,400 Z" fill="url(#waveOffersGradient2)" opacity="0.9" />
+                                <path d="M0,290 C50,280 100,300 150,290 C200,280 250,300 300,290 L300,400 L0,400 Z" fill="#9e3a40" opacity="0.9" />
+                            </svg>
+                        </div>
+                        <div class="card-layer card-frame">
+                            <svg viewBox="0 0 300 400" preserveAspectRatio="none">
+                                <path class="frame-path" d="M 20,20 H 280 V 380 H 20 Z" />
+                            </svg>
+                        </div>
+                        <div class="card-layer card-content offers-content">
+                            <div class="content-fragment fragment-heading">
+                                <h2 class="content-text">Etat des offres</h2>
+                                <h3 class="content-subtext">CONFRONTATION</h3>
+                            </div>
+                            <div class="content-fragment fragment-meta">
+                                <div class="meta-line"></div>
+                                <span class="meta-text">CATERING</span>
+                            </div>
+                            <div class="content-fragment fragment-body">
+                                <p class="content-text">Analyser les rapports d'offres entre le départ et l'arrivée pour des contrôles de cohérence.</p>
+                            </div>
+                            <div class="content-fragment fragment-cta">
+                                <a asp-controller="ResponsableCatering" asp-action="CompareOffersReports" class="cta-link">
+                                    <div class="cta-box"></div>
+                                    <span class="cta-text">OUVRE COMPARISON</span>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+               
+            </div>
+        </div>
+    </section>
+
+    <div class="modal fade" id="salesModal" tabindex="-1" aria-labelledby="salesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/Chart.bundle.min.js"></script>
+    <script src="~/js/chartfunction.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const track = document.querySelector(".carousel-track");
+            const cards = document.querySelectorAll(".deconstructed-card");
+            const dotsContainer = document.querySelector(".dots-container");
+
+            cards.forEach((_, index) => {
+                const dot = document.createElement("div");
+                dot.classList.add("dot");
+                if (index === 0) dot.classList.add("active");
+                dot.addEventListener("click", () => goToCard(index));
+                dotsContainer.appendChild(dot);
+            });
+
+            const dots = document.querySelectorAll(".dot");
+
+            const cardWidth = cards[0].offsetWidth;
+            const cardMargin = 40;
+            const totalCardWidth = cardWidth + cardMargin;
+
+            let currentIndex = 0;
+
+            cards.forEach((card) => {
+                card.addEventListener("mousemove", (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width;
+                    const y = (e.clientY - rect.top) / rect.height;
+                    const xDeg = (y - 0.5) * 8;
+                    const yDeg = (x - 0.5) * -8;
+                    card.style.transform = `perspective(1200px) rotateX(${xDeg}deg) rotateY(${yDeg}deg)`;
+                    const layers = card.querySelectorAll(".card-layer");
+                    layers.forEach((layer, index) => {
+                        const depth = 30 * (index + 1);
+                        const translateZ = depth;
+                        const offsetX = (x - 0.5) * 10 * (index + 1);
+                        const offsetY = (y - 0.5) * 10 * (index + 1);
+                        layer.style.transform = `translate3d(${offsetX}px, ${offsetY}px, ${translateZ}px)`;
+                    });
+                    const waveSvg = card.querySelector(".wave-svg");
+                    if (waveSvg) {
+                        const moveX = (x - 0.5) * -20;
+                        const moveY = (y - 0.5) * -20;
+                        waveSvg.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
+                        const wavePaths = waveSvg.querySelectorAll("path:not(:first-child)");
+                        wavePaths.forEach((path, index) => {
+                            const factor = 1 + index * 0.5;
+                            const waveX = moveX * factor * 0.5;
+                            const waveY = moveY * factor * 0.3;
+                            path.style.transform = `translate(${waveX}px, ${waveY}px)`;
+                        });
+                    }
+                });
+
+                card.addEventListener("mouseleave", () => {
+                    card.style.transform = "";
+                    const layers = card.querySelectorAll(".card-layer");
+                    layers.forEach((layer) => {
+                        layer.style.transform = "";
+                    });
+                    const waveSvg = card.querySelector(".wave-svg");
+                    if (waveSvg) {
+                        waveSvg.style.transform = "";
+                        const wavePaths = waveSvg.querySelectorAll("path:not(:first-child)");
+                        wavePaths.forEach((path) => {
+                            path.style.transform = "";
+                        });
+                    }
+                });
+            });
+
+            function goToCard(index) {
+                index = Math.max(0, Math.min(index, cards.length - 1));
+                currentIndex = index;
+                updateCarousel();
+            }
+
+            function updateCarousel() {
+                const translateX = -currentIndex * totalCardWidth;
+                track.style.transform = `translateX(${translateX}px)`;
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === currentIndex);
+                });
+            }
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "ArrowLeft") {
+                    goToCard(currentIndex - 1);
+                } else if (e.key === "ArrowRight") {
+                    goToCard(currentIndex + 1);
+                }
+            });
+
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            track.addEventListener("touchstart", (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+
+            track.addEventListener("touchend", (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                if (touchStartX - touchEndX > 50) {
+                    goToCard(currentIndex + 1);
+                } else if (touchEndX - touchStartX > 50) {
+                    goToCard(currentIndex - 1);
+                }
+            }
+
+            window.addEventListener("resize", () => {
+                const newCardWidth = cards[0].offsetWidth;
+                const newTotalCardWidth = newCardWidth + cardMargin;
+                const translateX = -currentIndex * newTotalCardWidth;
+                track.style.transition = "none";
+                track.style.transform = `translateX(${translateX}px)`;
+                setTimeout(() => {
+                    track.style.transition = "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)";
+                }, 50);
+            });
+
+            updateCarousel();
+        });
+    </script>
+</body>
+</html>

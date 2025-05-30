@@ -168,11 +168,38 @@
                                 <div class="sub-dropdown">
                                     <ul class="sub-list">
                                         <li>
-                                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">État des Ventes Arrivée</a>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
+                        </li>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="CompareCatring">
+                                <i class="material-icons">dashboard</i>Confrontation
+                            </a>
                         </li>
                     </ul>
                 </div>

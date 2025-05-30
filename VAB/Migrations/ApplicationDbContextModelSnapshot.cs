@@ -404,6 +404,134 @@ namespace VAB.Migrations
                     b.ToTable("Ccs");
                 });
 
+            modelBuilder.Entity("VAB.Models.ComparisonArticle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("IdArticle")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PrixUnitaireArrivee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PrixUnitaireDepart")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("PrixUnitaireMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuantiteVenduArrivee")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteVenduDepart")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("QuantiteVenduMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SalesComparisonId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValeurArrivee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValeurDepart")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("ValeurMatch")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SalesComparisonId");
+
+                    b.ToTable("ComparisonArticles");
+                });
+
+            modelBuilder.Entity("VAB.Models.ComparisonOfferArticle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("IdArticle")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OffersComparisonId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteCasseArrivee")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteCasseDepart")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("QuantiteCasseMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuantiteComplementaireArrivee")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteComplementaireDepart")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("QuantiteComplementaireMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuantiteDotationArrivee")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteDotationDepart")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("QuantiteDotationMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuantiteOffertArrivee")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantiteOffertDepart")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("QuantiteOffertMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RetourConsigArrivee")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RetourConsigDepart")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RetourConsigMatch")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OffersComparisonId");
+
+                    b.ToTable("ComparisonOfferArticles");
+                });
+
             modelBuilder.Entity("VAB.Models.Equipage", b =>
                 {
                     b.Property<int>("EquipageId")
@@ -657,6 +785,26 @@ namespace VAB.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("VAB.Models.OffersComparison", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ComparisonDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OffersComparisons");
+                });
+
             modelBuilder.Entity("VAB.Models.Pnc", b =>
                 {
                     b.Property<int>("PncId")
@@ -741,6 +889,53 @@ namespace VAB.Migrations
                     b.HasIndex("ArticleId");
 
                     b.ToTable("Prix");
+                });
+
+            modelBuilder.Entity("VAB.Models.SalesComparison", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ComparisonDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("EcartMoinsArrivee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EcartMoinsDepart")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("EcartMoinsMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("EcartPlusArrivee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EcartPlusDepart")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("EcartPlusMatch")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("TotalEncaisseArrivee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TotalEncaisseDepart")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("TotalEncaisseMatch")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SalesComparisons");
                 });
 
             modelBuilder.Entity("VAB.Models.User", b =>
@@ -1009,6 +1204,26 @@ namespace VAB.Migrations
                     b.Navigation("EtatDesVentesDepart");
                 });
 
+            modelBuilder.Entity("VAB.Models.ComparisonArticle", b =>
+                {
+                    b.HasOne("VAB.Models.SalesComparison", "SalesComparison")
+                        .WithMany("Articles")
+                        .HasForeignKey("SalesComparisonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SalesComparison");
+                });
+
+            modelBuilder.Entity("VAB.Models.ComparisonOfferArticle", b =>
+                {
+                    b.HasOne("VAB.Models.OffersComparison", null)
+                        .WithMany("Articles")
+                        .HasForeignKey("OffersComparisonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("VAB.Models.Equipage", b =>
                 {
                     b.HasOne("VAB.Models.Cc", "Cc1")
@@ -1229,6 +1444,16 @@ namespace VAB.Migrations
                     b.Navigation("FeuilleEtatDesVentes");
 
                     b.Navigation("Vols");
+                });
+
+            modelBuilder.Entity("VAB.Models.OffersComparison", b =>
+                {
+                    b.Navigation("Articles");
+                });
+
+            modelBuilder.Entity("VAB.Models.SalesComparison", b =>
+                {
+                    b.Navigation("Articles");
                 });
 #pragma warning restore 612, 618
         }

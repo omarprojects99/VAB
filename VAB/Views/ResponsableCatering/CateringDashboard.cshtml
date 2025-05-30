@@ -42,6 +42,9 @@
     <link rel="stylesheet" href="~/css/sidebar.css">
     <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
+    <!--icons-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
 </head>
 <body>
     <!-- Preloader -->
@@ -122,10 +125,10 @@
     <section id="left-sidebar-area">
         <div id="left-sidebar-section">
             <aside>
-                <div class="left-sidebar" id="wrapper-sidebar">
-                    <ul>
+                <div class="left-sidebar">
+                    <ul class="nav flex-column">
                         <li>
-                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
                                 <i class="material-icons">dashboard</i>Tableau de Bord
                             </a>
                         </li>
@@ -167,6 +170,23 @@
                                 </div>
                             </div>
                         </li>
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="Compare">
+                                <i class="bi bi-clipboard-check-fill"></i>Confrontation
+                            </a>
+                        </li>
+                       
+                      
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
+                                <i class="material-icons">list</i> Saved Sales Comparisons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
+                                <i class="material-icons">list</i> Saved Offers Comparisons
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </aside>
@@ -181,7 +201,7 @@
             <div class="content-header">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">receipt</i>État des Ventes</li>
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">receipt</i>Tableau de bord</li>
                     </ol>
                 </nav>
 

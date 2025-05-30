@@ -1,0 +1,267 @@
+﻿@model IEnumerable<VAB.Models.OffersComparison>
+@{
+    ViewData["Title"] = "Saved Offers Comparisons";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Offers Comparisons</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        .table th, .table td {
+            vertical-align: middle;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-item:hover {
+            background-color: #66171f;
+            color: white;
+        }
+
+        button:hover {
+            background-color: rgb(86, 85, 85) !important;
+            transform: scale(1.03);
+            transition: all 0.2s ease-in-out;
+        }
+
+        button {
+            background-color: rgb(180, 178, 178) !important;
+            transform: scale(1);
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading spinner -->
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Data" asp-action="Index">
+                    <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo" style="height: 40px;">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="material-icons text-white">menu</span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item dropdown">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <a href="#" class="nav-link dropdown-toggle text-white" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="width: 30px; border-radius: 50%;" alt="User">
+                                    @User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-controller="AgentSaisie" asp-action="AgentAccountSettings"><i class="material-icons">supervisor_account</i> Account Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="material-icons">exit_to_app</i> Logout</a></li>
+                                </ul>
+                            }
+                            else
+                            {
+                                <a class="nav-link text-white" asp-controller="Account" asp-action="Login">Login</a>
+                            }
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-content">
+            <aside>
+                <div class="left-sidebar">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="Data">
+                                <i class="material-icons">dashboard</i> Tableau de données
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesVentesDropdown" aria-expanded="false">
+                                <i class="material-icons">receipt</i> Gérer États des Ventes
+                                <span class="float-end"><i class="material-icons">add</i></span>
+                            </a>
+                            <div class="collapse" id="etatDesVentesDropdown">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesVentesDépart">État des Ventes Départ</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesVentesArrivée">État des Ventes Arrivée</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesOffresDropdown" aria-expanded="false">
+                                <i class="material-icons">receipt</i> Gérer États des Offres
+                                <span class="float-end"><i class="material-icons">add</i></span>
+                            </a>
+                            <div class="collapse" id="etatDesOffresDropdown">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesOffresDépart">État des Offres Départ</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesOffresArrivée">État des Offres Arrivée</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CompareOffersReports">
+                                <i class="material-icons">compare</i> Confrontation Offres
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CompareSalesReports">
+                                <i class="material-icons">compare</i> Confrontation Ventes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
+                                <i class="material-icons">list</i> Saved Sales Comparisons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
+                                <i class="material-icons">list</i> Saved Offers Comparisons
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">list</i> Saved Offers Comparisons</li>
+                    </ol>
+                </nav>
+            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+            <div class="container py-5">
+                <div class="card p-0 shadow-sm border">
+                    <div class="card-header text-white p-3" style="background-color: rgb(115, 0, 0);">
+                        <h4 class="mb-0">📋 Saved Offers Comparisons</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        @if (Model.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Numero</th>
+                                            <th>Comparison Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var comparison in Model)
+                                        {
+                                            <tr>
+                                                <td>@comparison.Numero</td>
+                                                <td>@comparison.ComparisonDate.ToString("g")</td>
+                                                <td>
+                                                    <a class="btn btn-sm btn-outline-dark" asp-action="ViewOffersComparison" asp-controller="ResponsableCatering" asp-route-id="@comparison.Id">
+                                                        <i class="material-icons">visibility</i> View
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger delete-comparison" data-id="@comparison.Id">
+                                                        <i class="material-icons">delete</i> Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">No saved offers comparisons found.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script>
+        $(function () {
+            // Initialize DataTables
+            $('table').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true
+            });
+
+            // Delete Comparison
+            $('.delete-comparison').on('click', function () {
+                const id = $(this).data('id');
+                if (confirm('Are you sure you want to delete this comparison?')) {
+                    $.ajax({
+                        url: '/ResponsableCatering/DeleteOffersComparison',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (data) {
+                            if (data.success) {
+                                $(`button[data-id="${id}"]`).closest('tr').remove();
+                                alert(data.message);
+                            } else {
+                                alert(data.message);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Delete AJAX error:', status, error, xhr.responseText);
+                            alert('Error deleting comparison: ' + (xhr.responseText || error));
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

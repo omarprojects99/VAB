@@ -52,6 +52,19 @@ namespace VAB.Controllers
         {
             return View();
         }
+        public IActionResult CompareCatring()
+        {
+            return View();
+        }
+        public IActionResult CompareOffersReports()
+        {
+            return View();
+        }
+        public IActionResult Compare()
+        {
+            return View();
+        }
+
 
         [HttpGet]
         public IActionResult GetEtatDesVentesArrivee()
@@ -645,6 +658,398 @@ namespace VAB.Controllers
                 return StatusCode(500, "Erreur serveur lors du chargement des détails.");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> CompareSalesReports(string numero, bool saveComparison = false)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(numero))
+                {
+                    return Json(new { success = false, message = "Report number is required." });
+                }
+
+                var arrivee = await _context.EtatDesVentesArrivee
+                    .Include(e => e.ArticleVentes)
+                        .ThenInclude(a => a.Article)
+                    .FirstOrDefaultAsync(e => e.Numero == numero);
+
+                var depart = await _context.EtatDesVentesDepart
+                    .Include(e => e.ArticleVentesDepart)
+                        .ThenInclude(a => a.Article)
+                    .FirstOrDefaultAsync(e => e.Numero == numero);
+
+                if (arrivee == null || depart == null)
+                {
+                    return Json(new { success = false, message = "One or both reports not found." });
+                }
+
+                var articles = new List<ComparisonArticleDto>();
+                var articleDict = arrivee.ArticleVentes?.ToDictionary(a => a.ArticleId, a => a) ?? new Dictionary<int, ArticleVente>();
+
+                foreach (var depArticle in depart.ArticleVentesDepart ?? Enumerable.Empty<ArticleVenteDepart>())
+                {
+                    var articleComparison = new ComparisonArticleDto
+                    {
+                        ArticleId = depArticle?.ArticleId ?? 0,
+                        IdArticle = depArticle?.Article?.IdArticle ?? 0,
+                        Description = depArticle?.Article?.Description ?? "Unknown",
+                        QuantiteVenduMatch = false,
+                        QuantiteVenduArrivee = 0,
+                        QuantiteVenduDepart = depArticle?.QuantiteVendu ?? 0,
+                        PrixUnitaireMatch = false,
+                        PrixUnitaireArrivee = 0.0m,
+                        PrixUnitaireDepart = depArticle?.PrixUnitaireHT ?? 0.0m,
+                        ValeurMatch = false,
+                        ValeurArrivee = 0.0m,
+                        ValeurDepart = (depArticle?.QuantiteVendu ?? 0) * (depArticle?.PrixUnitaireHT ?? 0.0m)
+                    };
+
+                    if (articleDict.TryGetValue(depArticle?.ArticleId ?? 0, out var arrArticle))
+                    {
+                        articleComparison = new ComparisonArticleDto
+                        {
+                            ArticleId = depArticle?.ArticleId ?? 0,
+                            IdArticle = depArticle?.Article?.IdArticle ?? arrArticle?.Article?.IdArticle ?? 0,
+                            Description = arrArticle?.Article?.Description ?? depArticle?.Article?.Description ?? "Unknown",
+                            QuantiteVenduMatch = arrArticle?.QuantiteVendu == depArticle?.QuantiteVendu,
+                            QuantiteVenduArrivee = arrArticle?.QuantiteVendu ?? 0,
+                            QuantiteVenduDepart = depArticle?.QuantiteVendu ?? 0,
+                            PrixUnitaireMatch = arrArticle?.PrixUnitaireHT == depArticle?.PrixUnitaireHT,
+                            PrixUnitaireArrivee = arrArticle?.PrixUnitaireHT ?? 0.0m,
+                            PrixUnitaireDepart = depArticle?.PrixUnitaireHT ?? 0.0m,
+                            ValeurMatch = (arrArticle?.QuantiteVendu * arrArticle?.PrixUnitaireHT) == (depArticle?.QuantiteVendu * depArticle?.PrixUnitaireHT),
+                            ValeurArrivee = (arrArticle?.QuantiteVendu ?? 0) * (arrArticle?.PrixUnitaireHT ?? 0.0m),
+                            ValeurDepart = (depArticle?.QuantiteVendu ?? 0) * (depArticle?.PrixUnitaireHT ?? 0.0m)
+                        };
+                    }
+
+                    articles.Add(articleComparison);
+                }
+
+                var comparison = new
+                {
+                    success = true,
+                    articles = articles,
+                    totals = new
+                    {
+                        totalEncaisseMatch = arrivee.TotalEncaisse == depart.TotalEncaisse,
+                        totalEncaisseArrivee = arrivee.TotalEncaisse,
+                        totalEncaisseDepart = depart.TotalEncaisse,
+                        ecartPlusMatch = arrivee.EcartPlus == depart.EcartPlus,
+                        ecartPlusArrivee = arrivee.EcartPlus,
+                        ecartPlusDepart = depart.EcartPlus,
+                        ecartMoinsMatch = arrivee.EcartMoins == depart.EcartMoins,
+                        ecartMoinsArrivee = arrivee.EcartMoins,
+                        ecartMoinsDepart = depart.EcartMoins
+                    }
+                };
+
+                if (saveComparison)
+                {
+                    var salesComparison = new SalesComparison
+                    {
+                        Numero = numero,
+                        ComparisonDate = DateTime.UtcNow,
+                        TotalEncaisseArrivee = arrivee.TotalEncaisse,
+                        TotalEncaisseDepart = depart.TotalEncaisse,
+                        TotalEncaisseMatch = arrivee.TotalEncaisse == depart.TotalEncaisse,
+                        EcartPlusArrivee = arrivee.EcartPlus,
+                        EcartPlusDepart = depart.EcartPlus,
+                        EcartPlusMatch = arrivee.EcartPlus == depart.EcartPlus,
+                        EcartMoinsArrivee = arrivee.EcartMoins,
+                        EcartMoinsDepart = depart.EcartMoins,
+                        EcartMoinsMatch = arrivee.EcartMoins == depart.EcartMoins,
+                        Articles = articles.Select(a => new ComparisonArticle
+                        {
+                            ArticleId = a.ArticleId,
+                            IdArticle = a.IdArticle,
+                            Description = a.Description ?? "Unknown",
+                            QuantiteVenduArrivee = a.QuantiteVenduArrivee,
+                            QuantiteVenduDepart = a.QuantiteVenduDepart,
+                            QuantiteVenduMatch = a.QuantiteVenduMatch,
+                            PrixUnitaireArrivee = a.PrixUnitaireArrivee,
+                            PrixUnitaireDepart = a.PrixUnitaireDepart,
+                            PrixUnitaireMatch = a.PrixUnitaireMatch,
+                            ValeurArrivee = a.ValeurArrivee,
+                            ValeurDepart = a.ValeurDepart,
+                            ValeurMatch = a.ValeurMatch
+                        }).ToList()
+                    };
+
+                    _context.SalesComparisons.Add(salesComparison);
+                    await _context.SaveChangesAsync();
+                }
+
+                return Json(comparison);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CompareSalesReports: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(500, new { success = false, message = $"Server error: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CompareOffersReports(string numero, bool saveComparison = false)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(numero))
+                {
+                    return Json(new { success = false, message = "Report number is required." });
+                }
+
+                var arrivee = await _context.EtatDesOffresArrivee
+                    .Include(e => e.ArticleOffres)
+                        .ThenInclude(a => a.Article)
+                    .FirstOrDefaultAsync(e => e.Numero == numero);
+
+                var depart = await _context.EtatDesOffresDepart
+                    .Include(e => e.ArticleOffreDepart)
+                        .ThenInclude(a => a.Article)
+                    .FirstOrDefaultAsync(e => e.Numero == numero);
+
+                if (arrivee == null || depart == null)
+                {
+                    return Json(new { success = false, message = "One or both reports not found." });
+                }
+
+                var articles = new List<ComparisonOfferArticleDto>();
+                var articleDict = arrivee.ArticleOffres?.ToDictionary(a => a.ArticleId, a => a) ?? new Dictionary<int, ArticleOffre>();
+
+                foreach (var depArticle in depart.ArticleOffreDepart ?? Enumerable.Empty<ArticleOffreDepart>())
+                {
+                    var articleComparison = new ComparisonOfferArticleDto
+                    {
+                        ArticleId = depArticle?.ArticleId ?? 0,
+                        IdArticle = depArticle?.Article?.IdArticle ?? 0,
+                        Description = depArticle?.Article?.Description ?? "Unknown",
+                        QuantiteDotationMatch = false,
+                        QuantiteDotationArrivee = 0,
+                        QuantiteDotationDepart = depArticle?.QuantiteDotation ?? 0,
+                        QuantiteComplementaireMatch = false,
+                        QuantiteComplementaireArrivee = 0,
+                        QuantiteComplementaireDepart = depArticle?.QuantiteComplementaire ?? 0,
+                        QuantiteCasseMatch = false,
+                        QuantiteCasseArrivee = 0,
+                        QuantiteCasseDepart = depArticle?.QuantiteCasse ?? 0,
+                        QuantiteOffertMatch = false,
+                        QuantiteOffertArrivee = 0,
+                        QuantiteOffertDepart = depArticle?.QuantiteOffert ?? 0,
+                        RetourConsigMatch = false,
+                        RetourConsigArrivee = 0,
+                        RetourConsigDepart = depArticle?.RetourConsig ?? 0
+                    };
+
+                    if (articleDict.TryGetValue(depArticle?.ArticleId ?? 0, out var arrArticle))
+                    {
+                        articleComparison = new ComparisonOfferArticleDto
+                        {
+                            ArticleId = depArticle?.ArticleId ?? 0,
+                            IdArticle = depArticle?.Article?.IdArticle ?? arrArticle?.Article?.IdArticle ?? 0,
+                            Description = arrArticle?.Article?.Description ?? depArticle?.Article?.Description ?? "Unknown",
+                            QuantiteDotationMatch = arrArticle?.QuantiteDotation == depArticle?.QuantiteDotation,
+                            QuantiteDotationArrivee = arrArticle?.QuantiteDotation ?? 0,
+                            QuantiteDotationDepart = depArticle?.QuantiteDotation ?? 0,
+                            QuantiteComplementaireMatch = arrArticle?.QuantiteComplementaire == depArticle?.QuantiteComplementaire,
+                            QuantiteComplementaireArrivee = arrArticle?.QuantiteComplementaire ?? 0,
+                            QuantiteComplementaireDepart = depArticle?.QuantiteComplementaire ?? 0,
+                            QuantiteCasseMatch = arrArticle?.QuantiteCasse == depArticle?.QuantiteCasse,
+                            QuantiteCasseArrivee = arrArticle?.QuantiteCasse ?? 0,
+                            QuantiteCasseDepart = depArticle?.QuantiteCasse ?? 0,
+                            QuantiteOffertMatch = arrArticle?.QuantiteOffert == depArticle?.QuantiteOffert,
+                            QuantiteOffertArrivee = arrArticle?.QuantiteOffert ?? 0,
+                            QuantiteOffertDepart = depArticle?.QuantiteOffert ?? 0,
+                            RetourConsigMatch = arrArticle?.RetourConsig == depArticle?.RetourConsig,
+                            RetourConsigArrivee = arrArticle?.RetourConsig ?? 0,
+                            RetourConsigDepart = depArticle?.RetourConsig ?? 0
+                        };
+                    }
+
+                    articles.Add(articleComparison);
+                }
+
+                var comparison = new
+                {
+                    success = true,
+                    articles
+                };
+
+                if (saveComparison)
+                {
+                    var offersComparison = new OffersComparison
+                    {
+                        Numero = numero,
+                        ComparisonDate = DateTime.UtcNow,
+                        Articles = articles.Select(a => new ComparisonOfferArticle
+                        {
+                            ArticleId = a.ArticleId,
+                            IdArticle = a.IdArticle,
+                            Description = a.Description ?? "Unknown",
+                            QuantiteDotationArrivee = a.QuantiteDotationArrivee,
+                            QuantiteDotationDepart = a.QuantiteDotationDepart,
+                            QuantiteDotationMatch = a.QuantiteDotationMatch,
+                            QuantiteComplementaireArrivee = a.QuantiteComplementaireArrivee,
+                            QuantiteComplementaireDepart = a.QuantiteComplementaireDepart,
+                            QuantiteComplementaireMatch = a.QuantiteComplementaireMatch,
+                            QuantiteCasseArrivee = a.QuantiteCasseArrivee,
+                            QuantiteCasseDepart = a.QuantiteCasseDepart,
+                            QuantiteCasseMatch = a.QuantiteCasseMatch,
+                            QuantiteOffertArrivee = a.QuantiteOffertArrivee,
+                            QuantiteOffertDepart = a.QuantiteOffertDepart,
+                            QuantiteOffertMatch = a.QuantiteOffertMatch,
+                            RetourConsigArrivee = a.RetourConsigArrivee,
+                            RetourConsigDepart = a.RetourConsigDepart,
+                            RetourConsigMatch = a.RetourConsigMatch
+                        }).ToList()
+                    };
+
+                    _context.OffersComparisons.Add(offersComparison);
+                    await _context.SaveChangesAsync();
+                }
+
+                return Json(comparison);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in CompareOffersReports: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(500, new { success = false, message = $"Server error: {ex.Message}" });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> ListComparisons()
+        {
+            var comparisons = await _context.SalesComparisons
+                .OrderByDescending(c => c.ComparisonDate)
+                .ToListAsync();
+            return View(comparisons);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewComparison(int id)
+        {
+            var comparison = await _context.SalesComparisons
+                .Include(c => c.Articles)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (comparison == null)
+            {
+                return NotFound();
+            }
+
+            return View(comparison);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteComparison(int id)
+        {
+            var comparison = await _context.SalesComparisons.FindAsync(id);
+            if (comparison == null)
+            {
+                return Json(new { success = false, message = "Comparison not found." });
+            }
+
+            _context.SalesComparisons.Remove(comparison);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Comparison deleted successfully." });
+        }
+        [HttpGet]
+        public async Task<IActionResult> ViewOffersComparison(int id)
+        {
+            var comparison = await _context.OffersComparisons
+                .Include(c => c.Articles)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (comparison == null)
+            {
+                return NotFound();
+            }
+
+            return View(comparison);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListOffersComparisons()
+        {
+            var comparisons = await _context.OffersComparisons.ToListAsync();
+            return View(comparisons);
+        }
+        [HttpPost]
+        public async Task<IActionResult> DeleteOffersComparison(int id)
+        {
+            try
+            {
+                var comparison = await _context.OffersComparisons
+                    .Include(c => c.Articles)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (comparison == null)
+                {
+                    return Json(new { success = false, message = "Comparison not found." });
+                }
+
+                _context.ComparisonOfferArticles.RemoveRange(comparison.Articles);
+                _context.OffersComparisons.Remove(comparison);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Comparison deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DeleteOffersComparison: {ex.Message}\n{ex.StackTrace}");
+                return Json(new { success = false, message = $"Error deleting comparison: {ex.Message}" });
+            }
+        }
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

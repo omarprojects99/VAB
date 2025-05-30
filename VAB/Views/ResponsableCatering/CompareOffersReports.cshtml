@@ -1,0 +1,499 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Tableau de bord - Responsable Catering";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catering Dashboard</title>
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
+    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        input:focus {
+            border-color: grey !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+            background-color: rgb(86, 85, 85) !important;
+            transform: scale(1.03);
+            transition: all 0.2s ease-in-out;
+        }
+
+        button {
+            background-color: rgb(180, 178, 178) !important;
+            transform: scale(1);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+
+        #compareResult table {
+            font-size: 14px;
+        }
+
+        #compareResult .text-success {
+            color: #28a745 !important;
+        }
+
+        #compareResult .text-danger {
+            color: #dc3545 !important;
+        }
+
+        #exportBtn {
+            display: none;
+        }
+
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-item:hover {
+            background-color: #66171f;
+            color: white;
+        }
+
+        @@media print {
+            header, #left-sidebar-area, #offersCompareForm, #exportBtn, .content-header, .alert-success
+
+        {
+            display: none !important;
+        }
+
+        #wrapper {
+            margin: 0;
+            padding: 0;
+        }
+
+        #compareResult {
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading spinner -->
+    <div class="spinner_body">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <div class="collapse navbar-collapse pr-3">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>@User.Identity.Name</a></li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Account Settings
+                        </a>
+                    </li>
+                    <li><a asp-controller="Account" asp-action="Logout"><i class="material-icons mr-2">exit_to_app</i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesVentesDropdown" aria-expanded="false">
+                                <i class="material-icons">receipt</i> Gérer États des Ventes
+                                <span class="float-end"><i class="material-icons">add</i></span>
+                            </a>
+                            <div class="collapse" id="etatDesVentesDropdown">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesOffresDropdown" aria-expanded="false">
+                                <i class="material-icons">receipt</i> Gérer États des Offres
+                                <span class="float-end"><i class="material-icons">add</i></span>
+                            </a>
+                            <div class="collapse" id="etatDesOffresDropdown">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CompareOffersReports">
+                                <i class="material-icons">compare</i> Confrontation Offres
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CompareSalesReports">
+                                <i class="material-icons">compare</i> Confrontation Ventes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
+                                <i class="material-icons">list</i> Saved Sales Comparisons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
+                                <i class="material-icons">list</i> Saved Offers Comparisons
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">receipt</i> Confrontation des États des Offres</li>
+                    </ol>
+                </nav>
+            </div>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+            <div class="container py-5">
+                <div class="card p-0 shadow-sm border">
+                    <div class="card-header text-white p-3" style="background-color: rgb(115, 0, 0);">
+                        <h4 class="mb-0">📋 Compare Offers Reports</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="offersCompareForm" class="text-center">
+                            <div class="row justify-content-center mb-4">
+                                <div class="col-md-6">
+                                    <label for="reportNumber" class="form-label fw-medium text-secondary mb-2">Offers Report Number</label>
+                                    <input type="text"
+                                           class="form-control form-control-lg border border-2 border-dark mx-auto text-center"
+                                           id="reportNumber"
+                                           placeholder="e.g. OR-2023-001"
+                                           required
+                                           style="padding: 12px 16px;">
+                                </div>
+                            </div>
+                            <button type="submit"
+                                    class="btn btn-dark btn-lg px-5 py-3 text-uppercase fw-medium">
+                                <i class="material-icons me-2">compare</i> Compare
+                            </button>
+                        </form>
+
+                        <div class="export-button mt-4 text-center">
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-outline-dark btn-lg px-4 py-2 dropdown-toggle"
+                                        type="button"
+                                        id="exportBtn"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                        style="display: none;">
+                                    Export Options
+                                </button>
+                                <ul class="dropdown-menu border-dark" aria-labelledby="exportBtn">
+                                    <li><a class="dropdown-item" href="#" id="exportPdf">PDF Export</a></li>
+                                    <li><a class="dropdown-item" href="#" id="printResult">Print Report</a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-outline-dark btn-lg px-4 py-2 ms-2"
+                                    type="button"
+                                    id="saveComparisonBtn"
+                                    style="display: none;">
+                                Save Comparison
+                            </button>
+                        </div>
+
+                        <div id="compareResult" class="mt-5">
+                            <div id="comparisonTable" class="table-responsive"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="modal fade" id="salesModal" tabindex="-1" aria-labelledby="salesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/Chart.bundle.min.js"></script>
+    <script src="~/js/chartfunction.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        $(function () {
+            let currentNumero = '';
+            let currentData = null;
+
+            $('#offersCompareForm').on('submit', function (e) {
+                e.preventDefault();
+                const numero = $('#reportNumber').val().trim();
+                const resultBox = $('#comparisonTable');
+                const exportBtn = $('#exportBtn');
+                const saveComparisonBtn = $('#saveComparisonBtn');
+
+                console.log('Submitting report number:', numero);
+
+                if (!numero) {
+                    resultBox.html('<div class="alert alert-danger fw-semibold">Please enter a report number.</div>');
+                    exportBtn.hide();
+                    saveComparisonBtn.hide();
+                    console.log('No report number entered');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/ResponsableCatering/CompareOffersReports',
+                    type: 'POST',
+                    data: { numero: numero, saveComparison: false },
+                    success: function (data) {
+                        console.log('AJAX response:', data);
+                        if (!data.success) {
+                            resultBox.html(`<div class="alert alert-danger fw-semibold">${data.message}</div>`);
+                            exportBtn.hide();
+                            saveComparisonBtn.hide();
+                            console.log('Server error:', data.message);
+                            return;
+                        }
+
+                        currentNumero = numero;
+                        currentData = data;
+
+                        let html = '<h5 class="fw-bold mb-3">Comparison Results (Numero: ' + numero + ')</h5>';
+                        html += '<h6 class="fw-semibold text-secondary">Articles Offered</h6>';
+                        if (data.articles.length === 0) {
+                            html += '<div class="alert alert-info">No articles found for comparison.</div>';
+                        } else {
+                            html += '<div class="table-responsive"><table class="table table-striped table-bordered">';
+                            html += '<thead><tr><th>Article (ID)</th><th>Dotation (Arrivée)</th><th>Dotation (Départ)</th><th>Complémentaire (Arrivée)</th><th>Complémentaire (Départ)</th><th>Cassé (Arrivée)</th><th>Cassé (Départ)</th><th>Offert (Arrivée)</th><th>Offert (Départ)</th><th>Retour Consigne (Arrivée)</th><th>Retour Consigne (Départ)</th></tr></thead><tbody>';
+                            data.articles.forEach(a => {
+                                const dotationMatch = a.quantiteDotationMatch ? 'text-success' : 'text-danger';
+                                const complementaireMatch = a.quantiteComplementaireMatch ? 'text-success' : 'text-danger';
+                                const casseMatch = a.quantiteCasseMatch ? 'text-success' : 'text-danger';
+                                const offertMatch = a.quantiteOffertMatch ? 'text-success' : 'text-danger';
+                                const retourMatch = a.retourConsigMatch ? 'text-success' : 'text-danger';
+                                html += `<tr>
+                                    <td>${a.description || 'Unknown'} (${a.idArticle})</td>
+                                    <td class="${dotationMatch}">${a.quantiteDotationArrivee}</td>
+                                    <td class="${dotationMatch}">${a.quantiteDotationDepart}</td>
+                                    <td class="${complementaireMatch}">${a.quantiteComplementaireArrivee}</td>
+                                    <td class="${complementaireMatch}">${a.quantiteComplementaireDepart}</td>
+                                    <td class="${casseMatch}">${a.quantiteCasseArrivee}</td>
+                                    <td class="${casseMatch}">${a.quantiteCasseDepart}</td>
+                                    <td class="${offertMatch}">${a.quantiteOffertArrivee}</td>
+                                    <td class="${offertMatch}">${a.quantiteOffertDepart}</td>
+                                    <td class="${retourMatch}">${a.retourConsigArrivee}</td>
+                                    <td class="${retourMatch}">${a.retourConsigDepart}</td>
+                                </tr>`;
+                            });
+                            html += '</tbody></table></div>';
+                        }
+
+                        resultBox.html(html);
+                        exportBtn.css('display', 'inline-block');
+                        saveComparisonBtn.css('display', 'inline-block');
+                        console.log('Buttons visibility:', { export: exportBtn.css('display'), save: saveComparisonBtn.css('display') });
+
+                        // PDF Export
+                        $('#exportPdf').off('click').on('click', function (e) {
+                            e.preventDefault();
+                            console.log('Exporting PDF');
+                            const { jsPDF } = window.jspdf;
+                            const doc = new jsPDF('p', 'mm', 'a4');
+                            const pageWidth = doc.internal.pageSize.getWidth();
+                            const margin = 10;
+                            let yPos = 20;
+
+                            doc.setFontSize(16);
+                            doc.setTextColor(102, 23, 31);
+                            doc.text(`Offers Comparison Report (Numero: ${numero})`, pageWidth / 2, yPos, { align: 'center' });
+                            yPos += 10;
+
+                            html2canvas(document.querySelector('#comparisonTable'), {
+                                scale: 2,
+                                useCORS: true
+                            }).then(canvas => {
+                                const imgData = canvas.toDataURL('image/png');
+                                const imgWidth = pageWidth - 2 * margin;
+                                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                                if (yPos + imgHeight > doc.internal.pageSize.getHeight() - margin) {
+                                    doc.addPage();
+                                    yPos = margin;
+                                }
+
+                                doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+                                doc.save(`OffersComparison_${numero}.pdf`);
+                                console.log('PDF downloaded');
+                            }).catch(err => {
+                                console.error('PDF error:', err);
+                                resultBox.append('<div class="alert alert-danger mt-2">Error generating PDF.</div>');
+                            });
+                        });
+
+                        // Print
+                        $('#printResult').off('click').on('click', function (e) {
+                            e.preventDefault();
+                            console.log('Printing');
+                            window.print();
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX error:', status, error, xhr.responseText);
+                        resultBox.html(`<div class="alert alert-danger fw-semibold">Error fetching comparison data: ${xhr.responseText || error}</div>`);
+                        exportBtn.hide();
+                        saveComparisonBtn.hide();
+                    }
+                });
+            });
+
+            $('#saveComparisonBtn').on('click', function (e) {
+                e.preventDefault();
+                if (!currentNumero || !currentData) {
+                    $('#comparisonTable').html('<div class="alert alert-danger fw-semibold">No comparison data to save.</div>');
+                    $('#saveComparisonBtn').hide();
+                    return;
+                }
+
+                console.log('Saving comparison for numero:', currentNumero);
+
+                $.ajax({
+                    url: '/ResponsableCatering/CompareOffersReports',
+                    type: 'POST',
+                    data: { numero: currentNumero, saveComparison: true },
+                    success: function (data) {
+                        console.log('Save response:', data);
+                        if (data.success) {
+                            $('#comparisonTable').prepend('<div class="alert alert-success fw-semibold">Comparison saved successfully!</div>');
+                            $('#saveComparisonBtn').hide();
+                            console.log('Comparison saved');
+                        } else {
+                            $('#comparisonTable').prepend(`<div class="alert alert-danger fw-semibold">${data.message}</div>`);
+                            console.log('Save error:', data.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Save AJAX error:', status, error, xhr.responseText);
+                        $('#comparisonTable').prepend(`<div class="alert alert-danger fw-semibold">Error saving comparison: ${xhr.responseText || error}</div>`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

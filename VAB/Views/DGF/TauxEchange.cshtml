@@ -1,0 +1,397 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.ExchangeRateViewModel
+
+@{
+    ViewData["Title"] = "Tableau de Bord DGF";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tableau de bord DGF - Gestion des Commissions PNC">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <style>
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .card-body-icon i {
+            opacity: 0.3;
+            font-size: 4rem;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            padding: 12px 20px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+            .nav-tabs .nav-link.active {
+                color: #007bff;
+                border-bottom: 3px solid #007bff;
+                background-color: transparent;
+            }
+
+        .small-box {
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 0;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .small-box h3 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: white;
+            }
+
+            .small-box p {
+                font-size: 1rem;
+                color: rgba(255,255,255,0.8);
+            }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 8px;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                border-bottom-width: 1px;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+        .table-bordered {
+            border: 1px solid #e9ecef;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.04);
+        }
+
+        .btn {
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            padding: 15px 20px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 12px 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .animated {
+            animation-duration: 0.5s;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 15px;
+            }
+
+            .small-box h3 {
+                font-size: 1.8rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <!-- Brand logo -->
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Page title -->
+                    @* <div class="ml-3"> *@
+                    @*     <h5 class="mb-0 text-white">Tableau de Bord DGF</h5> *@
+                    @* </div> *@
+
+                    <!-- User profile dropdown -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Administrateur DGF</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li class="active">
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Reports">
+                                <i class="material-icons">assessment</i> Rapports
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Settings">
+                                <i class="material-icons">settings</i> Paramètres
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+
+            <div class="container mt-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">Taux de change</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Edit" method="post">
+                            <div class="mb-3">
+                                <label asp-for="EuroToDinar" class="form-label">Taux Euro vers Dinar</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input asp-for="EuroToDinar" class="form-control" placeholder="Entrez le taux" />
+                                </div>
+                                <span asp-validation-for="EuroToDinar" class="text-danger small"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" style="background-color:grey" class="btn btn-primary rounded-pill px-4">Enregistrer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+   
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script>
+       
+    </script>
+</body>
+</html>

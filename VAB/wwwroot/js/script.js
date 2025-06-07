@@ -8,7 +8,7 @@
   Version: 1.0
 */
 
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 window.confirm = function (message) {
     return Swal.fire({
         title: message,
@@ -17,6 +17,18 @@ window.confirm = function (message) {
         confirmButtonText: 'OK',
         cancelButtonText: 'Cancel'
     }).then((result) => result.isConfirmed);
+};
+window.confirm = function (message) {
+    return Swal.fire({
+        title: 'Confirmation',
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui',
+        cancelButtonText: 'Non'
+    }).then((result) => {
+        return result.isConfirmed;
+    });
 };
 
 

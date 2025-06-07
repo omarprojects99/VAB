@@ -125,7 +125,7 @@
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
                         <li>
-                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                            <a asp-controller="DGFController" asp-action="DGFDashboard">
                                 <i class="material-icons">dashboard</i>Tableau de Bord
                             </a>
                         </li>
@@ -139,10 +139,10 @@
                                 <div class="sub-dropdown">
                                     <ul class="sub-list">
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                            <a asp-controller="DGF" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
                                         </li>
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                            <a asp-controller="DGF" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -158,14 +158,19 @@
                                 <div class="sub-dropdown">
                                     <ul class="sub-list">
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                            <a asp-controller="DGF" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
                                         </li>
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                            <a asp-controller="DGF asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="CommissionPNC">
+                                <i class="material-icons">dashboard</i>Commission PNC
+                            </a>
                         </li>
                     </ul>
                 </div>

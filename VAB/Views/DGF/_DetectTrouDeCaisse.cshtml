@@ -1,0 +1,190 @@
+﻿@model VAB.ViewModel.TrouDeCaisseViewModel
+
+<form id="trouDeCaisseForm" asp-action="SaveTrouDeCaisse" method="post">
+    @Html.HiddenFor(m => m.EtatDesVentesArriveeId)
+    @Html.HiddenFor(m => m.PncResponsableId)
+    @Html.HiddenFor(m => m.DateDetection)
+    @Html.HiddenFor(m => m.MontantCalcule)
+    @Html.HiddenFor(m => m.MontantEncaisse)
+    @Html.HiddenFor(m => m.MontantManquant)
+    @Html.HiddenFor(m => m.DetectePar)
+
+    <!-- État Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </span>
+                <div class="info-box-content">
+                    <span class="info-box-text">État des Ventes</span>
+                    <span class="info-box-number">@Model.NumeroEtat</span>
+                    <span class="info-box-more">@Model.DateEtat.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-box">
+                <span class="info-box-icon bg-danger">
+                    <i class="fas fa-user-tie"></i>
+                </span>
+                <div class="info-box-content">
+                    <span class="info-box-text">PNC Responsable</span>
+                    <span class="info-box-number">@Model.PncResponsableNom</span>
+                    <span class="info-box-more">@Model.PncResponsableMatricule</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trou de Caisse Summary -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>@Model.MontantCalcule.ToString("C")</h3>
+                    <p>Montant Calculé</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>@Model.MontantEncaisse.ToString("C")</h3>
+                    <p>Montant Encaissé</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>@Model.MontantManquant.ToString("C")</h3>
+                    <p>Montant Manquant</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Articles Vendus Details -->
+    @if (Model.ArticlesVendus != null && Model.ArticlesVendus.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="card-title">
+                    <i class="fas fa-list"></i> Détail des Articles Vendus
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Article</th>
+                                <th>Quantité Vendue</th>
+                                <th>Prix Unitaire</th>
+                                <th>Valeur</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var article in Model.ArticlesVendus)
+                            {
+                                <tr>
+                                    <td>@article.Description</td>
+                                    <td>@article.QuantiteVendu</td>
+                                    <td>@article.PrixUnitaire.ToString("C")</td>
+                                    <td>@article.Valeur.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="thead-light">
+                            <tr>
+                                <th colspan="3">TOTAL CALCULÉ</th>
+                                <th>
+                                    <strong class="text-info">
+                                        @Model.MontantCalcule.ToString("C")
+                                    </strong>
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Motif et Commentaires -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Motif">Motif du Trou de Caisse</label>
+                <textarea asp-for="Motif" class="form-control" rows="3"
+                          placeholder="Expliquez la raison du manque..."></textarea>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label asp-for="Commentaires">Commentaires Additionnels</label>
+                <textarea asp-for="Commentaires" class="form-control" rows="3"
+                          placeholder="Commentaires ou observations..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-danger btn-lg">
+                <i class="fas fa-save"></i> Enregistrer le Trou de Caisse
+            </button>
+            <button type="button" class="btn btn-secondary btn-lg ml-2" data-dismiss="modal">
+                <i class="fas fa-times"></i> Annuler
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    $(document).ready(function() {
+        // Handle form submission for trou de caisse
+        $('#trouDeCaisseForm').on('submit', function(e) {
+            e.preventDefault();
+
+            var form = $(this);
+            var formData = form.serialize();
+            var submitBtn = form.find('button[type="submit"]');
+
+            // Disable submit button and show loading
+            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enregistrement...');
+
+            $.post(form.attr('action'), formData)
+                .done(function(response) {
+                    if (response.success) {
+                        alert(response.message || 'Trou de caisse enregistré avec succès.');
+                        $('#calculateCommissionModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        alert('Erreur: ' + (response.message || 'Erreur lors de l\'enregistrement.'));
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Error saving trou de caisse:', error);
+                    alert('Erreur lors de la communication avec le serveur: ' + error);
+                })
+                .always(function() {
+                    // Re-enable submit button
+                    submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Enregistrer le Trou de Caisse');
+                });
+        });
+    });
+</script>

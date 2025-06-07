@@ -32,13 +32,14 @@ namespace VAB.Data
         public DbSet<ArticleOffre> ArticleOffres { get; set; }
         public DbSet<ArticleOffreDepart> ArticleOffreDepart { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-
         public DbSet<SalesComparison> SalesComparisons { get; set; }
         public DbSet<ComparisonArticle> ComparisonArticles { get; set; }
-
         public DbSet<OffersComparison> OffersComparisons { get; set; }
         public DbSet<ComparisonOfferArticle> ComparisonOfferArticles { get; set; }
-
+        public DbSet<PncCommissionCalculation> PncCommissionCalculations { get; set; }
+        public DbSet<PncCommissionDetail> PncCommissionDetails { get; set; }
+        public DbSet<ExchangeRate> ExchangeRates { get; set; }
+        public DbSet<TrouDeCaisse> TrouDeCaisses { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -158,7 +159,23 @@ namespace VAB.Data
                .WithMany(e => e.ArticleVentesDepart)
                .HasForeignKey(av => av.EtatDesVentesDepartId)
                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<PncCommissionCalculation>()
+    .HasOne(c => c.EtatDesVentesArrivee)
+    .WithMany()
+    .HasForeignKey(c => c.EtatDesVentesArriveeId)
+    .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<PncCommissionDetail>()
+                .HasOne(d => d.PncCommissionCalculation)
+                .WithMany(c => c.PncCommissionDetails)
+                .HasForeignKey(d => d.PncCommissionCalculationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PncCommissionDetail>()
+                .HasOne(d => d.Pnc)
+                .WithMany()
+                .HasForeignKey(d => d.PncId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
         }

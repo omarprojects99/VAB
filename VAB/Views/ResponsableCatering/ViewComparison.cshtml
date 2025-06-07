@@ -156,15 +156,14 @@
             </div>
         </div>
     </header>
-
-    <!-- Sidebar -->
+    <!-- Left Sidebar -->
     <section id="left-sidebar-area">
         <div id="left-sidebar-section">
             <aside>
-                <div class="left-sidebar" id="wrapper-sidebar">
-                    <ul>
+                <div class="left-sidebar">
+                    <ul class="nav flex-column">
                         <li>
-                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
                                 <i class="material-icons">dashboard</i>Tableau de Bord
                             </a>
                         </li>
@@ -207,18 +206,26 @@
                             </div>
                         </li>
                         <li>
-                            <a asp-controller="ResponsableCatering" asp-action="CompareCatring">
-                                <i class="material-icons">dashboard</i>Confrontation
+                            <a asp-controller="ResponsableCatering" asp-action="Compare">
+                                <i class="bi bi-clipboard-check-fill"></i>Confrontation
                             </a>
                         </li>
-                        <li>
-                            <a asp-controller="ResponsableCatering" asp-action="ListComparisons">
-                                <i class="material-icons">list</i>Saved Comparisons
+
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
+                                <i class="material-icons">list</i> Saved Sales Comparisons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
+                                <i class="material-icons">list</i> Saved Offers Comparisons
                             </a>
                         </li>
                     </ul>
                 </div>
             </aside>
+
         </div>
     </section>
 

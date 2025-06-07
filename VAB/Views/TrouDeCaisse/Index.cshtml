@@ -1,0 +1,349 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.TrouDeCaisseDashboardViewModel
+@{
+    ViewData["Title"] = "Gestion des Trous de Caisse";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Gestion des Trous de Caisse</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+                    <li class="breadcrumb-item active">Trous de Caisse</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@Model.TotalManques.ToString("C")</h3>
+                        <p>Total des Manques</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.NombreTrousEnAttente</h3>
+                        <p>En Attente</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.NombreTrousAppliques</h3>
+                        <p>Appliqués</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.TrousDeCaisse.Count</h3>
+                        <p>Total Détectés</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-filter"></i> Filtres et Actions
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row">
+                    <div class="col-md-3">
+                        <label>Date Début</label>
+                        <input type="date" name="dateDebut" class="form-control"
+                        value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <label>Date Fin</label>
+                        <input type="date" name="dateFin" class="form-control"
+                        value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filtrer
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Reset
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="button" class="btn btn-warning" id="detectAllBtn">
+                                <i class="fas fa-search-plus"></i> Détecter Tous
+                            </button>
+                            <a href="@Url.Action("GenerateReport", new { dateDebut = Model.DateDebut, dateFin = Model.DateFin })"
+                            class="btn btn-info" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Rapport
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Trous de Caisse Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-list"></i> Liste des Trous de Caisse
+                </h3>
+            </div>
+            <div class="card-body">
+                @if (Model.TrousDeCaisse.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="trousDeCaisseTable">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>État N°</th>
+                                    <th>Date Détection</th>
+                                    <th>PNC Responsable</th>
+                                    <th>Montant Manquant</th>
+                                    <th>Statut</th>
+                                    <th>Appliqué</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var trou in Model.TrousDeCaisse)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@trou.NumeroEtat</strong>
+                                        </td>
+                                        <td>@trou.DateDetection.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>@trou.PncResponsableNom</td>
+                                        <td>
+                                            <span class="badge badge-danger badge-lg">
+                                                @trou.MontantManquant.ToString("C")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @switch (trou.Statut)
+                                            {
+                                                case "En Attente":
+                                                    <span class="badge badge-warning">@trou.Statut</span>
+                                                    break;
+                                                case "Appliqué":
+                                                    <span class="badge badge-success">@trou.Statut</span>
+                                                    break;
+                                                case "Contesté":
+                                                    <span class="badge badge-info">@trou.Statut</span>
+                                                    break;
+                                                case "Résolu":
+                                                    <span class="badge badge-primary">@trou.Statut</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge badge-secondary">@trou.Statut</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (trou.EstApplique)
+                                            {
+                                                <i class="fas fa-check text-success"> Oui</i>
+                                               
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-times text-danger">  Non</i>
+                                              
+                                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="@Url.Action("Details", new { id = trou.Id })"
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                @if (!trou.EstApplique)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-success apply-btn"
+                                                            data-id="@trou.Id">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                }
+                                                <button type="button" class="btn btn-sm btn-warning status-btn"
+                                                        data-id="@trou.Id" data-status="@trou.Statut">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Aucun trou de caisse détecté pour la période sélectionnée.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Modifier le Statut</h4>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="statusForm">
+                    <input type="hidden" id="statusTrouId" />
+                    <div class="form-group">
+                        <label>Nouveau Statut</label>
+                        <select id="statusSelect" class="form-control">
+                            <option value="En Attente">En Attente</option>
+                            <option value="Appliqué">Appliqué</option>
+                            <option value="Contesté">Contesté</option>
+                            <option value="Résolu">Résolu</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Commentaires</label>
+                        <textarea id="statusCommentaires" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveStatusBtn">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            $('#trousDeCaisseTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+                },
+                "order": [[1, "desc"]], // Sort by date descending
+                "pageLength": 25
+            });
+
+            // Detect all shortages
+            $('#detectAllBtn').click(function() {
+                var btn = $(this);
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Détection...');
+
+                $.post('@Url.Action("DetectAllShortages")')
+                    .done(function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            if (response.count > 0) {
+                                location.reload();
+                            }
+                        } else {
+                            alert('Erreur: ' + response.message);
+                        }
+                    })
+                    .fail(function() {
+                        alert('Erreur de communication avec le serveur.');
+                    })
+                    .always(function() {
+                        btn.prop('disabled', false).html('<i class="fas fa-search-plus"></i> Détecter Tous');
+                    });
+            });
+
+            // Apply to commission
+            $('.apply-btn').click(function() {
+                var id = $(this).data('id');
+                if (confirm('Êtes-vous sûr de vouloir appliquer ce trou de caisse à la commission?')) {
+                    $.post('@Url.Action("ApplyToCommission")', { id: id })
+                        .done(function(response) {
+                            if (response.success) {
+                                alert(response.message);
+                                location.reload();
+                            } else {
+                                alert('Erreur: ' + response.message);
+                            }
+                        });
+                }
+            });
+
+            // Status update
+            $('.status-btn').click(function() {
+                var id = $(this).data('id');
+                var currentStatus = $(this).data('status');
+
+                $('#statusTrouId').val(id);
+                $('#statusSelect').val(currentStatus);
+                $('#statusModal').modal('show');
+            });
+
+            $('#saveStatusBtn').click(function() {
+                var id = $('#statusTrouId').val();
+                var status = $('#statusSelect').val();
+                var commentaires = $('#statusCommentaires').val();
+
+                $.post('@Url.Action("UpdateStatus")', {
+                    id: id,
+                    status: status,
+                    commentaires: commentaires
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#statusModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + response.message);
+                    }
+                });
+            });
+        });
+    </script>
+}

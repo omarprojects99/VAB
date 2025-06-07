@@ -7,18 +7,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Offers Comparison</title>
+
+    <!-- Title -->
+    <title>Saved Offers Comparisons</title>
+
+    <!-- Favicon Icon -->
     <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
     <link rel="stylesheet" href="~/iconfont/material-icons.css">
+
+    <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet" media="screen">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+
+    <!-- Style CSS -->
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/sidebar.css">
+
+    <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         .table th, .table td {
             vertical-align: middle;
@@ -60,107 +81,145 @@
     
 
     <!-- Header -->
+    <!-- Header -->
     <header>
-        <nav class="navbar navbar-expand-lg bg-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Data" asp-action="Index">
-                    <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo" style="height: 40px;">
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="material-icons text-white">menu</span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item dropdown">
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                <a href="#" class="nav-link dropdown-toggle text-white" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="width: 30px; border-radius: 50%;" alt="User">
-                                    @User.Identity.Name
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" asp-controller="AgentSaisie" asp-action="AgentAccountSettings"><i class="material-icons">supervisor_account</i> Account Settings</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="material-icons">exit_to_app</i> Logout</a></li>
-                                </ul>
-                            }
-                            else
-                            {
-                                <a class="nav-link text-white" asp-controller="Account" asp-action="Login">Login</a>
-                            }
-                        </li>
-                    </ul>
-                </div>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="EtatDesVentes" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- For Toggle Mobile Nav icon -->
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <!-- For Toggle Mobile Nav Icon -->
+                    <div class="collapse navbar-collapse pr-3" id="#">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">supervisor_account</i> Account Settings
+                                        </a>
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
             </div>
-        </nav>
+            <!-- For Toggle Mobile Nav -->
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li><a href="#"><div class="user-photo"><img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt=""></div>@User.Identity.Name</a></li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Account Settings
+                        </a>
+                    </li>
+                    <li><a asp-controller="Account" asp-action="Logout"><i class="material-icons mr-2">exit_to_app</i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
     </header>
 
-    <!-- Sidebar -->
+    <!-- Left Sidebar -->
     <section id="left-sidebar-area">
-        <div id="left-sidebar-content">
+        <div id="left-sidebar-section">
             <aside>
                 <div class="left-sidebar">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="Data">
-                                <i class="material-icons">dashboard</i> Tableau de données
+                        <li>
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                                <i class="material-icons">dashboard</i>Tableau de Bord
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesVentesDropdown" aria-expanded="false">
-                                <i class="material-icons">receipt</i> Gérer États des Ventes
-                                <span class="float-end"><i class="material-icons">add</i></span>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
                             </a>
-                            <div class="collapse" id="etatDesVentesDropdown">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesVentesDépart">État des Ventes Départ</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesVentesArrivée">État des Ventes Arrivée</a>
-                                    </li>
-                                </ul>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesOffresDropdown" aria-expanded="false">
-                                <i class="material-icons">receipt</i> Gérer États des Offres
-                                <span class="float-end"><i class="material-icons">add</i></span>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
                             </a>
-                            <div class="collapse" id="etatDesOffresDropdown">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesOffresDépart">État des Offres Départ</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ÉtatDesOffresArrivée">État des Offres Arrivée</a>
-                                    </li>
-                                </ul>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CompareOffersReports">
-                                <i class="material-icons">compare</i> Confrontation Offres
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="Compare">
+                                <i class="bi bi-clipboard-check-fill"></i>Confrontation
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CompareSalesReports">
-                                <i class="material-icons">compare</i> Confrontation Ventes
-                            </a>
-                        </li>
+
+
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
                                 <i class="material-icons">list</i> Saved Sales Comparisons
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
                                 <i class="material-icons">list</i> Saved Offers Comparisons
                             </a>
                         </li>
                     </ul>
                 </div>
             </aside>
+
         </div>
     </section>
 

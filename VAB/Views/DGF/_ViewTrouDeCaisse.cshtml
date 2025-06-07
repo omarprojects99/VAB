@@ -1,0 +1,223 @@
+﻿@model VAB.ViewModel.TrouDeCaisseViewModel
+
+<!-- État Information -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">État des Ventes</span>
+                <span class="info-box-number">@Model.NumeroEtat</span>
+                <span class="info-box-more">@Model.DateEtat.ToString("dd/MM/yyyy")</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-danger">
+                <i class="fas fa-user-tie"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text">PNC Responsable</span>
+                <span class="info-box-number">@Model.PncResponsableNom</span>
+                <span class="info-box-more">@Model.PncResponsableMatricule</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trou de Caisse Summary -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>@Model.MontantCalcule.ToString("C")</h3>
+                <p>Montant Calculé</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>@Model.MontantEncaisse.ToString("C")</h3>
+                <p>Montant Encaissé</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-cash-register"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>@Model.MontantManquant.ToString("C")</h3>
+                <p>Montant Manquant</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="small-box @(Model.EstApplique ? "bg-success" : "bg-secondary")">
+            <div class="inner">
+                <h3>@(Model.EstApplique ? "Appliqué" : "En Attente")</h3>
+                <p>Statut</p>
+            </div>
+            <div class="icon">
+                <i class="fas @(Model.EstApplique ? "fa-check" : "fa-clock")"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Informations de Détection</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Date de Détection:</strong> @Model.DateDetection.ToString("dd/MM/yyyy HH:mm")</p>
+                <p><strong>Détecté par:</strong> @Model.DetectePar</p>
+                <p>
+                    <strong>Statut:</strong>
+                    @switch (Model.Statut)
+                    {
+                        case "En Attente":
+                            <span class="badge badge-warning">En Attente</span>
+                            break;
+                        case "Appliqué":
+                            <span class="badge badge-success">Appliqué</span>
+                            break;
+                        case "Contesté":
+                            <span class="badge badge-danger">Contesté</span>
+                            break;
+                        case "Résolu":
+                            <span class="badge badge-info">Résolu</span>
+                            break;
+                        default:
+                            <span class="badge badge-secondary">@Model.Statut</span>
+                            break;
+                    }
+                </p>
+                @if (Model.DateApplication.HasValue)
+                {
+                    <p><strong>Date d'Application:</strong> @Model.DateApplication.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Motif et Commentaires</h5>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Motif))
+                {
+                    <p><strong>Motif:</strong></p>
+                    <p>@Model.Motif</p>
+                }
+                @if (!string.IsNullOrEmpty(Model.Commentaires))
+                {
+                    <p><strong>Commentaires:</strong></p>
+                    <p>@Model.Commentaires</p>
+                }
+                @if (string.IsNullOrEmpty(Model.Motif) && string.IsNullOrEmpty(Model.Commentaires))
+                {
+                    <p class="text-muted">Aucun motif ou commentaire fourni.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Articles Vendus Details -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h4 class="card-title">
+            <i class="fas fa-list"></i> Détail des Articles Vendus
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Article</th>
+                        <th>Quantité Vendue</th>
+                        <th>Prix Unitaire</th>
+                        <th>Valeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var article in Model.ArticlesVendus)
+                    {
+                        <tr>
+                            <td>@article.Description</td>
+                            <td>@article.QuantiteVendu</td>
+                            <td>@article.PrixUnitaire.ToString("C")</td>
+                            <td>@article.Valeur.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="thead-light">
+                    <tr>
+                        <th colspan="3">TOTAL CALCULÉ</th>
+                        <th>
+                            <strong class="text-info">
+                                @Model.MontantCalcule.ToString("C")
+                            </strong>
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        @if (!Model.EstApplique)
+        {
+            <button type="button" class="btn btn-success" onclick="appliquerTrouDeCaisse(@Model.Id)">
+                <i class="fas fa-check"></i> Appliquer à la Commission
+            </button>
+        }
+        <button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">
+            <i class="fas fa-times"></i> Fermer
+        </button>
+    </div>
+</div>
+
+<script>
+    function appliquerTrouDeCaisse(trouId) {
+        if (!confirm('Êtes-vous sûr de vouloir appliquer ce trou de caisse à la commission du PNC responsable ?')) {
+            return;
+        }
+
+        $.post('@Url.Action("AppliquerTrouDeCaisse", "DGF")', { id: trouId })
+            .done(function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    $('#viewTrouModal').modal('hide');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    toastr.error(response.message);
+                }
+            })
+            .fail(function() {
+                toastr.error('Erreur lors de la communication avec le serveur.');
+            });
+    }
+</script>

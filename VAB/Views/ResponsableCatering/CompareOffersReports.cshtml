@@ -175,60 +175,62 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <!-- Sidebar -->
+    <!-- Left Sidebar -->
     <section id="left-sidebar-area">
         <div id="left-sidebar-section">
             <aside>
                 <div class="left-sidebar">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
-                                <i class="material-icons">dashboard</i> Tableau de Bord
+                        <li>
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                                <i class="material-icons">dashboard</i>Tableau de Bord
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesVentesDropdown" aria-expanded="false">
-                                <i class="material-icons">receipt</i> Gérer États des Ventes
-                                <span class="float-end"><i class="material-icons">add</i></span>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
                             </a>
-                            <div class="collapse" id="etatDesVentesDropdown">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
-                                    </li>
-                                </ul>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="collapse" href="#etatDesOffresDropdown" aria-expanded="false">
-                                <i class="material-icons">receipt</i> Gérer États des Offres
-                                <span class="float-end"><i class="material-icons">add</i></span>
+                        <li>
+                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">receipt</i>Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
                             </a>
-                            <div class="collapse" id="etatDesOffresDropdown">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
-                                    </li>
-                                </ul>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CompareOffersReports">
-                                <i class="material-icons">compare</i> Confrontation Offres
+                        <li>
+                            <a asp-controller="ResponsableCatering" asp-action="Compare">
+                                <i class="bi bi-clipboard-check-fill"></i>Confrontation
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="CompareSalesReports">
-                                <i class="material-icons">compare</i> Confrontation Ventes
-                            </a>
-                        </li>
+
+
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
                                 <i class="material-icons">list</i> Saved Sales Comparisons
@@ -242,6 +244,7 @@
                     </ul>
                 </div>
             </aside>
+
         </div>
     </section>
 

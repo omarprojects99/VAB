@@ -1,0 +1,237 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.PncBilanDashboardViewModel
+@{
+    ViewData["Title"] = "Bilan PNC - Tableau de Bord";
+    Layout = "_Layout";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-balance-scale text-primary"></i>
+                    Bilan PNC - Tableau de Bord
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="DGF" asp-action="Dashboard">DGF</a>
+                    </li>
+                    <li class="breadcrumb-item active">Bilan PNC</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Filter Card -->
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-filter"></i>
+                    Filtres de Période
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="dateDebut">Date Début</label>
+                            <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                   value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="dateFin">Date Fin</label>
+                            <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                   value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Filtrer
+                                </button>
+                                <a href="@Url.Action("PncBilanDashboard")" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Réinitialiser
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.PncSummaries.Count</h3>
+                        <p>PNCs avec Transactions</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.TotalGeneralCredits.ToString("C")</h3>
+                        <p>Total Crédits</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.TotalGeneralDebits.ToString("C")</h3>
+                        <p>Total Débits</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-minus-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box @(Model.SoldeGeneral >= 0 ? "bg-success" : "bg-danger")">
+                    <div class="inner">
+                        <h3>@Model.SoldeGeneral.ToString("C")</h3>
+                        <p>Solde Général</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PNC Summaries Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-table"></i>
+                    Résumé des Bilans PNC
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-success btn-sm" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> Exporter Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover" id="pncBilanTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>PNC</th>
+                                <th>Matricule</th>
+                                <th>Total Crédits</th>
+                                <th>Total Débits</th>
+                                <th>Solde Final</th>
+                                <th>Nb Transactions</th>
+                                <th>Dernière Transaction</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pnc in Model.PncSummaries)
+                            {
+                                <tr class="@(pnc.SoldeFinal < 0 ? "table-danger" : pnc.SoldeFinal > 0 ? "table-success" : "")">
+                                    <td>
+                                        <strong>@pnc.PncNomComplet</strong>
+                                    </td>
+                                    <td>@pnc.PncMatricule</td>
+                                    <td class="text-success">
+                                        <strong>@pnc.TotalCredits.ToString("C")</strong>
+                                    </td>
+                                    <td class="text-danger">
+                                        <strong>@pnc.TotalDebits.ToString("C")</strong>
+                                    </td>
+                                    <td class="@(pnc.SoldeFinal >= 0 ? "text-success" : "text-danger")">
+                                        <strong>@pnc.SoldeFinal.ToString("C")</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">@pnc.NombreTransactions</span>
+                                    </td>
+                                    <td>
+                                        @if (pnc.DerniereTransaction.HasValue)
+                                        {
+                                            @pnc.DerniereTransaction.Value.ToString("dd/MM/yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("PncBilan", new { pncId = pnc.PncId, dateDebut = Model.DateDebut, dateFin = Model.DateFin })" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Voir Bilan
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="thead-light">
+                            <tr>
+                                <th colspan="2">TOTAUX</th>
+                                <th class="text-success">
+                                    <strong>@Model.TotalGeneralCredits.ToString("C")</strong>
+                                </th>
+                                <th class="text-danger">
+                                    <strong>@Model.TotalGeneralDebits.ToString("C")</strong>
+                                </th>
+                                <th class="@(Model.SoldeGeneral >= 0 ? "text-success" : "text-danger")">
+                                    <strong>@Model.SoldeGeneral.ToString("C")</strong>
+                                </th>
+                                <th>
+                                    <span class="badge badge-secondary">@Model.PncSummaries.Sum(p => p.NombreTransactions)</span>
+                                </th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#pncBilanTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "order": [[4, "desc"]], // Sort by Solde Final descending
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+                }
+            });
+        });
+
+        function exportToExcel() {
+            // Simple export functionality
+            var table = document.getElementById('pncBilanTable');
+            var wb = XLSX.utils.table_to_book(table, {sheet: "Bilan PNC"});
+            XLSX.writeFile(wb, 'bilan_pnc_' + new Date().toISOString().slice(0,10) + '.xlsx');
+        }
+    </script>
+}

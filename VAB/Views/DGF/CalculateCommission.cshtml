@@ -1,0 +1,193 @@
+﻿@model VAB.ViewModel.PncCommissionViewModel
+@{
+    ViewData["Title"] = "Calculer Commission PNC";
+}
+
+<div class="container-fluid">
+    <form id="commissionForm" asp-action="SaveCommission" method="post">
+        @Html.HiddenFor(m => m.EtatDesVentesArriveeId)
+        @Html.HiddenFor(m => m.NumeroEtat)
+        @Html.HiddenFor(m => m.DateEdition)
+        @Html.HiddenFor(m => m.EquipageInfo)
+        @Html.HiddenFor(m => m.TotalEncaisse)
+        @Html.HiddenFor(m => m.CommissionPnc1Individual)
+        @Html.HiddenFor(m => m.CommissionCollective)
+        @Html.HiddenFor(m => m.NombrePncsTotal)
+        @Html.HiddenFor(m => m.CommissionParPnc)
+
+        <!-- État Information -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info">
+                        <i class="fas fa-file-alt"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">État des Ventes</span>
+                        <span class="info-box-number">@Model.NumeroEtat</span>
+                        <span class="info-box-more">@Model.DateEdition.ToString("dd/MM/yyyy")</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success">
+                        <i class="fas fa-euro-sign"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Encaissé</span>
+                        <span class="info-box-number">@Model.TotalEncaisse.ToString("C")</span>
+                        <span class="info-box-more">@Model.EquipageInfo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commission Summary -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.CommissionPnc1Individual.ToString("C")</h3>
+                        <p>Commission PNC1 (1%)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>@Model.CommissionCollective.ToString("C")</h3>
+                        <p>Commission Collective (15%)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>@Model.CommissionParPnc.ToString("C")</h3>
+                        <p>Par PNC (@Model.NombrePncsTotal PNCs)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-divide"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PNC Commission Details -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">
+                    <i class="fas fa-list"></i> Détail des Commissions par PNC
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>PNC</th>
+                                <th>Matricule</th>
+                                <th>Rôle</th>
+                                <th>Commission Individuelle (1%)</th>
+                                <th>Commission Collective</th>
+                                <th>Commission Totale</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.PncCommissions.Count; i++)
+                            {
+                                @Html.HiddenFor(m => m.PncCommissions[i].PncId)
+                                @Html.HiddenFor(m => m.PncCommissions[i].NomComplet)
+                                @Html.HiddenFor(m => m.PncCommissions[i].Matricule)
+                                @Html.HiddenFor(m => m.PncCommissions[i].IsPnc1)
+                                @Html.HiddenFor(m => m.PncCommissions[i].CommissionIndividuelle)
+                                @Html.HiddenFor(m => m.PncCommissions[i].CommissionCollective)
+                                @Html.HiddenFor(m => m.PncCommissions[i].CommissionTotale)
+
+                                <tr class="@(Model.PncCommissions[i].IsPnc1 ? "table-warning" : "")">
+                                    <td>
+                                        <strong>@Model.PncCommissions[i].NomComplet</strong>
+                                        @if (Model.PncCommissions[i].IsPnc1)
+                                        {
+                                            <span class="badge badge-warning ml-2">PNC1</span>
+                                        }
+                                    </td>
+                                    <td>@Model.PncCommissions[i].Matricule</td>
+                                    <td>
+                                        @if (Model.PncCommissions[i].IsPnc1)
+                                        {
+                                            <span class="text-warning">
+                                                <i class="fas fa-star"></i> Chef d'Équipe
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-info">
+                                                <i class="fas fa-user"></i> Membre d'Équipe
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="@(Model.PncCommissions[i].IsPnc1 ? "text-success font-weight-bold" : "text-muted")">
+                                            @Model.PncCommissions[i].CommissionIndividuelle.ToString("C")
+                                        </span>
+                                    </td>
+                                    <td>@Model.PncCommissions[i].CommissionCollective.ToString("C")</td>
+                                    <td>
+                                        <strong class="text-primary">
+                                            @Model.PncCommissions[i].CommissionTotale.ToString("C")
+                                        </strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="thead-light">
+                            <tr>
+                                <th colspan="3">TOTAL</th>
+                                <th>@Model.CommissionPnc1Individual.ToString("C")</th>
+                                <th>@Model.CommissionCollective.ToString("C")</th>
+                                <th>
+                                    <strong class="text-success">
+                                        @((Model.CommissionPnc1Individual + Model.CommissionCollective).ToString("C"))
+                                    </strong>
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-save"></i> Sauvegarder les Commissions
+                </button>
+                <button type="button" class="btn btn-secondary btn-lg ml-2" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Confirmation before saving
+            $('#commissionForm').on('submit', function(e) {
+                if (!confirm('Êtes-vous sûr de vouloir sauvegarder ces commissions ? Cette action ne peut pas être annulée.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

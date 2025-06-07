@@ -1028,6 +1028,8 @@ namespace VAB.Controllers
                 return StatusCode(500, new { error = "Erreur serveur lors de la récupération des états." });
             }
         }
+        //edit etatdeventearrivee
+
         // GET: DataTable AJAX source
         [HttpGet]
         public IActionResult GetEtatDesVentesDepart()
@@ -1784,6 +1786,533 @@ namespace VAB.Controllers
         {
             return View();
         }
+        [HttpGet]
+        public async Task<IActionResult> EditEtatDesVentesArrivee(int id)
+        {
+            var etat = await _context.EtatDesVentesArrivee
+                .Include(e => e.Equipage)
+                    .ThenInclude(eq => eq.Cc1)
+                .Include(e => e.Equipage)
+                    .ThenInclude(eq => eq.Cc2)
+                .Include(e => e.Equipage)
+                    .ThenInclude(eq => eq.Pnc1)
+                .Include(e => e.Equipage)
+                    .ThenInclude(eq => eq.Pnc2)
+                .Include(e => e.Equipage)
+                    .ThenInclude(eq => eq.PncEquipages)
+                        .ThenInclude(pe => pe.Pnc)
+                .Include(e => e.ArticleVentes)
+                    .ThenInclude(av => av.Article)
+                        .ThenInclude(a => a.Categorie)
+                .Include(e => e.FeuilleEtatDesVentes)
+                    .ThenInclude(f => f.FeuilleDeLignes)
+                        .ThenInclude(fdl => fdl.Vols)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (etat == null)
+            {
+                return NotFound();
+            }
+
+            // Check if the report is already validated
+            if (etat.IsValidated)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Impossible de modifier un état des ventes déjà validé." });
+                }
+                TempData["Error"] = "Impossible de modifier un état des ventes déjà validé.";
+                return RedirectToAction(nameof(EtatDesVentesArrivee));
+            }
+
+            // Find the associated flight
+            var vol = await _context.Vols
+                .FirstOrDefaultAsync(v => v.EtatDesVentesArriveeId == id);
+
+            // Create view model from entity
+            var vm = new EtatDesVentesArriveeViewModel
+            {
+                Id = etat.Id,
+                Numero = etat.Numero,
+                DateEdition = etat.DateEdition,
+
+                // Equipage information
+                Cc1Name = $"{etat.Equipage.Cc1.Nom} {etat.Equipage.Cc1.Prenom}",
+                Cc1Matricule = etat.Equipage.Cc1.Matricule,
+
+                Cc2Name = etat.Equipage.Cc2 != null ? $"{etat.Equipage.Cc2.Nom} {etat.Equipage.Cc2.Prenom}" : "",
+                Cc2Matricule = etat.Equipage.Cc2?.Matricule,
+
+                Pnc1Name = $"{etat.Equipage.Pnc1.Nom} {etat.Equipage.Pnc1.Prenom}",
+                Pnc1Matricule = etat.Equipage.Pnc1.Matricule,
+
+                Pnc2Name = etat.Equipage.Pnc2 != null ? $"{etat.Equipage.Pnc2.Nom} {etat.Equipage.Pnc2.Prenom}" : "",
+                Pnc2Matricule = etat.Equipage.Pnc2?.Matricule,
+
+                // Dynamic PNCs
+                DynamicPncs = etat.Equipage.PncEquipages
+                    .Select(pe => new DynamicPnc
+                    {
+                        Name = $"{pe.Pnc.Nom} {pe.Pnc.Prenom}",
+                        Matricule = pe.Pnc.Matricule
+                    }).ToList(),
+
+                // Financial information
+                TotalEncaisse = etat.TotalEncaisse ?? 0,
+                EcartPlus = etat.EcartPlus ?? 0,
+                EcartMoins = etat.EcartMoins ?? 0,
+
+                // Feuille de Lignes information
+                FeuilleDeLignesNumeros = etat.FeuilleEtatDesVentes
+                    .Select(f => f.FeuilleDeLignes.Numero)
+                    .ToList(),
+            };
+
+            // Flight information if available
+            if (vol != null)
+            {
+                vm.FlightNumber = vol.Numero;
+                vm.FlightDate = vol.Date;
+                vm.Destination = vol.Destination;
+                vm.FlightType = vol.TypeVol;
+                vm.FlightTime = vol.Heure;
+                vm.TotalPassengers = vol.NombrePassagers;
+                vm.Aircraft = vol.Aircraft;
+            }
+
+            // Article sales information
+            vm.ArticleVentes = etat.ArticleVentes
+                .Select(av => new ArticleVenteViewModel
+                {
+                    ArticleId = av.ArticleId,
+                    IdArticle = av.Article.IdArticle,
+                    Description = av.Article.Description,
+                    CategorieId = av.Article.CategorieId,
+                    CategorieDescription = av.Article.Categorie.Description,
+                    QuantiteDotation = av.QuantiteDotation,
+                    QuantiteComplementaire = av.QuantiteComplementaire,
+                    QuantiteCasse = av.QuantiteCasse,
+                    QuantiteOffert = av.QuantiteOffert,
+                    QuantiteVendu = av.QuantiteVendu,
+                    PrixUnitaireHT = av.PrixUnitaireHT
+                }).ToList();
+
+            // Return partial view for AJAX requests
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditEtatDesVentesArrivee(EtatDesVentesArriveeViewModel vm)
+        {
+            // Similar validation as in AddEtatDesVentesArrivee
+            ModelState.Remove("AgentSaisieId");
+            ModelState.Remove("AgentSaisieName");
+
+            if (vm.ArticleVentes != null)
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    ModelState.Remove($"ArticleVentes[{vm.ArticleVentes.IndexOf(av)}].CategorieDescription");
+                }
+            }
+
+            if (vm.ArticleVentes != null)
+            {
+                for (int i = 0; i < vm.ArticleVentes.Count; i++)
+                {
+                    ModelState.Remove($"ArticleVentes[{i}].PrixUnitaireHT");
+                }
+            }
+
+            // After removing validation, manually set the PrixUnitaireHT from the database
+            if (vm.ArticleVentes != null)
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    if (av.ArticleId > 0)
+                    {
+                        // Get the correct price from the database
+                        var article = await _context.Articles.FindAsync(av.ArticleId);
+                        if (article != null)
+                        {
+                            // Use the database value instead of the form value
+                            av.PrixUnitaireHT = article.PrixUnitaireHT;
+                        }
+                    }
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errorss = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                ViewBag.ErrorMessage = "Veuillez corriger les erreurs dans le formulaire: " + string.Join("; ", errorss);
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Check if the report exists
+            var existingEtat = await _context.EtatDesVentesArrivee
+                .Include(e => e.Equipage)
+                    .ThenInclude(eq => eq.PncEquipages)
+                .Include(e => e.ArticleVentes)
+                .Include(e => e.FeuilleEtatDesVentes)
+                .FirstOrDefaultAsync(e => e.Id == vm.Id);
+
+            if (existingEtat == null)
+            {
+                ViewBag.ErrorMessage = "État des ventes non trouvé.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Check if the report is already validated
+            if (existingEtat.IsValidated)
+            {
+                ViewBag.ErrorMessage = "Impossible de modifier un état des ventes déjà validé.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Check if the number is changed and if it already exists
+            if (existingEtat.Numero != vm.Numero && await _context.EtatDesVentesArrivee.AnyAsync(e => e.Numero == vm.Numero))
+            {
+                ViewBag.ErrorMessage = "Le numéro d'état existe déjà.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = "Utilisateur non connecté. Veuillez vous reconnecter.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            if (vm.FeuilleDeLignesNumeros == null || !vm.FeuilleDeLignesNumeros.Any(n => n > 0))
+            {
+                ViewBag.ErrorMessage = "Veuillez fournir au moins un numéro de Feuille de Lignes valide.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            var feuilles = new List<FeuilleDeLignes>();
+            foreach (var numero in vm.FeuilleDeLignesNumeros)
+            {
+                if (numero <= 0) continue;
+                var f = await _context.FeuilleDeLignes
+                    .Include(f => f.Vols)
+                    .FirstOrDefaultAsync(x => x.Numero == numero);
+                if (f == null)
+                {
+                    ViewBag.ErrorMessage = $"Feuille de Lignes avec Numéro {numero} n'existe pas.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+                feuilles.Add(f);
+            }
+
+            // Validate Vol
+            Vol vol = null;
+            foreach (var feuille in feuilles)
+            {
+                vol = feuille.Vols.FirstOrDefault(v => v.Numero == vm.FlightNumber);
+                if (vol != null) break;
+            }
+            if (vol == null)
+            {
+                ViewBag.ErrorMessage = $"Le vol {vm.FlightNumber} n'existe pas dans les Feuilles de Lignes spécifiées.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Validate Vol details with case-insensitive string comparison
+            var errors = new List<string>();
+            if (vol.Date.Date != vm.FlightDate.Date)
+                errors.Add($"Date mismatch: Input={vm.FlightDate:yyyy-MM-dd}, DB={vol.Date:yyyy-MM-dd}");
+            if (!string.Equals(vol.Destination?.Trim(), vm.Destination?.Trim(), StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Destination mismatch: Input={vm.Destination}, DB={vol.Destination}");
+            if (!string.Equals(vol.TypeVol?.Trim(), vm.FlightType?.Trim(), StringComparison.OrdinalIgnoreCase))
+                errors.Add($"TypeVol mismatch: Input={vm.FlightType}, DB={vol.TypeVol}");
+            if (vol.Heure != vm.FlightTime)
+                errors.Add($"Heure mismatch: Input={vm.FlightTime}, DB={vol.Heure}");
+            if (vol.NombrePassagers != vm.TotalPassengers)
+                errors.Add($"NombrePassagers mismatch: Input={vm.TotalPassengers}, DB={vol.NombrePassagers}");
+            if (vol.Aircraft != null && vm.Aircraft != null && !string.Equals(vol.Aircraft.Trim(), vm.Aircraft.Trim(), StringComparison.OrdinalIgnoreCase))
+                errors.Add($"Aircraft mismatch: Input={vm.Aircraft}, DB={vol.Aircraft}");
+
+            if (errors.Any())
+            {
+                ViewBag.ErrorMessage = "Les détails du vol ne correspondent pas aux informations de la Feuille de Lignes: " + string.Join("; ", errors);
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Validate CC1
+            var cc1 = await _context.Ccs.FirstOrDefaultAsync(c => c.Matricule == vm.Cc1Matricule);
+            if (cc1 == null)
+            {
+                ViewBag.ErrorMessage = $"CC1 avec matricule {vm.Cc1Matricule} n'existe pas.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+            if (!string.Equals($"{cc1.Nom} {cc1.Prenom}".Trim(), vm.Cc1Name.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.ErrorMessage = $"Le nom du CC1 ({vm.Cc1Name}) ne correspond pas au matricule {vm.Cc1Matricule}.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Validate CC2 (optional)
+            Cc cc2 = null;
+            if (!string.IsNullOrEmpty(vm.Cc2Name) || !string.IsNullOrEmpty(vm.Cc2Matricule))
+            {
+                if (string.IsNullOrEmpty(vm.Cc2Name) || string.IsNullOrEmpty(vm.Cc2Matricule))
+                {
+                    ViewBag.ErrorMessage = "Veuillez fournir à la fois le nom et le matricule pour CC2, ou laisser les deux vides.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+                cc2 = await _context.Ccs.FirstOrDefaultAsync(c => c.Matricule == vm.Cc2Matricule);
+                if (cc2 == null)
+                {
+                    ViewBag.ErrorMessage = $"CC2 avec matricule {vm.Cc2Matricule} n'existe pas.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+                if (!string.Equals($"{cc2.Nom} {cc2.Prenom}".Trim(), vm.Cc2Name.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    ViewBag.ErrorMessage = $"Le nom du CC2 ({vm.Cc2Name}) ne correspond pas au matricule {vm.Cc2Matricule}.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+            }
+
+            // Validate PNC1
+            var pnc1 = await _context.Pncs.FirstOrDefaultAsync(p => p.Matricule == vm.Pnc1Matricule);
+            if (pnc1 == null)
+            {
+                ViewBag.ErrorMessage = $"PNC1 avec matricule {vm.Pnc1Matricule} n'existe pas.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+            if (!string.Equals($"{pnc1.Nom} {pnc1.Prenom}".Trim(), vm.Pnc1Name.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.ErrorMessage = $"Le nom du PNC1 ({vm.Pnc1Name}) ne correspond pas au matricule {vm.Pnc1Matricule}.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            // Validate PNC2 (optional)
+            Pnc pnc2 = null;
+            if (!string.IsNullOrEmpty(vm.Pnc2Name) || !string.IsNullOrEmpty(vm.Pnc2Matricule))
+            {
+                if (string.IsNullOrEmpty(vm.Pnc2Name) || string.IsNullOrEmpty(vm.Pnc2Matricule))
+                {
+                    ViewBag.ErrorMessage = "Veuillez fournir à la fois le nom et le matricule pour PNC2, ou laisser les deux vides.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+                pnc2 = await _context.Pncs.FirstOrDefaultAsync(p => p.Matricule == vm.Pnc2Matricule);
+                if (pnc2 == null)
+                {
+                    ViewBag.ErrorMessage = $"PNC2 avec matricule {vm.Pnc2Matricule} n'existe pas.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+                if (!string.Equals($"{pnc2.Nom} {pnc2.Prenom}".Trim(), vm.Pnc2Name.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    ViewBag.ErrorMessage = $"Le nom du PNC2 ({vm.Pnc2Name}) ne correspond pas au matricule {vm.Pnc2Matricule}.";
+                    return PartialView("_EditEtatDeVenteArrivee", vm);
+                }
+            }
+
+            // Validate and retrieve Dynamic PNCs
+            var dynamicPncIds = new List<int>();
+            if (vm.DynamicPncs != null && vm.DynamicPncs.Any())
+            {
+                Console.WriteLine($"Received {vm.DynamicPncs.Count} dynamic PNCs");
+                var uniqueMatricules = new HashSet<string>();
+                foreach (var dynamicPnc in vm.DynamicPncs)
+                {
+                    Console.WriteLine($"Processing PNC: Name={dynamicPnc.Name}, Matricule={dynamicPnc.Matricule}");
+                    if (string.IsNullOrEmpty(dynamicPnc.Name) || string.IsNullOrEmpty(dynamicPnc.Matricule))
+                    {
+                        Console.WriteLine($"Skipping empty PNC: Name={dynamicPnc.Name}, Matricule={dynamicPnc.Matricule}");
+                        continue;
+                    }
+                    if (!uniqueMatricules.Add(dynamicPnc.Matricule))
+                    {
+                        Console.WriteLine($"Skipping duplicate PNC matricule: {dynamicPnc.Matricule}");
+                        continue;
+                    }
+                    var pnc = await _context.Pncs.FirstOrDefaultAsync(p => p.Matricule == dynamicPnc.Matricule);
+                    if (pnc == null)
+                    {
+                        ViewBag.ErrorMessage = $"PNC dynamique avec matricule {dynamicPnc.Matricule} n'existe pas.";
+                        return PartialView("_EditEtatDeVenteArrivee", vm);
+                    }
+                    if (!string.Equals($"{pnc.Nom} {pnc.Prenom}".Trim(), dynamicPnc.Name.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        ViewBag.ErrorMessage = $"Le nom du PNC dynamique ({dynamicPnc.Name}) ne correspond pas au matricule {dynamicPnc.Matricule}.";
+                        return PartialView("_EditEtatDeVenteArrivee", vm);
+                    }
+                    dynamicPncIds.Add(pnc.PncId);
+                }
+            }
+
+            // Validate ArticleVentes
+            var articleVentes = new List<ArticleVente>();
+            if (vm.ArticleVentes != null && vm.ArticleVentes.Any())
+            {
+                foreach (var av in vm.ArticleVentes)
+                {
+                    if (av.ArticleId <= 0 || av.IdArticle <= 0)
+                    {
+                        Console.WriteLine($"Skipping invalid article: ArticleId={av.ArticleId}, IdArticle={av.IdArticle}");
+                        continue;
+                    }
+
+                    var article = await _context.Articles
+                        .Include(a => a.Categorie)
+                        .FirstOrDefaultAsync(a => a.Id == av.ArticleId && a.IdArticle == av.IdArticle);
+                    if (article == null)
+                    {
+                        ViewBag.ErrorMessage = $"L'article avec ID {av.IdArticle} n'existe pas.";
+                        return PartialView("_EditEtatDeVenteArrivee", vm);
+                    }
+
+                    // Validate PrixUnitaireHT with tolerance
+                    const decimal tolerance = 0.01m;
+                    if (Math.Abs(article.PrixUnitaireHT - av.PrixUnitaireHT) > tolerance)
+                    {
+                        ViewBag.ErrorMessage = $"Le prix unitaire HT pour l'article {av.IdArticle} ne correspond pas (DB: {article.PrixUnitaireHT}, Input: {av.PrixUnitaireHT}).";
+                        return PartialView("_EditEtatDeVenteArrivee", vm);
+                    }
+
+                    var articleVente = new ArticleVente
+                    {
+                        ArticleId = av.ArticleId,
+                        QuantiteDotation = av.QuantiteDotation,
+                        QuantiteComplementaire = av.QuantiteComplementaire,
+                        QuantiteCasse = av.QuantiteCasse,
+                        QuantiteOffert = av.QuantiteOffert,
+                        QuantiteVendu = av.QuantiteVendu,
+                        PrixUnitaireHT = article.PrixUnitaireHT // Use DB value for consistency
+                    };
+                    articleVentes.Add(articleVente);
+                }
+            }
+
+            if (!articleVentes.Any())
+            {
+                ViewBag.ErrorMessage = "Veuillez ajouter au moins un article valide.";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+
+            try
+            {
+                // Begin transaction
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    // Update basic information
+                    existingEtat.Numero = vm.Numero;
+                    existingEtat.DateEdition = vm.DateEdition;
+                    existingEtat.TotalEncaisse = vm.TotalEncaisse;
+                    existingEtat.EcartPlus = vm.EcartPlus;
+                    existingEtat.EcartMoins = vm.EcartMoins;
+
+                    // Update Equipage
+                    var equipage = existingEtat.Equipage;
+                    equipage.Cc1Id = cc1.CcId;
+                    equipage.Cc2Id = cc2?.CcId;
+                    equipage.Pnc1Id = pnc1.PncId;
+                    equipage.Pnc2Id = pnc2?.PncId;
+                    _context.Equipages.Update(equipage);
+
+                    // Update PncEquipages - remove existing and add new ones
+                    var existingPncEquipages = await _context.PncEquipages
+                        .Where(pe => pe.EquipageId == equipage.EquipageId)
+                        .ToListAsync();
+
+                    foreach (var pe in existingPncEquipages)
+                    {
+                        _context.PncEquipages.Remove(pe);
+                    }
+
+                    foreach (var pncId in dynamicPncIds)
+                    {
+                        var pncEquipage = new PncEquipage
+                        {
+                            PncId = pncId,
+                            EquipageId = equipage.EquipageId
+                        };
+                        _context.PncEquipages.Add(pncEquipage);
+                    }
+
+                    // Update FeuilleEtatDesVentes - remove existing and add new ones
+                    var existingFeuilleEtats = await _context.FeuilleEtatDesVentesArrivee
+                        .Where(fe => fe.EtatDesVentesArriveeId == existingEtat.Id)
+                        .ToListAsync();
+
+                    foreach (var fe in existingFeuilleEtats)
+                    {
+                        _context.FeuilleEtatDesVentesArrivee.Remove(fe);
+                    }
+
+                    foreach (var f in feuilles)
+                    {
+                        var junction = new FeuilleEtatDesVentesArrivee
+                        {
+                            FeuilleDeLignesId = f.Id,
+                            EtatDesVentesArriveeId = existingEtat.Id
+                        };
+                        _context.FeuilleEtatDesVentesArrivee.Add(junction);
+                    }
+
+                    // Update ArticleVentes - remove existing and add new ones
+                    var existingArticleVentes = await _context.ArticleVentes
+                        .Where(av => av.EtatDesVentesArriveeId == existingEtat.Id)
+                        .ToListAsync();
+
+                    foreach (var av in existingArticleVentes)
+                    {
+                        _context.ArticleVentes.Remove(av);
+                    }
+
+                    foreach (var av in articleVentes)
+                    {
+                        av.EtatDesVentesArriveeId = existingEtat.Id;
+                        _context.ArticleVentes.Add(av);
+                    }
+
+                    // Update Vol if needed
+                    if (vol.EtatDesVentesArriveeId != existingEtat.Id)
+                    {
+                        // If there was a previous Vol linked to this EtatDesVentesArrivee, unlink it
+                        var previousVol = await _context.Vols
+                            .FirstOrDefaultAsync(v => v.EtatDesVentesArriveeId == existingEtat.Id);
+
+                        if (previousVol != null)
+                        {
+                            previousVol.EtatDesVentesArriveeId = null;
+                            _context.Vols.Update(previousVol);
+                        }
+
+                        // Link the new Vol
+                        vol.EtatDesVentesArriveeId = existingEtat.Id;
+                        _context.Vols.Update(vol);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    ViewBag.Success = true;
+                    return PartialView("_EditEtatDeVenteArrivee", new EtatDesVentesArriveeViewModel());
+                }
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"Database error: {dbEx.InnerException?.Message ?? dbEx.Message}");
+                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement des données: {dbEx.InnerException?.Message ?? dbEx.Message}";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"General error: {ex.Message}");
+                ViewBag.ErrorMessage = $"Erreur lors de l'enregistrement de l'état: {ex.Message}";
+                return PartialView("_EditEtatDeVenteArrivee", vm);
+            }
+        }
+
 
     }
 }

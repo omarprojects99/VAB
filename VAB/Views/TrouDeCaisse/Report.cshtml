@@ -1,0 +1,244 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.TrouDeCaisseDashboardViewModel
+@{
+    ViewData["Title"] = "Rapport des Trous de Caisse";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Rapport des Trous de Caisse</h1>
+            </div>
+            <div class="col-sm-6 text-right">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Imprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Report Header -->
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3>Rapport des Trous de Caisse</h3>
+                        <p class="text-muted">
+                            Période:
+                            @if (Model.DateDebut.HasValue && Model.DateFin.HasValue)
+                            {
+                                @($"du {Model.DateDebut.Value:dd/MM/yyyy} au {Model.DateFin.Value:dd/MM/yyyy}")
+                            }
+                            else if (Model.DateDebut.HasValue)
+                            {
+                                @($"à partir du {Model.DateDebut.Value:dd/MM/yyyy}")
+                            }
+                            else if (Model.DateFin.HasValue)
+                            {
+                                @($"jusqu'au {Model.DateFin.Value:dd/MM/yyyy}")
+                            }
+                            else
+                            {
+                                @("Toutes les périodes")
+                            }
+                        </p>
+                        <p class="text-muted">Généré le: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <div class="alert alert-danger">
+                            <h4>Total des Manques</h4>
+                            <h2>@Model.TotalManques.ToString("C")</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Détectés</span>
+                        <span class="info-box-number">@Model.TrousDeCaisse.Count</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-warning">
+                        <i class="fas fa-clock"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">En Attente</span>
+                        <span class="info-box-number">@Model.NombreTrousEnAttente</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Appliqués</span>
+                        <span class="info-box-number">@Model.NombreTrousAppliques</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info">
+                        <i class="fas fa-percentage"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Taux Application</span>
+                        <span class="info-box-number">
+                            @(Model.TrousDeCaisse.Count > 0 ? Math.Round((double)Model.NombreTrousAppliques / Model.TrousDeCaisse.Count * 100, 1) : 0)%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Table -->
+        @if (Model.TrousDeCaisse.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Détail des Trous de Caisse</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>État N°</th>
+                                    <th>Date Détection</th>
+                                    <th>PNC Responsable</th>
+                                    <th>Montant Manquant</th>
+                                    <th>Statut</th>
+                                    <th>Appliqué</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var trou in Model.TrousDeCaisse.OrderByDescending(t => t.DateDetection))
+                                {
+                                    <tr>
+                                        <td><strong>@trou.NumeroEtat</strong></td>
+                                        <td>@trou.DateDetection.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>@trou.PncResponsableNom</td>
+                                        <td class="text-right">
+                                            <strong class="text-danger">@trou.MontantManquant.ToString("C")</strong>
+                                        </td>
+                                        <td>@trou.Statut</td>
+                                        <td class="text-center">
+                                            @if (trou.EstApplique)
+                                            {
+                                                <i class="fas fa-check text-success"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-times text-danger"></i>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="thead-light">
+                                <tr>
+                                    <th colspan="3">TOTAL GÉNÉRAL</th>
+                                    <th class="text-right">
+                                        <strong class="text-danger">@Model.TotalManques.ToString("C")</strong>
+                                    </th>
+                                    <th colspan="2"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary by PNC -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4 class="card-title">Résumé par PNC</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>PNC Responsable</th>
+                                    <th>Nombre de Trous</th>
+                                    <th>Total Manquant</th>
+                                    <th>Moyenne par Trou</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var group in Model.TrousDeCaisse.GroupBy(t => t.PncResponsableNom))
+                                {
+                                    <tr>
+                                        <td>@group.Key</td>
+                                        <td>@group.Count()</td>
+                                        <td class="text-right">
+                                            <strong class="text-danger">@group.Sum(t => t.MontantManquant).ToString("C")</strong>
+                                        </td>
+                                        <td class="text-right">@group.Average(t => t.MontantManquant).ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Aucun trou de caisse détecté pour la période sélectionnée.
+            </div>
+        }
+    </div>
+</section>
+
+<style>
+    @@media print {
+        .content-header .btn, .sidebar, .main-header, .main-footer
+
+    {
+        display: none !important;
+    }
+
+    .content-wrapper {
+        margin-left: 0 !important;
+    }
+
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .alert-danger {
+        border: 2px solid #dc3545 !important;
+        background-color: #f8d7da !important;
+    }
+
+    }
+</style>

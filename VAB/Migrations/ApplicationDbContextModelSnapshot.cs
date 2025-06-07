@@ -703,6 +703,25 @@ namespace VAB.Migrations
                     b.ToTable("EtatDesVentesDepart");
                 });
 
+            modelBuilder.Entity("VAB.Models.ExchangeRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("EuroToDinar")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExchangeRates");
+                });
+
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>
                 {
                     b.Property<int>("Id")
@@ -848,6 +867,96 @@ namespace VAB.Migrations
                     b.ToTable("Pncs");
                 });
 
+            modelBuilder.Entity("VAB.Models.PncCommissionCalculation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CalculatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("CommissionCollective")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionParPnc")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionPnc1FromCollective")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionPnc1Individual")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionTotalPnc1")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("DateCalcul")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EtatDesVentesArriveeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NombrePncsTotal")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalEncaisse")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.ToTable("PncCommissionCalculations");
+                });
+
+            modelBuilder.Entity("VAB.Models.PncCommissionDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CommissionCollective")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionIndividuelle")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionTotale")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsPnc1")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PncCommissionCalculationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PncId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PncCommissionCalculationId");
+
+                    b.HasIndex("PncId");
+
+                    b.ToTable("PncCommissionDetails");
+                });
+
             modelBuilder.Entity("VAB.Models.PncEquipage", b =>
                 {
                     b.Property<int>("PncId")
@@ -936,6 +1045,66 @@ namespace VAB.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SalesComparisons");
+                });
+
+            modelBuilder.Entity("VAB.Models.TrouDeCaisse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Commentaires")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateApplication")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateDetection")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DetectePar")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EstApplique")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("EtatDesVentesArriveeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MontantCalcule")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MontantEncaisse")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MontantManquant")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Motif")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PncResponsableId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.HasIndex("PncResponsableId");
+
+                    b.ToTable("TrouDeCaisses");
                 });
 
             modelBuilder.Entity("VAB.Models.User", b =>
@@ -1344,6 +1513,36 @@ namespace VAB.Migrations
                     b.Navigation("FeuilleDeLignes");
                 });
 
+            modelBuilder.Entity("VAB.Models.PncCommissionCalculation", b =>
+                {
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
+                        .WithMany()
+                        .HasForeignKey("EtatDesVentesArriveeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EtatDesVentesArrivee");
+                });
+
+            modelBuilder.Entity("VAB.Models.PncCommissionDetail", b =>
+                {
+                    b.HasOne("VAB.Models.PncCommissionCalculation", "PncCommissionCalculation")
+                        .WithMany("PncCommissionDetails")
+                        .HasForeignKey("PncCommissionCalculationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Pnc", "Pnc")
+                        .WithMany()
+                        .HasForeignKey("PncId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pnc");
+
+                    b.Navigation("PncCommissionCalculation");
+                });
+
             modelBuilder.Entity("VAB.Models.PncEquipage", b =>
                 {
                     b.HasOne("VAB.Models.Equipage", "Equipage")
@@ -1372,6 +1571,25 @@ namespace VAB.Migrations
                         .IsRequired();
 
                     b.Navigation("Article");
+                });
+
+            modelBuilder.Entity("VAB.Models.TrouDeCaisse", b =>
+                {
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
+                        .WithMany()
+                        .HasForeignKey("EtatDesVentesArriveeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Pnc", "PncResponsable")
+                        .WithMany()
+                        .HasForeignKey("PncResponsableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EtatDesVentesArrivee");
+
+                    b.Navigation("PncResponsable");
                 });
 
             modelBuilder.Entity("VAB.Models.Vol", b =>
@@ -1449,6 +1667,11 @@ namespace VAB.Migrations
             modelBuilder.Entity("VAB.Models.OffersComparison", b =>
                 {
                     b.Navigation("Articles");
+                });
+
+            modelBuilder.Entity("VAB.Models.PncCommissionCalculation", b =>
+                {
+                    b.Navigation("PncCommissionDetails");
                 });
 
             modelBuilder.Entity("VAB.Models.SalesComparison", b =>

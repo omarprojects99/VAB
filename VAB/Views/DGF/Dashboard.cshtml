@@ -1,0 +1,1100 @@
+﻿@model VAB.ViewModel.DGFDashboardViewModel
+@{
+    ViewData["Title"] = "Tableau de Bord DGF";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tableau de bord DGF - Gestion des Commissions PNC">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .card-body-icon i {
+            opacity: 0.3;
+            font-size: 4rem;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            padding: 12px 20px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+            .nav-tabs .nav-link.active {
+                color: #007bff;
+                border-bottom: 3px solid #007bff;
+                background-color: transparent;
+            }
+
+        .small-box {
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 0;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .small-box h3 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: white;
+            }
+
+            .small-box p {
+                font-size: 1rem;
+                color: rgba(255,255,255,0.8);
+            }
+
+        .small-box-footer {
+            position: relative;
+            text-align: center;
+            padding: 3px 0;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            display: block;
+        }
+
+            .small-box-footer:hover {
+                color: #fff;
+                background: rgba(0,0,0,0.15);
+                text-decoration: none;
+            }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 8px;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                border-bottom-width: 1px;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+        .table-bordered {
+            border: 1px solid #e9ecef;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.04);
+        }
+
+        .btn {
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .card-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 12px 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .animated {
+            animation-duration: 0.5s;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 15px;
+            }
+
+            .small-box h3 {
+                font-size: 1.8rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .card-tools {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <!-- Brand logo -->
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User profile dropdown -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Administrateur DGF</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li class="active">
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Reports">
+                                <i class="material-icons">assessment</i> Rapports
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Edit">
+                                <i class="material-icons">settings</i> Taux D'echange
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Breadcrumb -->
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index"><i class="material-icons">home</i></a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="material-icons">dashboard</i> Tableau de Bord DGF
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Dashboard content -->
+            <div class="main-content">
+                <div class="container-fluid">
+                    <!-- Filter Form -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-filter mr-2"></i>
+                                Filtres
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="mb-4">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="dateDebut">Date Début</label>
+                                            <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                                   value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="dateFin">Date Fin</label>
+                                            <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                                   value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>&nbsp;</label>
+                                            <div>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-filter"></i> Filtrer
+                                                </button>
+                                                <a href="@Url.Action("Dashboard")" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-times"></i> Réinitialiser
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Trou de Caisse Actions -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Gestion des Trous de Caisse
+                            </h5>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-danger btn-sm" id="btnDetectAllTrousDeCaisse">
+                                    <i class="fas fa-search-dollar"></i> Détecter Tous les Trous de Caisse
+                                </button>
+                                <button type="button" class="btn btn-info btn-sm" id="btnDebugEcartMoins">
+                                    <i class="fas fa-bug"></i> Debug EcartMoins
+                                </button>
+                                <a href="@Url.Action("TrouDeCaisseDashboard")" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-list"></i> Tableau des Trous de Caisse
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="row animated fadeInUp">
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3>@Model.EtatsValidated.Count</h3>
+                                    <p>États Validés</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-file-invoice"></i>
+                                </div>
+                                <a href="#etats" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>@Model.CommissionsCalculees.Count</h3>
+                                    <p>Commissions Calculées</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <a href="#commissions" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>@(Model.EtatsValidated.Count - Model.CommissionsCalculees.Count)</h3>
+                                    <p>En Attente de Calcul</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <a href="#etats" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3>@Model.TotalCommissions.ToString("C")</h3>
+                                    <p>Total Commissions</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-euro-sign"></i>
+                                </div>
+                                <a href="#commissions" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs Section -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="etats-tab" data-toggle="tab" href="#etats" role="tab">
+                                        <i class="fas fa-file-alt mr-1"></i> États des Ventes Validés
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="commissions-tab" data-toggle="tab" href="#commissions" role="tab">
+                                        <i class="fas fa-money-bill-wave mr-1"></i> Commissions Calculées
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="dashboardTabsContent">
+                                <!-- États des Ventes Tab -->
+                                <div class="tab-pane fade show active" id="etats" role="tabpanel">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped table-hover">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>Numéro</th>
+                                                    <th>Date Édition</th>
+                                                    <th>Équipage</th>
+                                                    <th>Total Encaissé</th>
+                                                    <th>EcartMoins</th>
+                                                    <th>Statut Commission</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var etat in Model.EtatsValidated)
+                                                {
+                                                    <tr>
+                                                        <td>@etat.Numero</td>
+                                                        <td>@etat.DateEdition.ToString("dd/MM/yyyy HH:mm")</td>
+                                                        <td>@etat.EquipageInfo</td>
+                                                        <td>@etat.TotalEncaisse.ToString("C")</td>
+                                                        <td>
+                                                            @{
+                                                                var etatFromDb = ViewBag.EtatsWithEcart as List<dynamic>;
+                                                                var currentEtat = etatFromDb?.FirstOrDefault(e => e.Id == etat.Id);
+                                                                var ecartMoins = currentEtat?.EcartMoins ?? 0;
+                                                            }
+                                                            @if (ecartMoins > 0)
+                                                            {
+                                                                <span class="badge badge-danger">@(((decimal)ecartMoins).ToString("C"))</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">-</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (etat.CommissionCalculee)
+                                                            {
+                                                                <span class="badge badge-success">
+                                                                    <i class="fas fa-check"></i> Calculée
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-warning">
+                                                                    <i class="fas fa-clock"></i> En attente
+                                                                </span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (!etat.CommissionCalculee)
+                                                            {
+                                                                <button type="button" class="btn btn-sm btn-primary btn-calculate-commission" data-etat-id="@etat.Id">
+                                                                    <i class="fas fa-calculator"></i> Calculer
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button type="button" class="btn btn-sm btn-info btn-view-commission" data-etat-id="@etat.Id">
+                                                                    <i class="fas fa-eye"></i> Voir
+                                                                </button>
+                                                            }
+                                                            <button type="button" class="btn btn-sm btn-warning btn-detect-trou" data-etat-id="@etat.Id">
+                                                                <i class="fas fa-exclamation-triangle"></i> Détecter
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-danger btn-create-trou" data-etat-id="@etat.Id">
+                                                                <i class="fas fa-plus-circle"></i> Créer
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Commissions Tab -->
+                                <div class="tab-pane fade" id="commissions" role="tabpanel">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped table-hover">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>Numéro État</th>
+                                                    <th>Date Calcul</th>
+                                                    <th>Total Encaissé</th>
+                                                    <th>Total Commissions</th>
+                                                    <th>Nombre PNCs</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var commission in Model.CommissionsCalculees)
+                                                {
+                                                    <tr>
+                                                        <td>@commission.NumeroEtat</td>
+                                                        <td>@commission.DateCalcul.ToString("dd/MM/yyyy HH:mm")</td>
+                                                        <td>@commission.TotalEncaisse.ToString("C")</td>
+                                                        <td>@commission.TotalCommissions.ToString("C")</td>
+                                                        <td>@commission.NombrePncs</td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-sm btn-info btn-view-commission" data-etat-id="@commission.EtatDesVentesArriveeId">
+                                                                <i class="fas fa-eye"></i> Voir Détails
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculate Commission Modal -->
+    <div class="modal fade" id="calculateCommissionModal" tabindex="-1" aria-labelledby="calculateCommissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="calculateCommissionModalLabel">
+                        <i class="fas fa-calculator mr-2"></i>Calculer Commission PNC
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="calculateCommissionModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Commission Modal -->
+    <div class="modal fade" id="viewCommissionModal" tabindex="-1" aria-labelledby="viewCommissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewCommissionModalLabel">
+                        <i class="fas fa-eye mr-2"></i>Détails Commission PNC
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewCommissionModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Modal -->
+    <div class="modal fade" id="debugModal" tabindex="-1" aria-labelledby="debugModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="debugModalLabel">
+                        <i class="fas fa-bug mr-2"></i>Debug EcartMoins
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="debugModalBody">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p>Chargement des données...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTables
+            $('.table').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+                }
+            });
+
+            // Initialize animations
+            if (typeof WOW !== 'undefined') {
+                new WOW().init();
+            }
+
+            // Tab functionality - Fixed for Bootstrap 4
+            $('#dashboardTabs a').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
+            // Store the active tab in localStorage
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                localStorage.setItem('activeTab', $(e.target).attr('href'));
+            });
+
+            // Retrieve the active tab from localStorage
+            var activeTab = localStorage.getItem('activeTab');
+            if (activeTab) {
+                $('#dashboardTabs a[href="' + activeTab + '"]').tab('show');
+            }
+
+            // Small box footer links
+            $('.small-box-footer').on('click', function(e) {
+                e.preventDefault();
+                var target = $(this).attr('href');
+                if (target.startsWith('#')) {
+                    $('#dashboardTabs a[href="' + target + '"]').tab('show');
+                }
+            });
+
+            // Calculate Commission Modal
+            $('.btn-calculate-commission').on('click', function(e) {
+                e.preventDefault();
+                var etatId = $(this).data('etat-id');
+
+                $('#calculateCommissionModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
+                $('#calculateCommissionModal').modal('show');
+
+                $.get('@Url.Action("CalculateCommission", "DGF")', { etatId: etatId })
+                    .done(function(data) {
+                        $('#calculateCommissionModalBody').html(data);
+                    })
+                    .fail(function() {
+                        $('#calculateCommissionModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données.</div>');
+                    });
+            });
+
+            // View Commission Modal
+            $('.btn-view-commission').on('click', function(e) {
+                e.preventDefault();
+                var etatId = $(this).data('etat-id');
+
+                $('#viewCommissionModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
+                $('#viewCommissionModal').modal('show');
+
+                $.get('@Url.Action("ViewCommission", "DGF")', { etatId: etatId })
+                    .done(function(data) {
+                        $('#viewCommissionModalBody').html(data);
+                    })
+                    .fail(function() {
+                        $('#viewCommissionModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données.</div>');
+                    });
+            });
+
+            // Detect Trou de Caisse
+            $('.btn-detect-trou').on('click', function(e) {
+                e.preventDefault();
+                var etatId = $(this).data('etat-id');
+                var button = $(this);
+
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Détection...');
+
+                $.get('@Url.Action("DetectTrouDeCaisse", "DGF")', { etatId: etatId })
+                    .done(function(response) {
+                        // Check if response is JSON (error/info message)
+                        if (typeof response === 'object' && response.hasOwnProperty('success')) {
+                            if (response.success === false) {
+                                alert('Info: ' + response.message);
+                            } else {
+                                alert('Succès: ' + response.message);
+                            }
+                        } else {
+                            // Response is HTML (partial view)
+                            $('#calculateCommissionModalBody').html(response);
+                            $('#calculateCommissionModalLabel').text('Détecter Trou de Caisse');
+                            $('#calculateCommissionModal').modal('show');
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('Detection error:', error);
+                        alert('Erreur lors de la détection: ' + error);
+                    })
+                    .always(function() {
+                        button.prop('disabled', false).html('<i class="fas fa-exclamation-triangle"></i> Détecter');
+                    });
+            });
+
+            // Detect All Trous de Caisse
+                   $('#btnDetectAllTrousDeCaisse').on('click', function() {
+            var button = $(this);
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Confirmation',
+                    text: 'Êtes-vous sûr de vouloir détecter tous les trous de caisse pour les états validés ?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Oui',
+                    cancelButtonText: 'Non'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        detectAllTrousDeCaisse(button);
+                    }
+                });
+            } else {
+                console.warn('SweetAlert2 not available, falling back to native confirm.');
+                if (!window.confirm('Êtes-vous sûr de vouloir détecter tous les trous de caisse pour les états validés ?')) {
+                    return;
+                }
+                detectAllTrousDeCaisse(button);
+            }
+        });
+
+        function detectAllTrousDeCaisse(button) {
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Détection en cours...');
+
+            $.post('@Url.Action("DetectAllTrousDeCaisse", "DGF")')
+                .done(function(response) {
+                    if (response.success) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Succès',
+                                text: (response.message || 'Trous de caisse détectés avec succès.') + '\n\n' + (response.details || ''),
+                                icon: 'success',
+                                timer: 7500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            alert(response.message + '\n\n' + (response.details || ''));
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        }
+                    } else {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Erreur', response.message || 'Erreur inconnue.', 'error');
+                        } else {
+                            alert('Erreur: ' + response.message);
+                        }
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Erreur', 'Erreur lors de la détection automatique: ' + (error || 'Erreur inconnue'), 'error');
+                    } else {
+                        alert('Erreur lors de la détection automatique: ' + error);
+                    }
+                })
+                .always(function() {
+                    button.prop('disabled', false).html('<i class="fas fa-search-dollar"></i> Détecter Tous les Trous de Caisse');
+                });
+        }
+
+            // Debug EcartMoins
+                    $('#btnDebugEcartMoins').on('click', function() {
+            $('#debugModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Chargement des données de debug...</p></div>');
+            $('#debugModal').modal('show');
+
+            $.get('@Url.Action("DebugEcartMoins", "DGF")')
+                .done(function(response) {
+                    // Log the full response for debugging
+                    console.log('DebugEcartMoins Response:', response);
+
+                    if (response.success) {
+                        var html = '<div class="alert alert-info">' + (response.message || 'Aucun message') + '</div>';
+                        html += '<div class="alert alert-warning">Trous existants: ' + (response.existingTrousCount || 0) + '</div>';
+                        html += '<div class="table-responsive">';
+                        html += '<table class="table table-bordered table-striped table-hover" id="debugTable">';
+                        html += '<thead><tr><th>ID</th><th>Numéro</th><th>EcartMoins</th><th>Total Encaissé</th><th>Validé</th><th>PNC Responsable</th><th>A déjà un Trou</th><th>Date</th><th>Action</th></tr></thead>';
+                        html += '<tbody>';
+
+                        if (response.etats && Array.isArray(response.etats)) {
+                            response.etats.forEach(function(etat, index) {
+                                // Log each etat object for debugging
+                                console.log('Etat #' + index + ':', etat);
+
+                                // Access properties with fallback for camelCase or PascalCase
+                                var id = etat.Id || etat.id || 'N/A';
+                                var numero = etat.Numero || etat.numero || 'N/A';
+                                var ecartMoins = (etat.EcartMoins || etat.ecartMoins || 0);
+                                var totalEncaisse = (etat.TotalEncaisse || etat.totalEncaisse || 0);
+                                var isValidated = (etat.IsValidated || etat.isValidated) === true;
+                                var pncResponsable = etat.PncResponsable || etat.pncResponsable || 'Aucun';
+                                var hasTrou = (etat.HasTrouDeCaisse || etat.hasTrouDeCaisse) === true;
+                                var dateEdition = etat.DateEdition || etat.dateEdition;
+
+                                // Format currency
+                                var ecartMoinsFormatted = typeof ecartMoins === 'number' ? ecartMoins.toFixed(2) : Number(ecartMoins).toFixed(2) || '0.00';
+                                var totalEncaisseFormatted = typeof totalEncaisse === 'number' ? totalEncaisse.toFixed(2) : Number(totalEncaisse).toFixed(2) || '0.00';
+
+                                // Format date
+                                var dateFormatted = 'N/A';
+                                if (dateEdition) {
+                                    try {
+                                        dateFormatted = new Date(dateEdition).toLocaleDateString('fr-FR', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        });
+                                    } catch (e) {
+                                        console.warn('Invalid date for etat #' + id + ':', dateEdition);
+                                    }
+                                }
+
+                                html += '<tr>';
+                                html += '<td>' + id + '</td>';
+                                html += '<td>' + numero + '</td>';
+                                html += '<td class="text-danger font-weight-bold">€' + ecartMoinsFormatted + '</td>';
+                                html += '<td>€' + totalEncaisseFormatted + '</td>';
+                                html += '<td>' + (isValidated ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>') + '</td>';
+                                html += '<td>' + pncResponsable + '</td>';
+                                html += '<td>' + (hasTrou ? '<span class="badge badge-danger">Oui</span>' : '<span class="badge badge-success">Non</span>') + '</td>';
+                                html += '<td>' + dateFormatted + '</td>';
+                                html += '<td>';
+                                if (!hasTrou) {
+                                    html += '<button class="btn btn-sm btn-warning btn-create-trou-direct" data-etat-id="' + id + '">Créer Trou</button>';
+                                } else {
+                                    html += '<span class="text-muted">Déjà créé</span>';
+                                }
+                                html += '</td>';
+                                html += '</tr>';
+                            });
+                        } else {
+                            html += '<tr><td colspan="9" class="text-center">Aucun état trouvé avec EcartMoins > 0.</td></tr>';
+                        }
+
+                        html += '</tbody></table></div>';
+                        $('#debugModalBody').html(html);
+
+                        // Destroy existing DataTable if any
+                        if ($.fn.DataTable.isDataTable('#debugTable')) {
+                            $('#debugTable').DataTable().destroy();
+                        }
+
+                        // Initialize DataTable
+                        $('#debugTable').DataTable({
+                            "responsive": true,
+                            "lengthChange": false,
+                            "autoWidth": false,
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+                            }
+                        });
+                    } else {
+                        $('#debugModalBody').html('<div class="alert alert-danger">Erreur: ' + (response.message || 'Erreur inconnue') + '</div>');
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    $('#debugModalBody').html('<div class="alert alert-danger">Erreur lors du debug: ' + (error || 'Erreur inconnue') + '</div>');
+                });
+        });
+
+            // Create Trou de Caisse directly
+            $(document).on('click', '.btn-create-trou, .btn-create-trou-direct', function() {
+                var etatId = $(this).data('etat-id');
+                var button = $(this);
+
+                if (!confirm('Êtes-vous sûr de vouloir créer un trou de caisse pour cet état ?')) {
+                    return;
+                }
+
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Création...');
+
+                $.post('@Url.Action("CreateTrouDeCaisseForEtat", "DGF")', { etatId: etatId })
+                    .done(function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            if (button.hasClass('btn-create-trou-direct')) {
+                                // Refresh debug modal
+                                $('#btnDebugEcartMoins').click();
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            alert('Erreur: ' + response.message);
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        alert('Erreur lors de la création: ' + error);
+                    })
+                    .always(function() {
+                        button.prop('disabled', false).html('<i class="fas fa-plus-circle"></i> Créer');
+                    });
+            });
+
+            // Handle trou de caisse form submission
+            $(document).on('submit', '#trouDeCaisseForm', function(e) {
+                e.preventDefault();
+
+                var form = $(this);
+                var formData = form.serialize();
+
+                $.post(form.attr('action'), formData)
+                    .done(function(response) {
+                        if (response.success) {
+                            $('#calculateCommissionModal').modal('hide');
+                            alert(response.message || 'Trou de caisse enregistré avec succès.');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            alert(response.message || 'Erreur lors de l\'enregistrement.');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Erreur lors de la communication avec le serveur.');
+                    });
+            });
+
+            // Handle form submission in CalculateCommission modal
+            $(document).on('submit', '#commissionForm', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var formData = form.serialize();
+
+                $.post(form.attr('action'), formData)
+                    .done(function(response) {
+                        if (response.success) {
+                            $('#calculateCommissionModal').modal('hide');
+                            alert(response.message || 'Commission calculée et sauvegardée avec succès.');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            alert(response.message || 'Erreur lors de la sauvegarde.');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Erreur lors de la communication avec le serveur.');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

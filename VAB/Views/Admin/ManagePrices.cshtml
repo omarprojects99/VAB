@@ -37,12 +37,12 @@
                             <td>@(price.DateFin.HasValue ? price.DateFin.Value.ToString("yyyy-MM-dd") : "Actif")</td>
                             <td>
                                 <div class="button-container">
-                                    <button class="btn btn-sm btn-warning custom-btn" onclick="loadPriceForm('/Admin/EditPrice/@price.Id?categoryId=@categoryId')">
+                                    <button class="btn btn-sm btn-warning " onclick="loadPriceForm('/Admin/EditPrice/@price.Id?categoryId=@categoryId')">
                                         <i class="material-icons mr-1">edit</i> Modifier
                                     </button>
                                     <form class="delete-price-form" data-id="@price.Id" method="post" asp-action="DeletePrice" asp-route-id="@price.Id" style="display:inline;">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-danger custom-btn">
+                                        <button type="submit" class="btn btn-sm btn-danger ">
                                             <i class="material-icons mr-1">delete</i> Supprimer
                                         </button>
                                     </form>

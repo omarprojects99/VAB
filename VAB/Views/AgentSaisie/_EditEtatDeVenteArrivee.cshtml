@@ -1,0 +1,958 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.EtatDesVentesArriveeViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+@{
+    Layout = null;
+}
+
+<div class="modal-body sales-form-modal" style="max-height: 70vh; overflow-y: auto;">
+    <form asp-action="EditEtatDesVentesArrivee" asp-controller="AgentSaisie" method="post" id="salesForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        @{
+            var currentUser = await UserManager.GetUserAsync(Context.User);
+            var agentName = currentUser?.NomPrenom ?? "Unknown";
+            // Initialize FeuilleDeLignesNumeros to avoid null reference
+            if (Model.FeuilleDeLignesNumeros == null || Model.FeuilleDeLignesNumeros.Count < 2)
+            {
+                Model.FeuilleDeLignesNumeros = new List<int> { 0, 0 };
+            }
+        }
+        <div class="header-section">
+            <h3 class="company-title">AIR DUTYFREE</h3>
+            <div class="location-info">VAB TUNIS<br>Carthage</div>
+            <div class="form-group">
+                <label>Date et Heure d'Edition:</label>
+                <input asp-for="DateEdition" type="datetime-local" class="form-control" />
+                <span asp-validation-for="DateEdition" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="AgentSaisie">Agent Saisie</label>
+                <input type="text" class="form-control" id="AgentSaisie" value="@agentName" readonly />
+            </div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <p>@error.ErrorMessage</p>
+                    }
+                </div>
+            }
+            @if (ViewBag.Success != null && (bool)ViewBag.Success)
+            {
+                <input type="hidden" id="formSuccess" value="true" />
+            }
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+            }
+        </div>
+
+        <h3 class="form-title">MODIFIER ETAT DES VENTES ARRIVEE N° <input asp-for="Numero" class="form-control d-inline-block w-auto" required></h3>
+        <span asp-validation-for="Numero" class="text-danger"></span>
+
+        <table class="info-table">
+            <tr>
+                <td>FL 01:</td>
+                <td><input asp-for="FeuilleDeLignesNumeros[0]" type="number" class="form-control feuille-numero" /></td>
+                <td>CC 1:</td>
+                <td><input asp-for="Cc1Name" type="text" class="form-control" placeholder="Nom Prénom" /></td>
+                <td>Matricule:</td>
+                <td><input asp-for="Cc1Matricule" type="text" class="form-control" placeholder="CC001" /></td>
+                <td>PNC 1:</td>
+                <td><input asp-for="Pnc1Name" type="text" class="form-control" placeholder="Nom Prénom" /></td>
+                <td>Matricule:</td>
+                <td><input asp-for="Pnc1Matricule" type="text" class="form-control" placeholder="PNC001" /></td>
+            </tr>
+            <tr>
+                <td>FL 02:</td>
+                <td><input asp-for="FeuilleDeLignesNumeros[1]" type="number" class="form-control feuille-numero" /></td>
+                <td>CC 2:</td>
+                <td><input asp-for="Cc2Name" type="text" class="form-control" placeholder="Nom Prénom (optionnel)" /></td>
+                <td>Matricule:</td>
+                <td><input asp-for="Cc2Matricule" type="text" class="form-control" placeholder="CC002 (optionnel)" /></td>
+                <td>PNC 2:</td>
+                <td><input asp-for="Pnc2Name" type="text" class="form-control" placeholder="Nom Prénom (optionnel)" /></td>
+                <td>Matricule:</td>
+                <td><input asp-for="Pnc2Matricule" type="text" class="form-control" placeholder="PNC002 (optionnel)" /></td>
+            </tr>
+        </table>
+
+        <!-- Combined PNC Dynamiques and Données Générales Section -->
+        <div class="tables-container" style="display: flex; gap: 20px; margin-bottom: 15px;">
+            <!-- PNC Dynamiques Table -->
+            <div class="dynamic-pnc-section" style="flex: 1;">
+                <h4 class="section-title">PNC Dynamiques</h4>
+                <table class="dynamic-pnc-table" id="dynamicPncTable">
+                    <thead>
+                        <tr>
+                            <th>PNC</th>
+                            <th>Matricule</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pnc-tbody">
+                        @if (Model.DynamicPncs == null || !Model.DynamicPncs.Any())
+                        {
+                            <tr>
+                                <td><input type="text" name="DynamicPncs[0].Name" class="form-control" placeholder="Nom Prénom" /></td>
+                                <td><input type="text" name="DynamicPncs[0].Matricule" class="form-control" placeholder="PNCXXX" /></td>
+                                <td><button type="button" class="btn btn-danger btn-sm remove-pnc" onclick="deleteRow(this)">Supprimer</button></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < Model.DynamicPncs.Count; i++)
+                            {
+                                <tr>
+                                    <td><input asp-for="DynamicPncs[i].Name" class="form-control" placeholder="Nom Prénom" /></td>
+                                    <td><input asp-for="DynamicPncs[i].Matricule" class="form-control" placeholder="PNCXXX" /></td>
+                                    <td><button type="button" class="btn btn-danger btn-sm remove-pnc" onclick="deleteRow(this)">Supprimer</button></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-primary btn-sm" onclick="addPncRow()">Ajouter PNC</button>
+            </div>
+
+            <!-- Données Générales Table -->
+            <div class="general-data-section" style="flex: 1;">
+                <h4 class="section-title">Données Générales</h4>
+                <table class="info-table modern-info-table">
+                    <tr>
+                        <td><label asp-for="Aircraft"></label></td>
+                        <td>
+                            <input asp-for="Aircraft" class="form-control" placeholder="A320" />
+                            <span asp-validation-for="Aircraft" class="text-danger"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label asp-for="FlightNumber"></label></td>
+                        <td>
+                            <input asp-for="FlightNumber" type="number" class="form-control" placeholder="123" id="flightNumber" />
+                            <span asp-validation-for="FlightNumber" class="text-danger"></span>
+                            <div id="flightNumberError" class="text-danger"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label asp-for="Destination"></label></td>
+                        <td>
+                            <input asp-for="Destination" class="form-control" placeholder="TUN/YUL/TUN" />
+                            <span asp-validation-for="Destination" class="text-danger"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label asp-for="FlightType"></label></td>
+                        <td>
+                            <input asp-for="FlightType" class="form-control" placeholder="Commercial" />
+                            <span asp-validation-for="FlightType" class="text-danger"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label asp-for="FlightDate"></label></td>
+                        <td>
+                            <input asp-for="FlightDate" type="date" class="form-control" placeholder="DD/MM/YYYY" />
+                            <span asp-validation-for="FlightDate" class="text-danger"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label asp-for="FlightTime"></label></td>
+                        <td>
+                            <input asp-for="FlightTime" type="time" class="form-control" />
+                            <span asp-validation-for="FlightTime" class="text-danger"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label asp-for="TotalPassengers"></label></td>
+                        <td>
+                            <input asp-for="TotalPassengers" type="number" class="form-control" min="0" placeholder="150" />
+                            <span asp-validation-for="TotalPassengers" class="text-danger"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button type="button" class="add-row-btn" onclick="addArticleRow()">Ajouter Article</button>
+        </div>
+
+        <div class="table-responsive">
+            <table id="article-table" class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Quantité Dotation</th>
+                        <th>Quantité Compl.</th>
+                        <th>Tot Em</th>
+                        <th>Quantité Casse</th>
+                        <th>Quantité Offerte</th>
+                        <th>Quantité Vendue</th>
+                        <th>Prix Unitaire HT</th>
+                        <th>Valeur</th>
+                        <th>Restant</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="article-tbody">
+                    @{
+                        var groupedArticles = Model.ArticleVentes
+                        .GroupBy(av => av.CategorieId)
+                        .OrderBy(g => g.First().CategorieDescription);
+                        int articleIndex = 0;
+                    }
+                    @foreach (var group in groupedArticles)
+                    {
+                        var categorie = group.First();
+                        <tr class="category-row" data-categorie-id="@categorie.CategorieId">
+                            <td colspan="12">
+                                <span class="category-name">@categorie.CategorieDescription</span>
+                            </td>
+                        </tr>
+                        foreach (var article in group)
+                        {
+                            <tr class="article-row">
+                                <td>
+                                    <input type="hidden" name="ArticleVentes[@articleIndex].ArticleId" value="@article.ArticleId" />
+                                    <input type="hidden" name="ArticleVentes[@articleIndex].CategorieId" value="@article.CategorieId" />
+                                    <input type="number" name="ArticleVentes[@articleIndex].IdArticle" class="small-input form-control id-article" value="@article.IdArticle" onchange="fetchArticleDetails(this, @articleIndex)" required />
+                                    <span class="error-message text-danger"></span>
+                                </td>
+                                <td><input type="text" name="ArticleVentes[@articleIndex].Description" class="form-control article-description" value="@article.Description" readonly /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].QuantiteDotation" class="small-input form-control quantity-input" min="0" value="@article.QuantiteDotation" onchange="updateRow(this)" /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].QuantiteComplementaire" class="small-input form-control quantity-input" min="0" value="@article.QuantiteComplementaire" onchange="updateRow(this)" /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].TotalEmbarque" class="small-input form-control" value="@(article.QuantiteDotation + article.QuantiteComplementaire)" readonly /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].QuantiteCasse" class="small-input form-control quantity-input" min="0" value="@article.QuantiteCasse" onchange="updateRow(this)" /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].QuantiteOffert" class="small-input form-control quantity-input" min="0" value="@article.QuantiteOffert" onchange="updateRow(this)" /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].QuantiteVendu" class="small-input form-control quantity-input" min="0" value="@article.QuantiteVendu" onchange="updateRow(this)" /></td>
+                                <td><input type="number" step="0.01" name="ArticleVentes[@articleIndex].PrixUnitaireHT" class="small-input form-control article-price" value="@article.PrixUnitaireHT.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)" readonly /></td>
+                                <td><input type="number" step="0.01" name="ArticleVentes[@articleIndex].Valeur" class="form-control" value="@(article.QuantiteVendu * article.PrixUnitaireHT).ToString(" F2", System.Globalization.CultureInfo.InvariantCulture)" readonly /></td>
+                                <td><input type="number" name="ArticleVentes[@articleIndex].Restant" class="form-control" value="@(article.QuantiteDotation + article.QuantiteComplementaire - article.QuantiteCasse - article.QuantiteOffert - article.QuantiteVendu)" readonly /></td>
+                                <td><button type="button" class="delete-row-btn" onclick="deleteArticleRow(this)">X</button></td>
+                            </tr>
+                            articleIndex++;
+                        }
+                        <tr class="category-summary-row" data-categorie-id="@categorie.CategorieId">
+                            <td>Total</td>
+                            <td>@categorie.CategorieDescription</td>
+                            <td colspan="2"></td>
+                            <td><input type="number" class="category-total-input form-control" readonly /></td>
+                            <td></td>
+                            <td></td>
+                            <td><input type="number" class="category-total-input form-control" readonly /></td>
+                            <td></td>
+                            <td><input type="number" step="0.01" class="category-total-input form-control" readonly /></td>
+                            <td><input type="number" class="category-total-input form-control" readonly /></td>
+                            <td></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot id="grand-total-row">
+                    <tr>
+                        <td colspan="9" style="border: none;"></td>
+                        <td class="grand-total-cell" id="grand-total-value">0.00</td>
+                        <td colspan="2" style="border: none;"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="summary-table-container">
+            <table class="summary-table modern-table">
+                <tr>
+                    <th colspan="2">Total encaissé</th>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input asp-for="TotalEncaisse" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="TotalEncaisse" class="text-danger"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <th colspan="2">Écart</th>
+                </tr>
+                <tr>
+                    <td style="text-align: center;">
+                        + <br> -
+                    </td>
+                    <td>
+                        <input asp-for="EcartPlus" type="number" step="0.01" class="form-control" style="margin-bottom: 4px;" />
+                        <span asp-validation-for="EcartPlus" class="text-danger"></span>
+                        <input asp-for="EcartMoins" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="EcartMoins" class="text-danger"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+
+    <style>
+        /* Same styles as in AddEtatDeVenteArrivee.cshtml */
+        .sales-form-modal {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .modal-header {
+            border-bottom: 3px solid #500000;
+        }
+
+        .bg-gradient-dark-red {
+            background: linear-gradient(135deg, #800000, #400000);
+        }
+
+        .header-section {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .company-title {
+            color: #600000;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .location-info {
+            color: #555;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .form-title {
+            text-align: center;
+            color: #600000;
+            font-weight: bold;
+            margin: 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #600000;
+        }
+
+        .section-title {
+            color: #600000;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .payment-title, .signature-title {
+            margin-top: 30px;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pncs-section, .general-data {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 3px solid #600000;
+        }
+
+        .action-buttons {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .sales-form-modal .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+            .sales-form-modal .form-group label {
+                margin: 0;
+                font-weight: 500;
+            }
+
+        .sales-form-modal .form-control {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+            .sales-form-modal .form-control:focus {
+                border-color: #600000;
+                box-shadow: 0 0 0 0.2rem rgba(96, 0, 0, 0.25);
+                outline: none;
+            }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+            .modern-table th {
+                background-color: #600000;
+                color: white;
+                padding: 8px;
+                text-align: center;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .modern-table td {
+                border: 1px solid #eee;
+                padding: 6px;
+                text-align: center;
+                font-size: 13px;
+            }
+
+        .modern-info-table {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+
+            .modern-info-table td {
+                text-align: left;
+                border: none;
+                padding: 6px 10px;
+            }
+
+        .sales-form-modal .info-table input {
+            width: 100%;
+        }
+
+        .sales-form-modal .small-input {
+            width: 95%;
+        }
+
+        .sales-form-modal .add-row-btn,
+        .sales-form-modal .add-category-btn {
+            margin: 0;
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            background-color: #600000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+            .sales-form-modal .add-row-btn:hover,
+            .sales-form-modal .add-category-btn:hover {
+                background-color: #400000;
+            }
+
+        .sales-form-modal .delete-row-btn {
+            padding: 3px 8px;
+            font-size: 11px;
+            color: white;
+            background-color: #600000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .sales-form-modal .delete-row-btn:hover {
+                background-color: #400000;
+            }
+
+        .sales-form-modal .category-row {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        .sales-form-modal .category-summary-row {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+            .sales-form-modal .category-row td,
+            .sales-form-modal .category-summary-row td {
+                text-align: left !important;
+            }
+
+        .sales-form-modal .article-row {
+            background-color: #ffffff;
+        }
+
+            .sales-form-modal .article-row.invalid {
+                background-color: #ffe6e6;
+            }
+
+        .sales-form-modal .error-message {
+            display: block;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .sales-form-modal .indent {
+            padding-left: 20px !important;
+        }
+
+        .sales-form-modal .category-name {
+            width: 120px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .sales-form-modal .category-total-input {
+            width: 60px;
+            font-weight: bold;
+        }
+
+        .sales-form-modal .summary-description {
+            width: 150px;
+        }
+
+        .sales-form-modal .summary-table-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .sales-form-modal .summary-table {
+            width: 300px;
+            border-left: 3px solid #600000;
+        }
+
+        .sales-form-modal .grand-total-cell {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            color: #600000;
+        }
+
+        .sales-form-modal #article-table {
+            min-width: 900px;
+        }
+
+            .sales-form-modal #article-table th,
+            .sales-form-modal #article-table td {
+                padding: 6px 4px;
+            }
+
+            .sales-form-modal #article-table input {
+                width: 90%;
+            }
+
+        .sales-form-modal #pnc-table input {
+            width: 90px;
+        }
+
+        .payment-table, .signature-table {
+            margin-top: 10px;
+        }
+
+        .modal-footer {
+            border-top: 3px solid #600000;
+            padding: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #600000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .btn-primary:hover {
+                background-color: #400000;
+            }
+
+        .table-responsive {
+            margin-top: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            border-left: 3px solid #600000;
+        }
+
+        .sales-form-modal .alert-danger {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .sales-form-modal .text-danger {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
+
+    <script>
+        // Same JavaScript as in AddEtatDeVenteArrivee.cshtml, with articleIndex initialized to the current count
+        let articleIndex = @(Model.ArticleVentes?.Count ?? 0);
+        let pncIndex = @((Model.DynamicPncs?.Count ?? 1));
+
+        function addArticleRow() {
+            const tbody = document.getElementById('article-tbody');
+            const row = document.createElement('tr');
+            row.className = 'article-row';
+            row.innerHTML = `
+                <td>
+                    <input type="hidden" name="ArticleVentes[${articleIndex}].ArticleId" value="0" />
+                    <input type="hidden" name="ArticleVentes[${articleIndex}].CategorieId" value="0" />
+                    <input type="number" name="ArticleVentes[${articleIndex}].IdArticle" class="small-input form-control id-article" onchange="fetchArticleDetails(this, ${articleIndex})" required />
+                    <span class="error-message text-danger"></span>
+                </td>
+                <td><input type="text" name="ArticleVentes[${articleIndex}].Description" class="form-control article-description" readonly /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].QuantiteDotation" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].QuantiteComplementaire" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].TotalEmbarque" class="small-input form-control" readonly /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].QuantiteCasse" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].QuantiteOffert" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].QuantiteVendu" class="small-input form-control quantity-input" min="0" onchange="updateRow(this)" /></td>
+                <td><input type="number" step="0.01" name="ArticleVentes[${articleIndex}].PrixUnitaireHT" class="small-input form-control article-price" readonly /></td>
+                <td><input type="number" step="0.01" name="ArticleVentes[${articleIndex}].Valeur" class="small-input form-control" readonly /></td>
+                <td><input type="number" name="ArticleVentes[${articleIndex}].Restant" class="small-input form-control" readonly /></td>
+                <td><button type="button" class="delete-row-btn" onclick="deleteArticleRow(this)">X</button></td>
+            `;
+            tbody.appendChild(row);
+            articleIndex++;
+        }
+
+        function fetchArticleDetails(input, index) {
+            const idArticle = input.value;
+            const row = input.closest('tr');
+            const errorSpan = row.querySelector('.error-message') || document.createElement('span');
+            errorSpan.className = 'error-message text-danger';
+            row.querySelector('td').appendChild(errorSpan);
+
+            if (!idArticle || idArticle <= 0) {
+                errorSpan.textContent = 'Veuillez entrer un code article valide.';
+                resetArticleRow(row, index);
+                return;
+            }
+
+            fetch(`/AgentSaisie/GetArticleDetails?idArticle=${idArticle}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        errorSpan.textContent = '';
+                        row.querySelector(`input[name="ArticleVentes[${index}].ArticleId"]`).value = data.article.id;
+                        row.querySelector(`input[name="ArticleVentes[${index}].CategorieId"]`).value = data.article.categorieId;
+                        row.querySelector(`input[name="ArticleVentes[${index}].Description"]`).value = data.article.description;
+                        // Format the price properly and ensure it's a valid decimal
+                const priceInput = row.querySelector(`input[name="ArticleVentes[${index}].PrixUnitaireHT"]`);
+                const price = parseFloat(data.article.prixUnitaireHT);
+                priceInput.value = price.toFixed(2);
+
+                row.classList.remove('invalid');
+                updateCategoryGrouping(row, data.article.categorieId, data.article.categorieDescription);
+                updateRow(row.querySelector('.quantity-input'));
+                    } else {
+                        errorSpan.textContent = data.message;
+                        row.classList.add('invalid');
+                        resetArticleRow(row, index);
+                        Swal.fire(data.message);
+
+                    }
+                })
+                .catch(error => {
+                    errorSpan.textContent = 'Erreur lors de la récupération de l\'article.';
+                    row.classList.add('invalid');
+                    resetArticleRow(row, index);
+                    console.error('Error fetching article:', error);
+                    alert('Erreur lors de la récupération de l\'article.');
+                });
+        }
+
+        function resetArticleRow(row, index) {
+            row.querySelector(`input[name="ArticleVentes[${index}].ArticleId"]`).value = 0;
+            row.querySelector(`input[name="ArticleVentes[${index}].CategorieId"]`).value = 0;
+            row.querySelector(`input[name="ArticleVentes[${index}].Description"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].PrixUnitaireHT"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].QuantiteDotation"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].QuantiteComplementaire"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].QuantiteCasse"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].QuantiteOffert"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].QuantiteVen du"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].TotalEmbarque"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].Valeur"]`).value = '';
+            row.querySelector(`input[name="ArticleVentes[${index}].Restant"]`).value = '';
+            row.classList.add('invalid');
+        }
+
+        function updateCategoryGrouping(row, categorieId, categorieDescription) {
+            const tbody = document.getElementById('article-tbody');
+            let categoryRow = tbody.querySelector(`.category-row[data-categorie-id="${categorieId}"]`);
+            let summaryRow = tbody.querySelector(`.category-summary-row[data-categorie-id="${categorieId}"]`);
+
+            if (!categoryRow) {
+                categoryRow = document.createElement('tr');
+                categoryRow.className = 'category-row';
+                categoryRow.dataset.categorieId = categorieId;
+                categoryRow.innerHTML = `<td colspan="12"><span class="category-name">${categorieDescription || 'Unknown'}</span></td>`;
+                tbody.insertBefore(categoryRow, row);
+
+                summaryRow = document.createElement('tr');
+                summaryRow.className = 'category-summary-row';
+                summaryRow.dataset.categorieId = categorieId;
+                summaryRow.innerHTML = `
+                    <td>Total</td>
+                    <td>${categorieDescription || 'Unknown'}</td>
+                    <td colspan="2"></td>
+                    <td><input type="number" class="category-total-input form-control" readonly /></td>
+                    <td></td>
+                    <td></td>
+                    <td><input type="number" class="category-total-input form-control" readonly /></td>
+                    <td></td>
+                    <td><input type="number" step="0.01" class="category-total-input form-control" readonly /></td>
+                    <td><input type="number" class="category-total-input form-control" readonly /></td>
+                    <td></td>
+                `;
+                tbody.insertBefore(summaryRow, row.nextSibling);
+            } else {
+                // Ensure category name persists
+                const categoryNameSpan = categoryRow.querySelector('.category-name');
+                if (categoryNameSpan && (!categoryNameSpan.textContent || categoryNameSpan.textContent === 'Unknown')) {
+                    categoryNameSpan.textContent = categorieDescription || 'Unknown';
+                }
+                const summaryCategoryCell = summaryRow.querySelector('td:nth-child(2)');
+                if (summaryCategoryCell && (!summaryCategoryCell.textContent || summaryCategoryCell.textContent === 'Unknown')) {
+                    summaryCategoryCell.textContent = categorieDescription || 'Unknown';
+                }
+            }
+
+            // Move row to correct position under category
+            let nextRow = categoryRow.nextElementSibling;
+            while (nextRow && (nextRow.className.includes('article-row') || nextRow.className.includes('category-summary-row'))) {
+                if (nextRow.className.includes('category-summary-row')) {
+                    tbody.insertBefore(row, nextRow);
+                    break;
+                }
+                nextRow = nextRow.nextElementSibling;
+            }
+            updateCategorySummary(categorieId);
+        }
+
+        function updateRow(input) {
+            const row = input.closest('tr');
+            if (row.classList.contains('invalid')) return;
+
+            const dotation = parseInt(row.querySelector('input[name$=".QuantiteDotation"]').value) || 0;
+            const complementaire = parseInt(row.querySelector('input[name$=".QuantiteComplementaire"]').value) || 0;
+            const casse = parseInt(row.querySelector('input[name$=".QuantiteCasse"]').value) || 0;
+            const offert = parseInt(row.querySelector('input[name$=".QuantiteOffert"]').value) || 0;
+            const vendu = parseInt(row.querySelector('input[name$=".QuantiteVendu"]').value) || 0;
+            const prixHT = parseFloat(row.querySelector('input[name$=".PrixUnitaireHT"]').value) || 0;
+
+            const totalEmbarque = dotation + complementaire;
+            const valeur = vendu * prixHT;
+            const restant = totalEmbarque - casse - offert - vendu;
+
+            row.querySelector('input[name$=".TotalEmbarque"]').value = totalEmbarque;
+            row.querySelector('input[name$=".Valeur"]').value = valeur.toFixed(2);
+            row.querySelector('input[name$=".Restant"]').value = restant;
+
+            const categorieId = row.querySelector('input[name$=".CategorieId"]').value;
+            updateCategorySummary(categorieId);
+            updateGrandTotal();
+        }
+
+        function updateCategorySummary(categorieId) {
+            const summaryRow = document.querySelector(`.category-summary-row[data-categorie-id="${categorieId}"]`);
+            if (!summaryRow) return;
+
+            const rows = Array.from(document.querySelectorAll('.article-row')).filter(row => {
+                return row.querySelector(`input[name$=".CategorieId"]`).value == categorieId && !row.classList.contains('invalid');
+            });
+
+            let totalEmbarque = 0, quantiteVendu = 0, valeur = 0, restant = 0;
+            rows.forEach(row => {
+                totalEmbarque += parseInt(row.querySelector('input[name$=".TotalEmbarque"]').value) || 0;
+                quantiteVendu += parseInt(row.querySelector('input[name$=".QuantiteVendu"]').value) || 0;
+                valeur += parseFloat(row.querySelector('input[name$=".Valeur"]').value) || 0;
+                restant += parseInt(row.querySelector('input[name$=".Restant"]').value) || 0;
+            });
+
+            const inputs = summaryRow.querySelectorAll('.category-total-input');
+            inputs[0].value = totalEmbarque;
+            inputs[1].value = quantiteVendu;
+            inputs[2].value = valeur.toFixed(2);
+            inputs[3].value = restant;
+        }
+
+        function updateGrandTotal() {
+            const summaryRows = document.querySelectorAll('.category-summary-row');
+            let grandTotal = 0;
+            summaryRows.forEach(row => {
+                const valeurInput = row.querySelectorAll('.category-total-input')[2];
+                grandTotal += parseFloat(valeurInput.value) || 0;
+            });
+            document.getElementById('grand-total-value').textContent = grandTotal.toFixed(2);
+        }
+
+        function deleteArticleRow(button) {
+            const row = button.closest('tr');
+            const categorieId = row.querySelector('input[name$=".CategorieId"]').value;
+            row.remove();
+
+            // Remove category and summary rows if no articles remain
+            const remainingRows = Array.from(document.querySelectorAll('.article-row')).filter(r => {
+                return r.querySelector(`input[name$=".CategorieId"]`).value == categorieId;
+            });
+            if (remainingRows.length === 0) {
+                const categoryRow = document.querySelector(`.category-row[data-categorie-id="${categorieId}"]`);
+                const summaryRow = document.querySelector(`.category-summary-row[data-categorie-id="${categorieId}"]`);
+                categoryRow?.remove();
+                summaryRow?.remove();
+            }
+
+            updateCategorySummary(categorieId);
+            updateGrandTotal();
+            reindexArticles();
+        }
+
+        function reindexArticles() {
+            const rows = document.querySelectorAll('#article-tbody .article-row');
+            articleIndex = rows.length;
+            rows.forEach((row, index) => {
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(input => {
+                    const name = input.name.replace(/ArticleVentes\[\d+\]/, `ArticleVentes[${index}]`);
+                    input.name = name;
+                });
+                const idArticleInput = row.querySelector('.id-article');
+                idArticleInput.setAttribute('onchange', `fetchArticleDetails(this, ${index})`);
+            });
+        }
+
+        function addPncRow() {
+            const tbody = document.getElementById('pnc-tbody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" name="DynamicPncs[${pncIndex}].Name" class="form-control" placeholder="Nom Prénom" /></td>
+                <td><input type="text" name="DynamicPncs[${pncIndex}].Matricule" class="form-control" placeholder="PNCXXX" /></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-pnc" onclick="deletePncRow(this)">Supprimer</button></td>
+            `;
+            tbody.appendChild(row);
+            pncIndex++;
+        }
+
+        function deletePncRow(btn) {
+            btn.closest('tr').remove();
+            reindexPncs();
+        }
+
+        function reindexPncs() {
+            const rows = document.querySelectorAll('#pnc-tbody tr');
+            rows.forEach((row, index) => {
+                const inputs = row.querySelectorAll('input');
+                inputs[0].name = `DynamicPncs[${index}].Name`;
+                inputs[1].name = `DynamicPncs[${index}].Matricule`;
+            });
+            pncIndex = rows.length;
+        }
+
+        function validateFlightNumber() {
+            const flightNumber = document.getElementById('flightNumber').value;
+            const feuilleNumeros = Array.from(document.querySelectorAll('.feuille-numero'))
+                .map(input => input.value)
+                .filter(num => num > 0);
+            if (!flightNumber || feuilleNumeros.length === 0) return;
+
+            fetch(`/AgentSaisie/ValidateFlightNumber?flightNumber=${flightNumber}&feuilleNumeros=${feuilleNumeros.join(',')}`)
+                .then(response => response.json())
+                .then(data => {
+                    const errorDiv = document.getElementById('flightNumberError') || document.createElement('div');
+                    errorDiv.id = 'flightNumberError';
+                    errorDiv.className = 'text-danger';
+                    errorDiv.style.marginTop = '5px';
+                    if (!data.isValid) {
+                        errorDiv.textContent = data.message;
+                        document.getElementById('flightNumber').parentElement.appendChild(errorDiv);
+                    } else {
+                        errorDiv.textContent = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error validating flight number:', error);
+                });
+        }
+
+        // Prevent form submission if invalid articles exist
+        document.getElementById('salesForm').addEventListener('submit', function (event) {
+            const invalidRows = document.querySelectorAll('.article-row.invalid');
+            if (invalidRows.length > 0) {
+                event.preventDefault();
+                alert('Veuillez corriger les articles invalides avant de soumettre le formulaire.');
+                return;
+            }
+
+            // Ensure PrixUnitaireHT is in correct format
+            document.querySelectorAll('input[name$=".PrixUnitaireHT"]').forEach(input => {
+                if (input.value) {
+                    input.value = parseFloat(input.value).toFixed(2);
+                }
+            });
+        });
+
+        document.getElementById('flightNumber').addEventListener('blur', validateFlightNumber);
+        document.querySelectorAll('.feuille-numero').forEach(input => input.addEventListener('blur', validateFlightNumber));
+        document.addEventListener('DOMContentLoaded', updateGrandTotal);
+                window.alert = function(message) {
+          Swal.fire("Notice", message, "info");
+        };
+
+        window.confirm = function(message) {
+          return Swal.fire({
+            title: message,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'OK',
+            cancelButtonText: 'Cancel'
+          }).then((result) => result.isConfirmed);
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

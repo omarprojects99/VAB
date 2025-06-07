@@ -43,7 +43,31 @@
     <link rel="stylesheet" href="~/css/sidebar.css">
     <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
-   
+   <style>
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+   </style>
 
 </head>
 
@@ -51,6 +75,15 @@
     <!-- Preloader -->
     <div class="spinner_body">
         <div class="spinner"></div>
+    </div>
+    <!-- Toast notification -->
+    <div id="notificationToast" class="toast toast-notification hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary text-white">
+            <strong class="me-auto">Notification</strong>
+            <small class="text-white">à l'instant</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"></div>
     </div>
 
     <!-- Header -->
@@ -315,9 +348,23 @@
             render: function (data) {
                 return `<span class="${data ? 'validated' : 'not-validated'}">${data ? 'Validé' : 'Non validé'}</span>`;
             },
-            defaultContent: '<span class="not-validated">Non validé</span>'
+                   defaultContent: '<span class="not-validated">Non validé</span>'
         },
-            { data: 'id', render: function(data, type, row) { return `<button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">👁 Voir</button> <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>`; } }
+        {
+            data: 'id',
+            render: function(data, type, row) {
+                let buttons = `<button class="btn btn-sm btn-secondary view-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">👁 Voir</button>`;
+
+                // Only show edit button if not validated
+                if (!row.isValidated) {
+                    buttons += ` <button class="btn btn-sm btn-warning edit-sales-btn" style="display: inline-block; padding: 0.25rem 0.5rem; line-height: 1.5;" data-id="${data}">✏️ Modifier</button>`;
+                }
+
+                buttons += ` <button class="btn btn-sm btn-danger delete-btn" onclick="deleteSalesReport('${row.numero}')">🗑 Supprimer</button>`;
+
+                return buttons;
+            }
+        }
         ]
             });
 
@@ -430,6 +477,22 @@
             overlay.on('click', function () {
                 sidebar.removeClass('show');
                 overlay.removeClass('show');
+            });
+        });
+                // Load edit modal
+        $(document).on('click', '.edit-sales-btn', function () {
+            var id = $(this).data('id');
+            $.ajax({
+                url: '/AgentSaisie/EditEtatDesVentesArrivee?id=' + id,
+                type: 'GET',
+                success: function (html) {
+                    $('#salesModal .modal-body').html(html);
+                    $('#salesModal .modal-title').text('Modifier État des Ventes Arrivée');
+                    $('#salesModal').modal('show');
+                },
+                error: function (xhr) {
+                    alert('Erreur lors du chargement du formulaire de modification : ' + xhr.status + ' - ' + xhr.statusText);
+                }
             });
         });
     </script>

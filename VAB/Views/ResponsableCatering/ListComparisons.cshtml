@@ -1,12 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<VAB.Models.SalesComparison>
+﻿@model IEnumerable<VAB.Models.SalesComparison>
 @{
     ViewData["Title"] = "Saved Sales Comparisons";
     Layout = null;
@@ -15,20 +7,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title -->
     <title>Saved Sales Comparisons</title>
+
+    <!-- Favicon Icon -->
     <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
     <link rel="stylesheet" href="~/iconfont/material-icons.css">
-    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
-    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
-    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet" media="screen">
+
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/css/bootstrap.min.css">
+
+    <!-- Style CSS -->
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/sidebar.css">
+
+    <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
         .table th, .table td {
             vertical-align: middle;
@@ -59,10 +71,34 @@
             transform: scale(1);
             transition: all 0.2s ease-in-out;
         }
+
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
     </style>
 </head>
 <body>
-    <!-- Loading spinner -->
+    <!-- Preloader -->
     <div class="spinner_body">
         <div class="spinner"></div>
     </div>
@@ -73,7 +109,7 @@
             <div class="navigation">
                 <nav class="navbar navbar-expand-lg navbar-bg">
                     <div class="brand-logo">
-                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard" id="menu-action">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="EtatDesVentes" id="menu-action">
                             <div class="logo-tunisair">
                                 <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
                             </div>
@@ -84,12 +120,14 @@
                             </div>
                         </div>
                     </div>
+                    <!-- For Toggle Mobile Nav icon -->
                     <div class="for-mobile d-mobile">
                         <div class="toggle-button" id="toggle-button">
                             <span class="material-icons">menu</span>
                         </div>
                     </div>
-                    <div class="collapse navbar-collapse pr-3">
+                    <!-- For Toggle Mobile Nav Icon -->
+                    <div class="collapse navbar-collapse pr-3" id="#">
                         <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
                             <li class="nav-item dropdown show">
                                 @if (User.Identity.IsAuthenticated)
@@ -119,11 +157,12 @@
                     </div>
                 </nav>
             </div>
+            <!-- For Toggle Mobile Nav -->
             <div class="toggle-user-menu" id="toggle-user-menu">
                 <ul>
-                    <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>@User.Identity.Name</a></li>
+                    <li><a href="#"><div class="user-photo"><img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt=""></div>@User.Identity.Name</a></li>
                     <li>
-                        <a asp-controller="AgentSaisie" asp-action="AccountSettings">
+                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings">
                             <i class="material-icons mr-2">supervisor_account</i> Account Settings
                         </a>
                     </li>
@@ -133,14 +172,14 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
+    <!-- Left Sidebar -->
     <section id="left-sidebar-area">
         <div id="left-sidebar-section">
             <aside>
-                <div class="left-sidebar" id="wrapper-sidebar">
-                    <ul>
+                <div class="left-sidebar">
+                    <ul class="nav flex-column">
                         <li>
-                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                            <a class="nav-link active" asp-controller="ResponsableCatering" asp-action="CateringDashboard">
                                 <i class="material-icons">dashboard</i>Tableau de Bord
                             </a>
                         </li>
@@ -183,13 +222,18 @@
                             </div>
                         </li>
                         <li>
-                            <a asp-controller="ResponsableCatering" asp-action="CompareCatring">
-                                <i class="material-icons">dashboard</i>Confrontation
+                            <a asp-controller="ResponsableCatering" asp-action="Compare">
+                                <i class="bi bi-clipboard-check-fill"></i>Confrontation
                             </a>
                         </li>
-                        <li>
-                            <a asp-controller="ResponsableCatering" asp-action="ListComparisons">
-                                <i class="material-icons">list</i>Saved Comparisons
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
+                                <i class="material-icons">list</i> Saved Sales Comparisons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListOffersComparisons">
+                                <i class="material-icons">list</i> Saved Offers Comparisons
                             </a>
                         </li>
                     </ul>
@@ -198,86 +242,104 @@
         </div>
     </section>
 
+    <!-- Main Wrapper -->
     <section class="d-flex" id="wrapper">
         <div class="page-content-wrapper">
+            <!-- Header BreadCrumb -->
             <div class="content-header">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">list</i>Saved Sales Comparisons</li>
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">list</i> Saved Sales Comparisons</li>
                     </ol>
                 </nav>
             </div>
+
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success">
                     @TempData["Success"]
                 </div>
             }
-            <div class="container py-5">
-                <div class="card p-0" style="box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e0e0e0;">
-                    <div style="background-color:rgb(115, 0, 0)" class="card-header text-white p-3">
-                        <h4 class="mb-0">📋 Saved Sales Comparisons</h4>
-                    </div>
-                    <div class="card-body p-4">
-                        @if (Model.Any())
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-striped table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Numero</th>
-                                            <th>Comparison Date</th>
-                                            <th>Total Encaissé Match</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var comparison in Model)
-                                        {
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="container py-5">
+                    <div class="card p-0 shadow-sm border">
+                        <div class="card-header text-white p-3" style="background-color: rgb(115, 0, 0);">
+                            <h4 class="mb-0">📋 Saved Sales Comparisons</h4>
+                        </div>
+                        <div class="card-body p-4">
+                            @if (Model.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered" id="salesComparisonsTable">
+                                        <thead>
                                             <tr>
-                                                <td>@comparison.Numero</td>
-                                                <td>@comparison.ComparisonDate.ToString("g")</td>
-                                                <td class="@(comparison.TotalEncaisseMatch ? "text-success" : "text-danger")">
-                                                    @(comparison.TotalEncaisseMatch ? "✓" : "✗")
-                                                </td>
-                                                <td>
-                                                    <a asp-action="ViewComparison" asp-controller="ResponsableCatering" asp-route-id="@comparison.Id" class="btn btn-sm btn-outline-dark">
-                                                        <i class="material-icons">visibility</i> View
-                                                    </a>
-                                                    <button class="btn btn-sm btn-outline-danger delete-comparison" data-id="@comparison.Id">
-                                                        <i class="material-icons">delete</i> Delete
-                                                    </button>
-                                                </td>
+                                                <th>Numero</th>
+                                                <th>Comparison Date</th>
+                                                <th>Total Encaissé Match</th>
+                                                <th>Actions</th>
                                             </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info">No saved comparisons found.</div>
-                        }
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var comparison in Model)
+                                            {
+                                                <tr>
+                                                    <td>@comparison.Numero</td>
+                                                    <td>@comparison.ComparisonDate.ToString("g")</td>
+                                                    <td class="@(comparison.TotalEncaisseMatch ? "text-success" : "text-danger")">
+                                                        @(comparison.TotalEncaisseMatch ? "✓" : "✗")
+                                                    </td>
+                                                    <td>
+                                                        <a asp-action="ViewComparison" asp-controller="ResponsableCatering" asp-route-id="@comparison.Id" class="btn btn-sm btn-outline-dark">
+                                                            <i class="material-icons">visibility</i> View
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-danger delete-comparison" data-id="@comparison.Id">
+                                                            <i class="material-icons">delete</i> Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">No saved comparisons found.</div>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Scripts -->
     <script src="~/js/jquery.min.js"></script>
     <script src="~/js/popper.min.js"></script>
     <script src="~/js/bootstrap.min.js"></script>
-    <script src="~/js/jquery.dataTables.min.js"></script>
-    <script src="~/js/dataTables.bootstrap4.min.js"></script>
-    <script src="~/js/Chart.min.js"></script>
-    <script src="~/js/Chart.bundle.min.js"></script>
-    <script src="~/js/chartfunction.js"></script>
-    <script src="~/js/wow.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="~/js/script.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        $(function () {
+        $(document).ready(function () {
+            $('#salesComparisonsTable').DataTable({
+                paging: true,
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                searching: true,
+                ordering: true,
+                language: {
+                    paginate: {
+                        previous: '&laquo;',
+                        next: '&raquo;'
+                    },
+                    lengthMenu: 'Show _MENU_ entries'
+                }
+            });
+
             $('.delete-comparison').on('click', function () {
                 const id = $(this).data('id');
                 if (confirm('Are you sure you want to delete this comparison?')) {
@@ -293,7 +355,8 @@
                                 alert(data.message);
                             }
                         },
-                        error: function () {
+                        error: function (xhr, status, error) {
+                            console.error('Delete AJAX error:', status, error, xhr.responseText);
                             alert('Error deleting comparison.');
                         }
                     });

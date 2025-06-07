@@ -1,0 +1,762 @@
+﻿@model VAB.ViewModel.TrouDeCaisseDashboardViewModel
+@{
+    ViewData["Title"] = "Tableau de Bord - Trous de Caisse";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tableau de bord DGF - Gestion des Trous de Caisse">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .card-body-icon i {
+            opacity: 0.3;
+            font-size: 4rem;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .small-box {
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 0;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .small-box h3 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: white;
+            }
+
+            .small-box p {
+                font-size: 1rem;
+                color: rgba(255,255,255,0.8);
+            }
+
+        .small-box-footer {
+            position: relative;
+            text-align: center;
+            padding: 3px 0;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            display: block;
+        }
+
+            .small-box-footer:hover {
+                color: #fff;
+                background: rgba(0,0,0,0.15);
+                text-decoration: none;
+            }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 8px;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                border-bottom-width: 1px;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+        .table-bordered {
+            border: 1px solid #e9ecef;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.04);
+        }
+
+        .btn {
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .card-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 12px 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .animated {
+            animation-duration: 0.5s;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 15px;
+            }
+
+            .small-box h3 {
+                font-size: 1.8rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .card-tools {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <!-- Brand logo -->
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User profile dropdown -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Administrateur DGF</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Reports">
+                                <i class="material-icons">assessment</i> Rapports
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Edit">
+                                <i class="material-icons">settings</i> Taux D'echange
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Breadcrumb -->
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index"><i class="material-icons">home</i></a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Dashboard content -->
+            <div class="main-content">
+                <div class="container-fluid">
+                    <!-- Debug Info -->
+                    @if (Model == null)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Aucune donnée disponible.
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Filter Form -->
+                        <div class="card animated fadeIn">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-filter mr-2"></i>
+                                    Filtres
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="get" class="mb-4">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="dateDebut">Date Début</label>
+                                                <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                                       value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="dateFin">Date Fin</label>
+                                                <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                                       value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                <div>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-filter"></i> Filtrer
+                                                    </button>
+                                                    <a href="@Url.Action("TrouDeCaisseDashboard")" class="btn btn-secondary">
+                                                        <i class="fas fa-times"></i> Réinitialiser
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Summary Cards -->
+                        <div class="row animated fadeInUp">
+                            <div class="col-lg-3 col-6">
+                                <div class="small-box bg-warning">
+                                    <div class="inner">
+                                        <h3>@(Model.TrousDeCaisse?.Count ?? 0)</h3>
+                                        <p>Trous Détectés</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <a href="#trousTable" class="small-box-footer">
+                                        Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-6">
+                                <div class="small-box bg-danger">
+                                    <div class="inner">
+                                        <h3>@Model.NombreTrousEnAttente</h3>
+                                        <p>En Attente</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <a href="#trousTable" class="small-box-footer">
+                                        Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-6">
+                                <div class="small-box bg-success">
+                                    <div class="inner">
+                                        <h3>@Model.NombreTrousAppliques</h3>
+                                        <p>Appliqués</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <a href="#trousTable" class="small-box-footer">
+                                        Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-6">
+                                <div class="small-box bg-info">
+                                    <div class="inner">
+                                        <h3>@Model.TotalManques.ToString("C")</h3>
+                                        <p>Total Manques</p>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fas fa-euro-sign"></i>
+                                    </div>
+                                    <a href="#trousTable" class="small-box-footer">
+                                        Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trous de Caisse Table -->
+                        <div class="card animated fadeIn">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-list mr-2"></i>
+                                    Liste des Trous de Caisse
+                                </h5>
+                                <div class="card-tools">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Rechercher...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                @if (Model.TrousDeCaisse != null && Model.TrousDeCaisse.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table id="trousTable" class="table table-bordered table-striped table-hover">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>Numéro État</th>
+                                                    <th>Date Détection</th>
+                                                    <th>PNC Responsable</th>
+                                                    <th>Montant Manquant</th>
+                                                    <th>Statut</th>
+                                                    <th>Appliqué</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var trou in Model.TrousDeCaisse)
+                                                {
+                                                    <tr>
+                                                        <td>@trou.NumeroEtat</td>
+                                                        <td>@trou.DateDetection.ToString("dd/MM/yyyy HH:mm")</td>
+                                                        <td>@trou.PncResponsableNom</td>
+                                                        <td class="text-danger font-weight-bold">@trou.MontantManquant.ToString("C")</td>
+                                                        <td>
+                                                            @switch (trou.Statut)
+                                                            {
+                                                                case "En Attente":
+                                                                    <span class="badge badge-warning">En Attente</span>
+                                                                    break;
+                                                                case "Appliqué":
+                                                                    <span class="badge badge-success">Appliqué</span>
+                                                                    break;
+                                                                case "Contesté":
+                                                                    <span class="badge badge-danger">Contesté</span>
+                                                                    break;
+                                                                case "Résolu":
+                                                                    <span class="badge badge-info">Résolu</span>
+                                                                    break;
+                                                                default:
+                                                                    <span class="badge badge-secondary">@trou.Statut</span>
+                                                                    break;
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (trou.EstApplique)
+                                                            {
+                                                                <span class="text-success">
+                                                                    <i class="fas fa-check"></i> Oui
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-danger">
+                                                                    <i class="fas fa-times"></i> Non
+                                                                </span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-sm btn-info btn-view-trou"
+                                                                    data-trou-id="@trou.Id">
+                                                                <i class="fas fa-eye"></i> Voir
+                                                            </button>
+                                                            @if (!trou.EstApplique)
+                                                            {
+                                                                <button type="button" class="btn btn-sm btn-success btn-apply-trou"
+                                                                        data-trou-id="@trou.Id">
+                                                                    <i class="fas fa-check"></i> Appliquer
+                                                                </button>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        Aucun trou de caisse détecté pour la période sélectionnée.
+                                        <br><small>Les trous de caisse sont automatiquement détectés lorsque le montant calculé des ventes diffère du montant encaissé.</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- View Trou de Caisse Modal -->
+    <div class="modal fade" id="viewTrouModal" tabindex="-1" aria-labelledby="viewTrouModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewTrouModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Détails Trou de Caisse
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewTrouModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            console.log('Document ready, initializing event handlers...');
+
+            // Verify SweetAlert2 is loaded
+            if (typeof Swal === 'undefined') {
+                console.error('SweetAlert2 is not loaded!');
+            } else {
+                console.log('SweetAlert2 is loaded successfully.');
+            }
+
+            // Initialize DataTables
+            var table = $('#trousTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+                }
+            });
+
+            // Initialize animations
+            if (typeof WOW !== 'undefined') {
+                new WOW().init();
+            }
+
+            // Custom search
+            $('#searchInput').on('keyup', function() {
+                table.search($(this).val()).draw();
+            });
+
+            // View Trou de Caisse Modal
+            $(document).on('click', '.btn-view-trou', function() {
+                var trouId = $(this).data('trou-id');
+                console.log('Viewing trou de caisse:', trouId);
+
+                $('#viewTrouModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
+                $('#viewTrouModal').modal('show');
+
+                $.get('@Url.Action("ViewTrouDeCaisse", "DGF")', { id: trouId })
+                    .done(function(data) {
+                        console.log('ViewTrouDeCaisse response:', data);
+                        $('#viewTrouModalBody').html(data);
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('Error loading trou de caisse details:', error, xhr.responseText);
+                        $('#viewTrouModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données: ' + (error || 'Erreur inconnue') + '</div>');
+                    });
+            });
+
+            // Apply Trou de Caisse
+            $(document).on('click', '.btn-apply-trou', function() {
+                var trouId = $(this).data('trou-id');
+                var button = $(this);
+
+                // Use SweetAlert2 for confirmation
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Confirmation',
+                        text: 'Êtes-vous sûr de vouloir appliquer ce trou de caisse à la commission du PNC responsable ?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oui',
+                        cancelButtonText: 'Non'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            applyTrouDeCaisse(trouId, button);
+                        }
+                    });
+                } else {
+                    console.warn('SweetAlert2 not available, falling back to native confirm.');
+                    if (!window.confirm('Êtes-vous sûr de vouloir appliquer ce trou de caisse à la commission du PNC responsable ?')) {
+                        return;
+                    }
+                    applyTrouDeCaisse(trouId, button);
+                }
+            });
+
+            function applyTrouDeCaisse(trouId, button) {
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Application...');
+
+                $.post('@Url.Action("AppliquerTrouDeCaisse", "DGF")', { id: trouId })
+                    .done(function(response) {
+                        console.log('AppliquerTrouDeCaisse response:', response);
+                        if (response.success) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    title: 'Succès',
+                                    text: response.message || 'Trou de caisse appliqué avec succès.',
+                                    icon: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                alert(response.message || 'Trou de caisse appliqué avec succès.');
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1500);
+                            }
+                        } else {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Erreur', response.message || 'Erreur inconnue.', 'error');
+                            } else {
+                                alert('Erreur: ' + (response.message || 'Erreur inconnue'));
+                            }
+                            button.prop('disabled', false).html('<i class="fas fa-check"></i> Appliquer');
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('Error applying trou de caisse:', error, xhr.responseText);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Erreur', 'Erreur lors de la communication avec le serveur: ' + (error || 'Erreur inconnue'), 'error');
+                        } else {
+                            alert('Erreur lors de la communication avec le serveur: ' + (error || 'Erreur inconnue'));
+                        }
+                        button.prop('disabled', false).html('<i class="fas fa-check"></i> Appliquer');
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

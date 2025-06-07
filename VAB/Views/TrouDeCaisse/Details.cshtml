@@ -1,0 +1,349 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model VAB.ViewModel.TrouDeCaisseViewModel
+@{
+    ViewData["Title"] = "Détails du Trou de Caisse";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Détails du Trou de Caisse</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Trous de Caisse</a></li>
+                    <li class="breadcrumb-item active">Détails</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- État Information -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-warning">
+                        <i class="fas fa-file-invoice"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">État des Ventes</span>
+                        <span class="info-box-number">@Model.NumeroEtat</span>
+                        <span class="info-box-more">@Model.DateEtat.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-danger">
+                        <i class="fas fa-user-tie"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">PNC Responsable</span>
+                        <span class="info-box-number">@Model.PncResponsableNom</span>
+                        <span class="info-box-more">@Model.PncResponsableMatricule</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Montants Summary -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>@Model.MontantCalcule.ToString("C")</h3>
+                        <p>Montant Calculé</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>@Model.MontantEncaisse.ToString("C")</h3>
+                        <p>Montant Encaissé</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-cash-register"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>@Model.MontantManquant.ToString("C")</h3>
+                        <p>Montant Manquant</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles Vendus Details -->
+        @if (Model.ArticlesVendus != null && Model.ArticlesVendus.Any())
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <i class="fas fa-list"></i> Détail des Articles Vendus
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Article</th>
+                                    <th>Quantité Vendue</th>
+                                    <th>Prix Unitaire</th>
+                                    <th>Valeur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var article in Model.ArticlesVendus)
+                                {
+                                    <tr>
+                                        <td>@article.Description</td>
+                                        <td>@article.QuantiteVendu</td>
+                                        <td>@article.PrixUnitaire.ToString("C")</td>
+                                        <td>@article.Valeur.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="thead-light">
+                                <tr>
+                                    <th colspan="3">TOTAL CALCULÉ</th>
+                                    <th>
+                                        <strong class="text-info">
+                                            @Model.MontantCalcule.ToString("C")
+                                        </strong>
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Trou de Caisse Information -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">
+                    <i class="fas fa-info-circle"></i> Informations du Trou de Caisse
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>Date de Détection:</th>
+                                <td>@Model.DateDetection.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <th>Détecté par:</th>
+                                <td>@Model.DetectePar</td>
+                            </tr>
+                            <tr>
+                                <th>Statut:</th>
+                                <td>
+                                    @switch (Model.Statut)
+                                    {
+                                        case "En Attente":
+                                            <span class="badge badge-warning badge-lg">@Model.Statut</span>
+                                            break;
+                                        case "Appliqué":
+                                            <span class="badge badge-success badge-lg">@Model.Statut</span>
+                                            break;
+                                        case "Contesté":
+                                            <span class="badge badge-info badge-lg">@Model.Statut</span>
+                                            break;
+                                        case "Résolu":
+                                            <span class="badge badge-primary badge-lg">@Model.Statut</span>
+                                            break;
+                                        default:
+                                            <span class="badge badge-secondary badge-lg">@Model.Statut</span>
+                                            break;
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Appliqué à la Commission:</th>
+                                <td>
+                                    @if (Model.EstApplique)
+                                    {
+                                        <span class="text-success">
+                                            <i class="fas fa-check"></i> Oui
+                                            @if (Model.DateApplication.HasValue)
+                                            {
+                                                <small class="text-muted">(@Model.DateApplication.Value.ToString("dd/MM/yyyy HH:mm"))</small>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">
+                                            <i class="fas fa-times"></i> Non
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><strong>Motif:</strong></label>
+                            <p class="form-control-static">
+                                @(string.IsNullOrEmpty(Model.Motif) ? "Non spécifié" : Model.Motif)
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Commentaires:</strong></label>
+                            <p class="form-control-static">
+                                @(string.IsNullOrEmpty(Model.Commentaires) ? "Aucun commentaire" : Model.Commentaires)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="btn-group">
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour à la Liste
+                    </a>
+                    @if (!Model.EstApplique)
+                    {
+                        <button type="button" class="btn btn-success" id="applyBtn" data-id="@Model.Id">
+                            <i class="fas fa-check"></i> Appliquer à la Commission
+                        </button>
+                    }
+                    <button type="button" class="btn btn-warning" id="updateStatusBtn"
+                            data-id="@Model.Id" data-status="@Model.Statut">
+                        <i class="fas fa-edit"></i> Modifier le Statut
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Modifier le Statut</h4>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="statusForm">
+                    <input type="hidden" id="statusTrouId" value="@Model.Id" />
+                    <div class="form-group">
+                        <label>Nouveau Statut</label>
+                        <select id="statusSelect" class="form-control">
+                            <option value="En Attente">En Attente</option>
+                            <option value="Appliqué">Appliqué</option>
+                            <option value="Contesté">Contesté</option>
+                            <option value="Résolu">Résolu</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Commentaires</label>
+                        <textarea id="statusCommentaires" class="form-control" rows="3">@Model.Commentaires</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveStatusBtn">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Apply to commission
+            $('#applyBtn').click(function() {
+                var id = $(this).data('id');
+                if (confirm('Êtes-vous sûr de vouloir appliquer ce trou de caisse à la commission?')) {
+                    var btn = $(this);
+                    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Application...');
+
+                    $.post('@Url.Action("ApplyToCommission")', { id: id })
+                        .done(function(response) {
+                            if (response.success) {
+                                alert(response.message);
+                                location.reload();
+                            } else {
+                                alert('Erreur: ' + response.message);
+                            }
+                        })
+                        .fail(function() {
+                            alert('Erreur de communication avec le serveur.');
+                        })
+                        .always(function() {
+                            btn.prop('disabled', false).html('<i class="fas fa-check"></i> Appliquer à la Commission');
+                        });
+                }
+            });
+
+            // Status update
+            $('#updateStatusBtn').click(function() {
+                var currentStatus = $(this).data('status');
+                $('#statusSelect').val(currentStatus);
+                $('#statusModal').modal('show');
+            });
+
+            $('#saveStatusBtn').click(function() {
+                var id = $('#statusTrouId').val();
+                var status = $('#statusSelect').val();
+                var commentaires = $('#statusCommentaires').val();
+
+                var btn = $(this);
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sauvegarde...');
+
+                $.post('@Url.Action("UpdateStatus")', {
+                    id: id,
+                    status: status,
+                    commentaires: commentaires
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#statusModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + response.message);
+                    }
+                })
+                .fail(function() {
+                    alert('Erreur de communication avec le serveur.');
+                })
+                .always(function() {
+                    btn.prop('disabled', false).html('Sauvegarder');
+                });
+            });
+        });
+    </script>
+}

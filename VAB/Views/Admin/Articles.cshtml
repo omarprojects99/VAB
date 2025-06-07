@@ -61,12 +61,34 @@
             font-size: 14px;
             padding: 8px;
         }
+
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
     </style>
 </head>
 <body>
-    <div class="spinner_body">
-        <div class="spinner"></div>
-    </div>
+   
 
     <!-- Header -->
     <header>

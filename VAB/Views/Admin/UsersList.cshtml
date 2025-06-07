@@ -42,6 +42,31 @@
     <link rel="stylesheet" href="~/css/sidebar.css">
     <!-- Responsive CSS -->
     <link rel="stylesheet" href="~/css/responsive.css">
+    <style>
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+    </style>
 </head>
 <body>
     @* <!-- Preloader --> *@
@@ -120,18 +145,31 @@
 
     <!-- Left Sidebar -->
     <section id="left-sidebar-area">
+        <!--   Left Sidebar  -->
         <div id="left-sidebar-section">
+
+
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li><a asp-controller="Admin" asp-action="Dashboard"><i class="material-icons">home</i>Dashboard</a></li>
-                        <li class="active"><a asp-controller="Admin" asp-action="UsersList"><i class="material-icons">supervisor_account</i>Users</a></li>
-                        <li><a asp-controller="Admin" asp-action="Categories"><i class="material-icons">category</i>Categories</a></li>
-                        <li><a asp-controller="Admin" asp-action="Roles"><i class="material-icons">perm_data_setting</i>Role</a></li>
+                        <li><a href="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
+                        <li><a href="@Url.Action("UsersList", "Admin")"><i class="material-icons">supervisor_account</i>Users</a></li>
+                        <li class="active"><a asp-controller="Admin" asp-action="Prices"><i class="material-icons">attach_money</i>Prices</a></li>
+                        <li>
+                            <a href="@Url.Action("Categories", "Admin")">
+                                <i>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-basket2-fill" viewBox="0 0 16 16">
+                                        <path d="M5.929 1.757a.5.5 0 1 0-.858-.514L2.217 6H.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h.623l1.844 6.456A.75.75 0 0 0 3.69 15h8.622a.75.75 0 0 0 .722-.544L14.877 8h.623a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1.717L10.93 1.243a.5.5 0 1 0-.858.514L12.617 6H3.383zM4 10a1 1 0 0 1 2 0v2a1 1 0 1 1-2 0zm3 0a1 1 0 0 1 2 0v2a1 1 0 1 1-2 0zm4-1a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1" />
+                                    </svg>
+                                </i> Categories / Articles
+                            </a>
+                        </li>
+
                     </ul>
                 </div>
             </aside>
         </div>
+        <!--   Left Sidebar  -->
     </section>
 
     <!-- Main Wrapper -->
@@ -147,7 +185,7 @@
                 </nav>
                 <div class="create-item">
                     <button onclick="loadUserForm('/Admin/AddUser')" class="btn btn-primary">➕ Add User</button>
-                    <a href="@Url.Action("AddUser", "Admin")" class="theme-primary-btn btn btn-primary"><i class="material-icons">add</i>Create user</a>
+                 
                     <a href="adduser.html" name="export" class="btn btn-secondary"><i class="material-icons">add</i>Export Excel</a>
                 </div>
             </div>
@@ -183,13 +221,18 @@
                                                     <td>@user.Telephone</td>
                                                     <td>@string.Join(", ", user.Roles)</td>
                                                     <td>
-                                                        <a class="btn btn-sm btn-secondary" href="javascript:void(0);" onclick="loadUserForm('/Admin/ViewUser?id=@user.Id')">
-                                                            👁️ View
+                                                        <a class="btn btn-sm btn-info custom-btn" href="javascript:void(0);" onclick="loadUserForm('/Admin/ViewUser?id=@user.Id')">
+                                                            <i class="material-icons mr-1">visibility</i> View
                                                         </a>
-                                                        <a href="javascript:void(0);" onclick="loadUserForm('/Admin/EditUser?id=@user.Id')" class="btn btn-sm btn-info">✏️ Edit</a>
+                                                        <a href="javascript:void(0);" onclick="loadUserForm('/Admin/EditUser?id=@user.Id')" class="btn btn-sm btn-warning">  <i class="material-icons mr-1">edit</i> Edit</a>
                                                         <form asp-action="DeleteUser" method="post" style="display:inline;">
                                                             <input type="hidden" name="id" value="@user.Id" />
-                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">🗑️ Delete</button>
+                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                                                </svg> Delete
+                                                            </button>
                                                         </form>
                                                     </td>
                                                 </tr>

@@ -5,14 +5,20 @@ using VAB.Models;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using VAB.Hubs;
+using VAB.Services;
 //using TextExtraction; pdf extractor
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddScoped<ITrouDeCaisseService, TrouDeCaisseService>();
 builder.Services.AddSignalR(); // Add SignalR
-
+builder.Services.AddHttpClient();
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole(); // Log to console for debugging
+    logging.AddDebug();
+});
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

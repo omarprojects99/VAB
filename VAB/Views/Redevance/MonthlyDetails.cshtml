@@ -1,0 +1,310 @@
+﻿@model VAB.Models.Redevance
+@{
+    ViewData["Title"] = $"Détails {ViewBag.MoisNom} {ViewBag.Annee}";
+    var mois = ViewBag.Mois;
+    var annee = ViewBag.Annee;
+    var moisNom = ViewBag.MoisNom;
+    var topProducts = ViewBag.TopProducts as List<VAB.Models.TopSellingProduct>;
+    var currentMonth = ViewBag.CurrentMonth as VAB.Models.MonthlyRedevance;
+    var etatsDisponibles = ViewBag.EtatsVentesDisponibles as List<VAB.Models.EtatDesVentesArrivee>;
+    var canCalculate = ViewBag.CanCalculate as bool? ?? false;
+}
+
+@await Html.PartialAsync("_RedevanceNavigation")
+
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Redevances</a></li>
+            <li class="breadcrumb-item"><a asp-action="Dashboard" asp-route-annee="@annee">Dashboard @annee</a></li>
+            <li class="breadcrumb-item active">@moisNom @annee</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-calendar-alt text-primary"></i>
+            Détails @moisNom @annee
+        </h1>
+        <div>
+            @if (Model == null && canCalculate)
+            {
+                <a asp-action="Calculate" asp-route-mois="@mois" asp-route-annee="@annee"
+                   class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> Calculer Redevance
+                </a>
+            }
+            <a asp-action="Dashboard" asp-route-annee="@annee" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (Model != null)
+    {
+        <!-- Redevance Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h6>Total Ventes</h6>
+                        <h3>@Model.TotalVentes.ToString("C")</h3>
+                        <small>@Model.NombreEtats états de ventes</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h6>Redevance (40%)</h6>
+                        <h3>@Model.MontantRedevance.ToString("C")</h3>
+                        <small>Calculée le @Model.DateCalcul.ToString("dd/MM/yyyy")</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card @(Model.IsValidated ? "bg-success" : "bg-warning") text-white">
+                    <div class="card-body text-center">
+                        <h6>Statut</h6>
+                        <h3>
+                            @if (Model.IsValidated)
+                            {
+                                <i class="fas fa-check-circle"></i>
+                            }
+                            else
+                            {
+                                <i class="fas fa-clock"></i>
+                            }
+                        </h3>
+                        <small>@(Model.IsValidated ? "Validée" : "En attente")</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h6>Croissance</h6>
+                        <h3>
+                            @if (currentMonth != null)
+                            {
+                                @currentMonth.CroissanceVsPrecedent.ToString("F1")
+
+                                <span style="font-size: 0.7em;">%</span>
+                            }
+                            else
+                            {
+                                <span>N/A</span>
+                            }
+                        </h3>
+                        <small>vs mois précédent</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        @if (!Model.IsValidated)
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h6><i class="fas fa-exclamation-triangle text-warning"></i> Cette redevance n'est pas encore validée</h6>
+                            <button onclick="validateRedevance(@Model.Id)" class="btn btn-success me-2">
+                                <i class="fas fa-check"></i> Valider la Redevance
+                            </button>
+                            <button onclick="recalculateRedevance(@mois, @annee)" class="btn btn-warning">
+                                <i class="fas fa-redo"></i> Recalculer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Detailed Breakdown -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list-alt"></i> Détail des États de Ventes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>N° État</th>
+                                        <th>Date</th>
+                                        <th>Total Ventes</th>
+                                        <th>Redevance (40%)</th>
+                                        <th>Articles</th>
+                                       
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detail in Model.RedevanceDetails.OrderBy(d => d.DateEtat))
+                                    {
+                                        <tr>
+                                            <td><strong>@detail.NumeroEtat</strong></td>
+                                            <td>@detail.DateEtat.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-success fw-bold">@detail.TotalVentes.ToString("C")</td>
+                                            <td class="text-primary fw-bold">@detail.MontantRedevance.ToString("C")</td>
+                                            <td><span class="badge bg-info">@detail.NombreArticles</span></td>
+                                           
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="table-secondary">
+                                    <tr>
+                                        <th colspan="2">TOTAL</th>
+                                        <th class="text-success">@Model.TotalVentes.ToString("C")</th>
+                                        <th class="text-primary">@Model.MontantRedevance.ToString("C")</th>
+                                        <th>@Model.RedevanceDetails.Sum(d => d.NombreArticles)</th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- No Redevance Calculated -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4>Aucune redevance calculée pour @moisNom @annee</h4>
+
+                        @if (canCalculate)
+                        {
+                            <p class="text-muted">@etatsDisponibles.Count états de ventes validés sont disponibles pour le calcul.</p>
+                            <a asp-action="Calculate" asp-route-mois="@mois" asp-route-annee="@annee"
+                               class="btn btn-primary btn-lg">
+                                <i class="fas fa-calculator"></i> Calculer la Redevance
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Aucun état de ventes validé trouvé pour cette période.</p>
+                           
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (etatsDisponibles != null && etatsDisponibles.Any())
+        {
+            <!-- Available States Preview -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-eye"></i> États de Ventes Disponibles</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>N° État</th>
+                                            <th>Date</th>
+                                            <th>Total Calculé</th>
+                                            <th>Redevance Potentielle</th>
+                                            <th>Articles</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var etat in etatsDisponibles)
+                                        {
+                                            var totalEtat = etat.ArticleVentes.Sum(av => av.QuantiteVendu * av.PrixUnitaireHT);
+                                            <tr>
+                                                <td><strong>@etat.Numero</strong></td>
+                                                <td>@etat.DateEdition.ToString("dd/MM/yyyy")</td>
+                                                <td class="text-success">@totalEtat.ToString("C")</td>
+                                                <td class="text-primary">@((totalEtat * 0.40m).ToString("C"))</td>
+                                                <td><span class="badge bg-info">@etat.ArticleVentes.Count</span></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-secondary">
+                                        <tr>
+                                            <th colspan="2">TOTAL POTENTIEL</th>
+                                            <th class="text-success">@etatsDisponibles.Sum(e => e.ArticleVentes.Sum(av => av.QuantiteVendu * av.PrixUnitaireHT)).ToString("C")</th>
+                                            <th class="text-primary">@((etatsDisponibles.Sum(e => e.ArticleVentes.Sum(av => av.QuantiteVendu * av.PrixUnitaireHT)) * 0.40m).ToString("C"))</th>
+                                            <th>@etatsDisponibles.Sum(e => e.ArticleVentes.Count)</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Top Products for this Month -->
+    @if (topProducts != null && topProducts.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-star"></i> Top Produits - @moisNom @annee</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach (var produit in topProducts.Take(6))
+                            {
+                                <div class="col-lg-4 col-md-6 mb-3">
+                                    <div class="card border-left-primary h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">@produit.Description</h6>
+                                            <p class="card-text">
+                                                <small class="text-muted">@produit.Categorie</small><br>
+                                                <strong class="text-success">@produit.ValeurTotale.ToString("C")</strong><br>
+                                                <small>@produit.QuantiteTotale unités • @produit.NombreVentes ventes</small><br>
+                                                <span class="text-primary">@produit.RedevanceGeneree.ToString("C") redevance</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function validateRedevance(id) {
+            if (confirm('Êtes-vous sûr de vouloir valider cette redevance ? Cette action est irréversible.')) {
+                fetch('@Url.Action("Validate")/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                }).then(() => location.reload());
+            }
+        }
+
+        function recalculateRedevance(mois, annee) {
+            if (confirm('Recalculer la redevance ? Les données actuelles seront remplacées.')) {
+                window.location.href = '@Url.Action("Calculate")?mois=' + mois + '&annee=' + annee;
+            }
+        }
+    </script>
+}
+

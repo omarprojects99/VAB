@@ -1,0 +1,965 @@
+﻿@model VAB.Models.RedevanceAnalytics
+@{
+    ViewData["Title"] = "Dashboard Redevances";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard Redevances - Analytics">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <style>
+
+        .month-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+            .month-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            }
+
+        .bg-gradient-primary {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+        }
+
+        .bg-gradient-success {
+            background: linear-gradient(45deg, #28a745, #1e7e34);
+        }
+
+        .bg-gradient-info {
+            background: linear-gradient(45deg, #17a2b8, #117a8b);
+        }
+
+        .bg-gradient-warning {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .text-warning {
+            color: #ffc107 !important;
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        @@media (max-width: 576px) {
+            .modal-dialog.modal-alert {
+                max-width: 90%;
+            }
+        }
+
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .card-body-icon i {
+            opacity: 0.3;
+            font-size: 4rem;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            padding: 12px 20px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+            .nav-tabs .nav-link.active {
+                color: #007bff;
+                border-bottom: 3px solid #007bff;
+                background-color: transparent;
+            }
+
+        .small-box {
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 0;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .small-box h3 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: white;
+            }
+
+            .small-box p {
+                font-size: 1rem;
+                color: rgba(255,255,255,0.8);
+            }
+
+        .small-box-footer {
+            position: relative;
+            text-align: center;
+            padding: 3px 0;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            display: block;
+        }
+
+            .small-box-footer:hover {
+                color: #fff;
+                background: rgba(0,0,0,0.15);
+                text-decoration: none;
+            }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 8px;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                border-bottom-width: 1px;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+        .table-bordered {
+            border: 1px solid #e9ecef;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.04);
+        }
+
+        .btn {
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .card-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 12px 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .animated {
+            animation-duration: 0.5s;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 15px;
+            }
+
+            .small-box h3 {
+                font-size: 1.8rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .card-tools {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <!-- Brand logo -->
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User profile dropdown -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Gestionnaire Redevances</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Reports">
+                                <i class="material-icons">assessment</i> Rapports
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Edit">
+                                <i class="material-icons">settings</i> Taux D'echange
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a asp-controller="Redevance" asp-action="Index">
+                                <i class="fas fa-calculator"></i> Redevances
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Breadcrumb -->
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index"><i class="material-icons">home</i></a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Redevance" asp-action="Index"><i class="fas fa-calculator"></i> Redevances</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Dashboard @ViewBag.Annee
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Dashboard content -->
+            <div class="main-content">
+                <div class="container-fluid">
+                    <!-- Year Selector -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-line mr-2"></i>
+                                Dashboard Redevances @ViewBag.Annee
+                            </h5>
+                            <div class="card-tools">
+                                <select id="yearSelector" class="form-control" style="width: auto;">
+                                    @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                                    {
+                                        <option value="@year" selected="@(ViewBag.Annee == year)">@year</option>
+                                    }
+                                </select>
+                                <button type="button" style="background-color:darkgray"class="btn btn-sm" id="btnCalculateRedevance">
+                                    <i class="fas fa-calculator"></i> Calculer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Stats -->
+                    <div class="row animated fadeInUp">
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3 id="ventesAujourdhui">0 €</h3>
+                                    <p>Ventes Aujourd'hui</p>
+                                    <small>Redevance: <span id="redevanceAujourdhui">0 €</span></small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-euro-sign"></i>
+                                </div>
+                                <a href="#ventes" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>@Model.TotalRedevanceAnnuelle.ToString("C")</h3>
+                                    <p>Total Annuel</p>
+                                    <small>Moyenne: @Model.MoyenneMensuelle.ToString("C")/mois</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <a href="#annuel" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>@Model.CroissanceAnnuelle.ToString("F1")%</h3>
+                                    <p>Croissance</p>
+                                    <small>vs année précédente</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-trending-up"></i>
+                                </div>
+                                <a href="#croissance" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3>@Model.MeilleurMois</h3>
+                                    <p>Meilleur Mois</p>
+                                    <small>Performance optimale</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <a href="#performance" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row animated fadeIn">
+                        <div class="col-lg-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-area"></i> Évolution Mensuelle des Redevances</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="monthlyChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-pie"></i> Top Produits</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="productsChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Performance Grid - CLICKABLE -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <h5><i class="fas fa-calendar-alt"></i> Performance Mensuelle Détaillée</h5>
+                            <small class="text-muted">Cliquez sur un mois pour voir les détails</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                @foreach (var mois in Model.RedevancesMensuelles)
+                                {
+                                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                        <div class="card @(mois.IsValidated ? "border-success" : "border-warning") h-100 month-card"
+                                             onclick="openMonthDetails(@mois.Mois, @mois.Annee)">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">
+                                                    @mois.MoisNom
+                                                    <i class="fas fa-external-link-alt ms-2 text-muted" style="font-size: 0.8em;"></i>
+                                                </h6>
+                                                <h4 class="text-primary">@mois.Montant.ToString("C")</h4>
+                                                <small class="text-muted">@mois.TotalVentes.ToString("C") ventes</small>
+                                                <br>
+                                                <small class="@(mois.CroissanceVsPrecedent >= 0 ? "text-success" : "text-danger")">
+                                                    <i class="fas fa-@(mois.CroissanceVsPrecedent >= 0 ? "arrow-up" : "arrow-down")"></i>
+                                                    @mois.CroissanceVsPrecedent.ToString("F1")%
+                                                </small>
+                                                <br>
+                                                @if (mois.IsValidated)
+                                                {
+                                                    <span class="badge badge-success mt-2">
+                                                        <i class="fas fa-check"></i> Validé
+                                                    </span>
+                                                }
+                                                else if (mois.Montant > 0)
+                                                {
+                                                    <span class="badge badge-warning mt-2">
+                                                        <i class="fas fa-clock"></i> En attente
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-secondary mt-2">
+                                                        <i class="fas fa-calculator"></i> Non calculé
+                                                    </span>
+                                                }
+                                                @if (mois.NombreEtats > 0)
+                                                {
+                                                    <br>
+                                                    <small class="text-info mt-1">@mois.NombreEtats états de ventes</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Products and Performance -->
+                    <div class="row animated fadeIn">
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-star"></i> Top Produits Vendus</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.TopProduits.Any())
+                                    {
+                                        @foreach (var produit in Model.TopProduits.Take(5))
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                                <div>
+                                                    <h6 class="mb-1">@produit.Description</h6>
+                                                    <small class="text-muted">@produit.Categorie • @produit.QuantiteTotale unités</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="text-success fw-bold">@produit.ValeurTotale.ToString("C")</div>
+                                                    <small class="text-primary">@produit.RedevanceGeneree.ToString("C") redevance</small>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted text-center">Aucune donnée disponible</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-users"></i> Performance Équipages</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.PerformanceEquipages.Any())
+                                    {
+                                        @foreach (var equipage in Model.PerformanceEquipages.Take(5))
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                                <div>
+                                                    <h6 class="mb-1">@equipage.EquipageInfo.Split(',')[0]</h6>
+                                                    <small class="text-muted">@equipage.NombreVols vols • @equipage.VenteMoyenneParVol.ToString("C")/vol</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="text-success fw-bold">@equipage.TotalVentes.ToString("C")</div>
+                                                    <small class="text-primary">@equipage.RedevanceGeneree.ToString("C") redevance</small>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted text-center">Aucune donnée disponible</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculate Redevance Modal -->
+    <div class="modal fade" id="calculateRedevanceModal" tabindex="-1" aria-labelledby="calculateRedevanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="calculateRedevanceModalLabel">
+                        <i class="fas fa-calculator mr-2"></i>Calculer Nouvelle Redevance
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="calculateRedevanceModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewDetailsModalLabel">
+                        <i class="fas fa-eye mr-2"></i>Détails Mensuels
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewDetailsModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+        // Month card click handler
+        function openMonthDetails(mois, annee) {
+            $('#viewDetailsModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
+            $('#viewDetailsModal').modal('show');
+
+            $.get('@Url.Action("MonthlyDetails")', { mois: mois, annee: annee })
+                .done(function(data) {
+                    $('#viewDetailsModalBody').html(data);
+                })
+                .fail(function() {
+                    $('#viewDetailsModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données.</div>');
+                });
+        }
+
+        $(document).ready(function() {
+            // Month card hover effects
+            document.querySelectorAll('.month-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
+            });
+
+            // Real-time stats update
+            function updateRealTimeStats() {
+                fetch('@Url.Action("GetRealTimeStats")')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('ventesAujourdhui').textContent =
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(data.ventesAujourdhui);
+                        document.getElementById('redevanceAujourdhui').textContent =
+                            new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(data.redevanceAujourdhui);
+                    });
+            }
+
+            setInterval(updateRealTimeStats, 30000);
+            updateRealTimeStats();
+
+            // Year selector
+            document.getElementById('yearSelector').addEventListener('change', function() {
+                window.location.href = '@Url.Action("Dashboard")?annee=' + this.value;
+            });
+
+            // Calculate Redevance Modal
+            $('#btnCalculateRedevance').on('click', function(e) {
+                e.preventDefault();
+
+                $('#calculateRedevanceModalBody').html(`
+                    <form id="calculateRedevanceForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="mois">Mois</label>
+                                    <select name="mois" id="mois" class="form-control" required>
+                                        <option value="1">Janvier</option>
+                                        <option value="2">Février</option>
+                                        <option value="3">Mars</option>
+                                        <option value="4">Avril</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Juin</option>
+                                        <option value="7">Juillet</option>
+                                        <option value="8">Août</option>
+                                        <option value="9">Septembre</option>
+                                        <option value="10">Octobre</option>
+                                        <option value="11">Novembre</option>
+                                        <option value="12">Décembre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="annee">Année</label>
+                                    <select name="annee" id="annee" class="form-control" required>
+                                        ${Array.from({length: 5}, (_, i) => {
+                                            const year = new Date().getFullYear() - i;
+                                            return `<option value="${year}">${year}</option>`;
+                                        }).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                La redevance sera calculée à 40% du chiffre d'affaires total des états de ventes validés pour la période sélectionnée.
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calculator"></i> Calculer
+                            </button>
+                        </div>
+                    </form>
+                `);
+
+                // Set current month and year as default
+                const now = new Date();
+                $('#mois').val(now.getMonth() + 1);
+                $('#annee').val(now.getFullYear());
+
+                $('#calculateRedevanceModal').modal('show');
+            });
+
+            // Handle calculate form submission
+            $(document).on('submit', '#calculateRedevanceForm', function(e) {
+                e.preventDefault();
+
+                const formData = $(this).serialize();
+                const submitBtn = $(this).find('button[type="submit"]');
+
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Calcul en cours...');
+
+                $.post('@Url.Action("Calculate")', formData)
+                    .done(function(response) {
+                        $('#calculateRedevanceModal').modal('hide');
+                        alert('Redevance calculée avec succès!');
+                        location.reload();
+                    })
+                    .fail(function() {
+                        alert('Erreur lors de la communication avec le serveur.');
+                    })
+                    .always(function() {
+                        submitBtn.prop('disabled', false).html('<i class="fas fa-calculator"></i> Calculer');
+                    });
+            });
+
+            // Monthly Chart
+            fetch('@Url.Action("GetChartData")?type=monthly&annee=@ViewBag.Annee')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('monthlyChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.map(d => d.month),
+                            datasets: [{
+                                label: 'Redevances',
+                                data: data.map(d => d.redevance),
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Ventes',
+                                data: data.map(d => d.ventes),
+                                borderColor: 'rgb(255, 99, 132)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    grid: {
+                                        drawOnChartArea: false,
+                                    },
+                                }
+                            }
+                        }
+                    });
+                });
+
+            // Products Chart
+            fetch('@Url.Action("GetChartData")?type=products&annee=@ViewBag.Annee')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('productsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.map(d => d.product),
+                            datasets: [{
+                                data: data.map(d => d.value),
+                                backgroundColor: [
+                                    '#FF6384',
+                                    '#36A2EB',
+                                    '#FFCE56',
+                                    '#4BC0C0',
+                                    '#9966FF'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+    </script>
+</body>
+</html>

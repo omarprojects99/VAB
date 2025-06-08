@@ -1,0 +1,64 @@
+﻿@{
+    var currentPage = ViewBag.CurrentPage as string ?? "";
+    var annee = ViewBag.Annee ?? DateTime.Now.Year;
+}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-calculator text-primary"></i>
+            <strong>Redevances</strong>
+        </a>
+
+        <div class="navbar-nav me-auto">
+            <a class="nav-link @(currentPage == "Dashboard" ? "active" : "")"
+               asp-action="Dashboard" asp-route-annee="@annee">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a class="nav-link @(currentPage == "Index" ? "active" : "")"
+               asp-action="Index">
+                <i class="fas fa-list"></i> Liste
+            </a>
+            <a class="nav-link @(currentPage == "Analytics" ? "active" : "")"
+               asp-action="Analytics" asp-route-annee="@annee">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </a>
+            <a class="nav-link @(currentPage == "Calculate" ? "active" : "")"
+               asp-action="Calculate">
+                <i class="fas fa-plus"></i> Calculer
+            </a>
+        </div>
+
+        <div class="navbar-nav">
+            <div class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-calendar"></i> @annee
+                </a>
+                <ul class="dropdown-menu">
+                    @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                    {
+                        <li>
+                            <a class="dropdown-item @(annee.ToString() == year.ToString() ? "active" : "")"
+                               asp-action="@ViewContext.RouteData.Values["action"]" asp-route-annee="@year">
+                                @year
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .navbar-nav .nav-link.active {
+        background-color: #007bff;
+        color: white !important;
+        border-radius: 5px;
+    }
+
+    .navbar-nav .nav-link:hover {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+</style>

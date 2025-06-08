@@ -300,29 +300,29 @@
             <!--  Header BreadCrumb -->
             <!-- Create New User -->
 <div class="container-fluid px-4 py-3">
-    <h5 class="mb-4 fw-bold text-danger">➕ Add New User</h5>
+    <h5 class="mb-4 fw-bold text-danger"> Add New User</h5>
 
     <form asp-action="AddUser" method="post">
         @Html.AntiForgeryToken()
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Name</label>
-            <input asp-for="NomPrenom" class="form-control rounded shadow-sm" placeholder="Full Name" required />
+            <label class="form-label fw-semibold text-dark">Name</label>
+            <input asp-for="NomPrenom" class="form-control border-1 px-3 py-2" style="border-radius: 0;" placeholder="Full Name" required />
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Email</label>
-            <input asp-for="Email" class="form-control rounded shadow-sm" placeholder="example@domain.com" type="email" required />
+            <label class="form-label fw-semibold text-dark">Email</label>
+            <input asp-for="Email" type="email" class="form-control border-1 px-3 py-2" style="border-radius: 0;" placeholder="example@domain.com" required />
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Phone Number</label>
-            <input asp-for="Telephone" class="form-control rounded shadow-sm" placeholder="+216 XX XXX XXX" required />
+            <label class="form-label fw-semibold text-dark">Phone Number</label>
+            <input asp-for="Telephone" class="form-control border-1 px-3 py-2" style="border-radius: 0;" placeholder="+216 XX XXX XXX" required />
         </div>
 
         <div class="mb-4">
-            <label class="form-label fw-semibold">Role</label>
-            <select asp-for="Role" class="form-select rounded shadow-sm" required>
+            <label class="form-label fw-semibold text-dark">Role</label>
+            <select asp-for="Role" class="form-select border-1 px-3 py-2" style="border-radius: 0;" required>
                 <option value="">-- Select Role --</option>
                 <option value="Admin">Admin</option>
                 <option value="AgentSaisie">Agent de la saisie</option>
@@ -332,7 +332,7 @@
         </div>
 
         <div class="text-end">
-            <button type="submit" class="btn btn-danger px-4 py-2 rounded-pill shadow-sm">
+            <button type="submit" class="btn px-4 py-2 text-white fw-semibold" style="background-color: #8B0000; border-radius: 0;">
                 <i class="bi bi-person-plus-fill me-2"></i> Create
             </button>
         </div>

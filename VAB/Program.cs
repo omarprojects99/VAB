@@ -12,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ITrouDeCaisseService, TrouDeCaisseService>();
+builder.Services.AddScoped<IRedevanceService, RedevanceService>();
+builder.Services.AddScoped<IRedevanceAnalyticsService, RedevanceAnalyticsService>();
 builder.Services.AddSignalR(); // Add SignalR
 builder.Services.AddHttpClient();
 builder.Services.AddLogging(logging =>

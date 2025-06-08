@@ -37,11 +37,7 @@ window.confirm = function (message) {
 
 
     //===== Prealoader
-    
-    $(window).on('load', function(){
-        $('.spinner_body').delay(500).fadeOut(500);
-    });
-
+  
 
 
   // Wow Js

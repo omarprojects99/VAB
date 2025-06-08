@@ -259,32 +259,150 @@
         }
 
         @@media (max-width: 768px) {
-            .dashboard-card {
-                margin-bottom: 15px;
+            .dashboard-card
+
+        {
+            margin-bottom: 15px;
+        }
+
+        .small-box h3 {
+            font-size: 1.8rem;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+
+        .card-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card-tools {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        }
+
+        /* Modal styles for CodePen-inspired design */
+        .modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+            .modal.show {
+                display: flex !important;
             }
 
-            .small-box h3 {
-                font-size: 1.8rem;
+        .modal-dialog.modal-alert {
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-body {
+            min-height: 10rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+            .icon-container .icon {
+                width: 40px;
+                height: 40px;
+                fill: currentColor;
             }
 
-            .nav-tabs .nav-link {
-                padding: 10px 15px;
-                font-size: 0.9rem;
+        .modal-footer {
+            border-top: none;
+            padding: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
             }
 
-            .card-header {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .text-primary {
+            color: #007bff !important;
+        }
 
-            .card-tools {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
+        .text-warning {
+            color: #ffc107 !important;
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        @@media (max-width: 576px) {
+            .modal-dialog.modal-alert
+
+        {
+            max-width: 90%;
+        }
+
         }
     </style>
 </head>
 <body>
+    <svg style="display: none;">
+        <symbol id="info-circle-outline" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+        </symbol>
+        <symbol id="warning-triangle-outline" viewBox="0 0 24 24">
+            <path d="M12 2L1 21h22L12 2zm0 2.83L19.07 18H4.93L12 4.83zM12 9h-1v6h1V9zm0 8h-1v2h1v-2z" />
+        </symbol>
+        <symbol id="error-circle-outline" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 6.48 10 12 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1.41-11.41L13 9l-1.41 1.41L10.17 12l1.41 1.41L13 12l1.41 1.41L15.83 12l-1.41-1.41L13 10.59l1.41-1.41z" />
+        </symbol>
+        <symbol id="check-circle-outline" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z" />
+        </symbol>
+    </svg>
+
     <!-- Header -->
     <header>
         <div class="header">
@@ -362,8 +480,8 @@
                             </a>
                         </li>
                         <li>
-                            <a asp-controller="DGF" asp-action="Reports">
-                                <i class="material-icons">assessment</i> Rapports
+                            <a asp-controller="DGF" asp-action="PncBilanDashboard">
+                                <i class="material-icons">assessment</i> Transaction Pnc
                             </a>
                         </li>
                         <li>
@@ -374,6 +492,11 @@
                         <li>
                             <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
                                 <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Redevance" asp-action="Dashboard">
+                                <i class="fas fa-calculator"></i> Redevances
                             </a>
                         </li>
                     </ul>
@@ -429,7 +552,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label>&nbsp;</label>
+                                            <label> </label>
                                             <div>
                                                 <button type="submit" class="btn btn-primary">
                                                     <i class="fas fa-filter"></i> Filtrer
@@ -674,7 +797,7 @@
                         <i class="fas fa-calculator mr-2"></i>Calculer Commission PNC
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                        <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body" id="calculateCommissionModalBody">
@@ -712,7 +835,7 @@
                         <i class="fas fa-bug mr-2"></i>Debug EcartMoins
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                        <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body" id="debugModalBody">
@@ -725,6 +848,82 @@
         </div>
     </div>
 
+    <!-- Detect All Trous de Caisse Confirmation Modal -->
+    <div class="modal" id="detectAllTrousModal" tabindex="-1" role="dialog" aria-labelledby="detectAllTrousModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-alert w-100">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="detectAllTrousModalLabel">
+                        <i class="fas fa-search-dollar mr-2"></i>Détecter Tous les Trous de Caisse
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="text-danger icon-container">
+                        <svg class="icon">
+                            <use xlink:href="#error-circle-outline"></use>
+                        </svg>
+                    </div>
+                    <h5 class="mt-2">Confirmer la détection automatique</h5>
+                    <p>Voulez-vous lancer la détection automatique de tous les trous de caisse pour les états validés ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary demo-close" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" id="confirmDetectAllTrous">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detect All Trous de Caisse Result Modal -->
+    <div class="modal" id="detectAllTrousResultModal" tabindex="-1" role="dialog" aria-labelledby="detectAllTrousResultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-alert w-100">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detectAllTrousResultModalLabel">
+                        <i class="fas fa-search-dollar mr-2"></i>Résultat de la Détection
+                    </h5>
+                </div>
+                <div class="modal-body" id="detectAllTrousResultModalBody">
+                    <div class="icon-container">
+                        <svg class="icon">
+                            <use xlink:href="#check-circle-outline"></use>
+                        </svg>
+                    </div>
+                    <h5 class="mt-2">Résultat</h5>
+                    <p id="detectAllTrousResultMessage">Chargement...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary demo-close" data-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detect Trou de Caisse Modal -->
+    <div class="modal" id="detectTrouModal" tabindex="-1" role="dialog" aria-labelledby="detectTrouModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-alert w-100">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-warning" id="detectTrouModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Détecter Trou de Caisse
+                    </h5>
+                </div>
+                <div class="modal-body" id="detectTrouModalBody">
+                    <div class="text-warning icon-container">
+                        <svg class="icon">
+                            <use xlink:href="#warning-triangle-outline"></use>
+                        </svg>
+                    </div>
+                    <h5 class="mt-2">Résultat de la Détection</h5>
+                    <p id="detectTrouResultMessage">Chargement...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary demo-close" data-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="~/js/jquery.min.js"></script>
     <script src="~/js/bootstrap.min.js"></script>
@@ -732,7 +931,7 @@
     <script src="~/js/dataTables.bootstrap4.min.js"></script>
     <script src="~/js/Chart.min.js"></script>
     <script src="~/js/wow.min.js"></script>
-    
+
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="~/js/script.js"></script>
@@ -797,22 +996,22 @@
                     });
             });
 
-            // View Commission Modal
-            $('.btn-view-commission').on('click', function(e) {
-                e.preventDefault();
-                var etatId = $(this).data('etat-id');
+                   // View Commission Modal
+        $('.btn-view-commission').on('click', function(e) {
+            e.preventDefault();
+            var etatId = $(this).data('etat-id');
 
-                $('#viewCommissionModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
-                $('#viewCommissionModal').modal('show');
+            $('#viewCommissionModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
+            $('#viewCommissionModal').modal('show');
 
-                $.get('@Url.Action("ViewCommission", "DGF")', { etatId: etatId })
-                    .done(function(data) {
-                        $('#viewCommissionModalBody').html(data);
-                    })
-                    .fail(function() {
-                        $('#viewCommissionModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données.</div>');
-                    });
-            });
+            $.get('@Url.Action("ViewCommission", "DGF")', { etatId: etatId })
+                .done(function(data) {
+                    $('#viewCommissionModalBody').html(data);
+                })
+                .fail(function() {
+                    $('#viewCommissionModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données.</div>');
+                });
+        });
 
             // Detect Trou de Caisse
             $('.btn-detect-trou').on('click', function(e) {
@@ -821,26 +1020,53 @@
                 var button = $(this);
 
                 button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Détection...');
+                $('#detectTrouModalBody').html(
+                    '<div class="text-warning icon-container">' +
+                    '<svg class="icon"><use xlink:href="#warning-triangle-outline"></use></svg>' +
+                    '</div>' +
+                    '<h5 class="mt-2">Détection en cours</h5>' +
+                    '<p id="detectTrouResultMessage">Veuillez patienter pendant la détection du trou de caisse.</p>'
+                );
+                $('#detectTrouModal').modal('show');
 
                 $.get('@Url.Action("DetectTrouDeCaisse", "DGF")', { etatId: etatId })
                     .done(function(response) {
-                        // Check if response is JSON (error/info message)
+                        var modalTitle = $('#detectTrouModalLabel');
+                        var modalBody = $('#detectTrouModalBody');
+                        var iconContainer = modalBody.find('.icon-container');
+                        var messageContainer = $('#detectTrouResultMessage');
+
                         if (typeof response === 'object' && response.hasOwnProperty('success')) {
-                            if (response.success === false) {
-                                alert('Info: ' + response.message);
+                            if (response.success) {
+                                modalTitle.removeClass('text-warning').addClass('text-success');
+                                iconContainer.removeClass('text-warning').addClass('text-success');
+                                iconContainer.find('svg use').attr('xlink:href', '#check-circle-outline');
+                                messageContainer.text(response.message || 'Trou de caisse détecté avec succès.');
                             } else {
-                                alert('Succès: ' + response.message);
+                                modalTitle.removeClass('text-warning').addClass('text-danger');
+                                iconContainer.removeClass('text-warning').addClass('text-danger');
+                                iconContainer.find('svg use').attr('xlink:href', '#error-circle-outline');
+                                messageContainer.text(response.message || 'Aucun trou de caisse détecté.');
                             }
+                            $('#detectTrouModal').modal('show');
                         } else {
-                            // Response is HTML (partial view)
                             $('#calculateCommissionModalBody').html(response);
                             $('#calculateCommissionModalLabel').text('Détecter Trou de Caisse');
                             $('#calculateCommissionModal').modal('show');
+                            $('#detectTrouModal').modal('hide');
                         }
                     })
                     .fail(function(xhr, status, error) {
-                        console.error('Detection error:', error);
-                        alert('Erreur lors de la détection: ' + error);
+                        var modalTitle = $('#detectTrouModalLabel');
+                        var modalBody = $('#detectTrouModalBody');
+                        var iconContainer = modalBody.find('.icon-container');
+                        var messageContainer = $('#detectTrouResultMessage');
+
+                        modalTitle.removeClass('text-warning').addClass('text-danger');
+                        iconContainer.removeClass('text-warning').addClass('text-danger');
+                        iconContainer.find('svg use').attr('xlink:href', '#error-circle-outline');
+                        messageContainer.text('Erreur lors de la détection: ' + (error || 'Erreur inconnue'));
+                        $('#detectTrouModal').modal('show');
                     })
                     .always(function() {
                         button.prop('disabled', false).html('<i class="fas fa-exclamation-triangle"></i> Détecter');
@@ -848,172 +1074,150 @@
             });
 
             // Detect All Trous de Caisse
-                   $('#btnDetectAllTrousDeCaisse').on('click', function() {
-            var button = $(this);
+            $('#btnDetectAllTrousDeCaisse').on('click', function() {
+                var button = $(this);
+                $('#detectAllTrousModal').modal('show');
+            });
 
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Confirmation',
-                    text: 'Êtes-vous sûr de vouloir détecter tous les trous de caisse pour les états validés ?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Oui',
-                    cancelButtonText: 'Non'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        detectAllTrousDeCaisse(button);
-                    }
-                });
-            } else {
-                console.warn('SweetAlert2 not available, falling back to native confirm.');
-                if (!window.confirm('Êtes-vous sûr de vouloir détecter tous les trous de caisse pour les états validés ?')) {
-                    return;
-                }
-                detectAllTrousDeCaisse(button);
-            }
-        });
+            $('#confirmDetectAllTrous').on('click', function() {
+                var button = $('#btnDetectAllTrousDeCaisse');
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Détection en cours...');
+                $('#detectAllTrousModal').modal('hide');
 
-        function detectAllTrousDeCaisse(button) {
-            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Détection en cours...');
+                $.post('@Url.Action("DetectAllTrousDeCaisse", "DGF")')
+                    .done(function(response) {
+                        var modalTitle = $('#detectAllTrousResultModalLabel');
+                        var modalBody = $('#detectAllTrousResultModalBody');
+                        var iconContainer = modalBody.find('.icon-container');
+                        var messageContainer = $('#detectAllTrousResultMessage');
 
-            $.post('@Url.Action("DetectAllTrousDeCaisse", "DGF")')
-                .done(function(response) {
-                    if (response.success) {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                title: 'Succès',
-                                text: (response.message || 'Trous de caisse détectés avec succès.') + '\n\n' + (response.details || ''),
-                                icon: 'success',
-                                timer: 7500,
-                                showConfirmButton: false
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            alert(response.message + '\n\n' + (response.details || ''));
+                        if (response.success) {
+                            modalTitle.removeClass('text-danger').addClass('text-success');
+                            iconContainer.removeClass('text-danger').addClass('text-success');
+                            iconContainer.find('svg use').attr('xlink:href', '#check-circle-outline');
+                            messageContainer.text((response.message || 'Trous de caisse détectés avec succès.') + (response.details ? '\n\n' + response.details : ''));
+                            $('#detectAllTrousResultModal').modal('show');
                             setTimeout(function() {
+                                $('#detectAllTrousResultModal').modal('hide');
                                 location.reload();
-                            }, 1500);
-                        }
-                    } else {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire('Erreur', response.message || 'Erreur inconnue.', 'error');
+                            }, 7500);
                         } else {
-                            alert('Erreur: ' + response.message);
+                            modalTitle.removeClass('text-success').addClass('text-danger');
+                            iconContainer.removeClass('text-success').addClass('text-danger');
+                            iconContainer.find('svg use').attr('xlink:href', '#error-circle-outline');
+                            messageContainer.text(response.message || 'Erreur inconnue.');
+                            $('#detectAllTrousResultModal').modal('show');
                         }
-                    }
-                })
-                .fail(function(xhr, status, error) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Erreur', 'Erreur lors de la détection automatique: ' + (error || 'Erreur inconnue'), 'error');
-                    } else {
-                        alert('Erreur lors de la détection automatique: ' + error);
-                    }
-                })
-                .always(function() {
-                    button.prop('disabled', false).html('<i class="fas fa-search-dollar"></i> Détecter Tous les Trous de Caisse');
-                });
-        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        var modalTitle = $('#detectAllTrousResultModalLabel');
+                        var modalBody = $('#detectAllTrousResultModalBody');
+                        var iconContainer = modalBody.find('.icon-container');
+                        var messageContainer = $('#detectAllTrousResultMessage');
+
+                        modalTitle.removeClass('text-success').addClass('text-danger');
+                        iconContainer.removeClass('text-success').addClass('text-danger');
+                        iconContainer.find('svg use').attr('xlink:href', '#error-circle-outline');
+                        messageContainer.text('Erreur lors de la détection automatique: ' + (error || 'Erreur inconnue'));
+                        $('#detectAllTrousResultModal').modal('show');
+                    })
+                    .always(function() {
+                        button.prop('disabled', false).html('<i class="fas fa-search-dollar"></i> Détecter Tous les Trous de Caisse');
+                    });
+            });
 
             // Debug EcartMoins
-                    $('#btnDebugEcartMoins').on('click', function() {
-            $('#debugModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Chargement des données de debug...</p></div>');
-            $('#debugModal').modal('show');
+            $('#btnDebugEcartMoins').on('click', function() {
+                $('#debugModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Chargement des données de debug...</p></div>');
+                $('#debugModal').modal('show');
 
-            $.get('@Url.Action("DebugEcartMoins", "DGF")')
-                .done(function(response) {
-                    // Log the full response for debugging
-                    console.log('DebugEcartMoins Response:', response);
+                $.get('@Url.Action("DebugEcartMoins", "DGF")')
+                    .done(function(response) {
+                        console.log('DebugEcartMoins Response:', response);
 
-                    if (response.success) {
-                        var html = '<div class="alert alert-info">' + (response.message || 'Aucun message') + '</div>';
-                        html += '<div class="alert alert-warning">Trous existants: ' + (response.existingTrousCount || 0) + '</div>';
-                        html += '<div class="table-responsive">';
-                        html += '<table class="table table-bordered table-striped table-hover" id="debugTable">';
-                        html += '<thead><tr><th>ID</th><th>Numéro</th><th>EcartMoins</th><th>Total Encaissé</th><th>Validé</th><th>PNC Responsable</th><th>A déjà un Trou</th><th>Date</th><th>Action</th></tr></thead>';
-                        html += '<tbody>';
+                        if (response.success) {
+                            var html = '<div class="alert alert-info">' + (response.message || 'Aucun message') + '</div>';
+                            html += '<div class="alert alert-warning">Trous existants: ' + (response.existingTrousCount || 0) + '</div>';
+                            html += '<div class="table-responsive">';
+                            html += '<table class="table table-bordered table-striped table-hover" id="debugTable">';
+                            html += '<thead><tr><th>ID</th><th>Numéro</th><th>EcartMoins</th><th>Total Encaissé</th><th>Validé</th><th>PNC Responsable</th><th>A déjà un Trou</th><th>Date</th><th>Action</th></tr></thead>';
+                            html += '<tbody>';
 
-                        if (response.etats && Array.isArray(response.etats)) {
-                            response.etats.forEach(function(etat, index) {
-                                // Log each etat object for debugging
-                                console.log('Etat #' + index + ':', etat);
+                            if (response.etats && Array.isArray(response.etats)) {
+                                response.etats.forEach(function(etat, index) {
+                                    console.log('Etat #' + index + ':', etat);
 
-                                // Access properties with fallback for camelCase or PascalCase
-                                var id = etat.Id || etat.id || 'N/A';
-                                var numero = etat.Numero || etat.numero || 'N/A';
-                                var ecartMoins = (etat.EcartMoins || etat.ecartMoins || 0);
-                                var totalEncaisse = (etat.TotalEncaisse || etat.totalEncaisse || 0);
-                                var isValidated = (etat.IsValidated || etat.isValidated) === true;
-                                var pncResponsable = etat.PncResponsable || etat.pncResponsable || 'Aucun';
-                                var hasTrou = (etat.HasTrouDeCaisse || etat.hasTrouDeCaisse) === true;
-                                var dateEdition = etat.DateEdition || etat.dateEdition;
+                                    var id = etat.Id || etat.id || 'N/A';
+                                    var numero = etat.Numero || etat.numero || 'N/A';
+                                    var ecartMoins = (etat.EcartMoins || etat.ecartMoins || 0);
+                                    var totalEncaisse = (etat.TotalEncaisse || etat.totalEncaisse || 0);
+                                    var isValidated = (etat.IsValidated || etat.isValidated) === true;
+                                    var pncResponsable = etat.PncResponsable || etat.pncResponsable || 'Aucun';
+                                    var hasTrou = (etat.HasTrouDeCaisse || etat.hasTrouDeCaisse) === true;
+                                    var dateEdition = etat.DateEdition || etat.dateEdition;
 
-                                // Format currency
-                                var ecartMoinsFormatted = typeof ecartMoins === 'number' ? ecartMoins.toFixed(2) : Number(ecartMoins).toFixed(2) || '0.00';
-                                var totalEncaisseFormatted = typeof totalEncaisse === 'number' ? totalEncaisse.toFixed(2) : Number(totalEncaisse).toFixed(2) || '0.00';
+                                    var ecartMoinsFormatted = typeof ecartMoins === 'number' ? ecartMoins.toFixed(2) : Number(ecartMoins).toFixed(2) || '0.00';
+                                    var totalEncaisseFormatted = typeof totalEncaisse === 'number' ? totalEncaisse.toFixed(2) : Number(totalEncaisse).toFixed(2) || '0.00';
 
-                                // Format date
-                                var dateFormatted = 'N/A';
-                                if (dateEdition) {
-                                    try {
-                                        dateFormatted = new Date(dateEdition).toLocaleDateString('fr-FR', {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric'
-                                        });
-                                    } catch (e) {
-                                        console.warn('Invalid date for etat #' + id + ':', dateEdition);
+                                    var dateFormatted = 'N/A';
+                                    if (dateEdition) {
+                                        try {
+                                            dateFormatted = new Date(dateEdition).toLocaleDateString('fr-FR', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            });
+                                        } catch (e) {
+                                            console.warn('Invalid date for etat #' + id + ':', dateEdition);
+                                        }
                                     }
-                                }
 
-                                html += '<tr>';
-                                html += '<td>' + id + '</td>';
-                                html += '<td>' + numero + '</td>';
-                                html += '<td class="text-danger font-weight-bold">€' + ecartMoinsFormatted + '</td>';
-                                html += '<td>€' + totalEncaisseFormatted + '</td>';
-                                html += '<td>' + (isValidated ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>') + '</td>';
-                                html += '<td>' + pncResponsable + '</td>';
-                                html += '<td>' + (hasTrou ? '<span class="badge badge-danger">Oui</span>' : '<span class="badge badge-success">Non</span>') + '</td>';
-                                html += '<td>' + dateFormatted + '</td>';
-                                html += '<td>';
-                                if (!hasTrou) {
-                                    html += '<button class="btn btn-sm btn-warning btn-create-trou-direct" data-etat-id="' + id + '">Créer Trou</button>';
-                                } else {
-                                    html += '<span class="text-muted">Déjà créé</span>';
+                                    html += '<tr>';
+                                    html += '<td>' + id + '</td>';
+                                    html += '<td>' + numero + '</td>';
+                                    html += '<td class="text-danger font-weight-bold">€' + ecartMoinsFormatted + '</td>';
+                                    html += '<td>€' + totalEncaisseFormatted + '</td>';
+                                    html += '<td>' + (isValidated ? '<span class="badge badge-success">Oui</span>' : '<span class="badge badge-warning">Non</span>') + '</td>';
+                                    html += '<td>' + pncResponsable + '</td>';
+                                    html += '<td>' + (hasTrou ? '<span class="badge badge-danger">Oui</span>' : '<span class="badge badge-success">Non</span>') + '</td>';
+                                    html += '<td>' + dateFormatted + '</td>';
+                                    html += '<td>';
+                                    if (!hasTrou) {
+                                        html += '<button class="btn btn-sm btn-warning btn-create-trou-direct" data-etat-id="' + id + '">Créer Trou</button>';
+                                    } else {
+                                        html += '<span class="text-muted">Déjà créé</span>';
+                                    }
+                                    html += '</td>';
+                                    html += '</tr>';
+                                });
+                            } else {
+                                html += '<tr><td colspan="9" class="text-center">Aucun état trouvé avec EcartMoins > 0.</td></tr>';
+                            }
+
+                            html += '</tbody></table></div>';
+                            $('#debugModalBody').html(html);
+
+                            if ($.fn.DataTable.isDataTable('#debugTable')) {
+                                $('#debugTable').DataTable().destroy();
+                            }
+
+                            $('#debugTable').DataTable({
+                                "responsive": true,
+                                "lengthChange": false,
+                                "autoWidth": false,
+                                "language": {
+                                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
                                 }
-                                html += '</td>';
-                                html += '</tr>';
                             });
                         } else {
-                            html += '<tr><td colspan="9" class="text-center">Aucun état trouvé avec EcartMoins > 0.</td></tr>';
+                            $('#debugModalBody').html('<div class="alert alert-danger">Erreur: ' + (response.message || 'Erreur inconnue') + '</div>');
                         }
-
-                        html += '</tbody></table></div>';
-                        $('#debugModalBody').html(html);
-
-                        // Destroy existing DataTable if any
-                        if ($.fn.DataTable.isDataTable('#debugTable')) {
-                            $('#debugTable').DataTable().destroy();
-                        }
-
-                        // Initialize DataTable
-                        $('#debugTable').DataTable({
-                            "responsive": true,
-                            "lengthChange": false,
-                            "autoWidth": false,
-                            "language": {
-                                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
-                            }
-                        });
-                    } else {
-                        $('#debugModalBody').html('<div class="alert alert-danger">Erreur: ' + (response.message || 'Erreur inconnue') + '</div>');
-                    }
-                })
-                .fail(function(xhr, status, error) {
-                    console.error('AJAX Error:', status, error);
-                    $('#debugModalBody').html('<div class="alert alert-danger">Erreur lors du debug: ' + (error || 'Erreur inconnue') + '</div>');
-                });
-        });
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        $('#debugModalBody').html('<div class="alert alert-danger">Erreur lors du debug: ' + (error || 'Erreur inconnue') + '</div>');
+                    });
+            });
 
             // Create Trou de Caisse directly
             $(document).on('click', '.btn-create-trou, .btn-create-trou-direct', function() {
@@ -1031,7 +1235,6 @@
                         if (response.success) {
                             alert(response.message);
                             if (button.hasClass('btn-create-trou-direct')) {
-                                // Refresh debug modal
                                 $('#btnDebugEcartMoins').click();
                             } else {
                                 location.reload();

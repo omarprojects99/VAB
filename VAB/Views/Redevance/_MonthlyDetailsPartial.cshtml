@@ -1,0 +1,259 @@
+﻿@model VAB.Models.Redevance
+@{
+    Layout = null;
+}
+<style>
+    .redevance-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-left: 4px solid #007bff;
+    }
+
+        .redevance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    .amount-display {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+   
+    .month-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .month-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #28a745, #1e7e34);
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(45deg, #17a2b8, #117a8b);
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(45deg, #ffc107, #e0a800);
+    }
+</style>
+
+
+<div class="container-fluid">
+    @if (Model != null)
+    {
+        <!-- Redevance Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white redevance-card">
+                    <div class="card-body text-center">
+                        <h6>Total Ventes</h6>
+                        <h4>@Model.TotalVentes.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white redevance-card">
+                    <div class="card-body text-center">
+                        <h6>Redevance (40%)</h6>
+                        <h4>@Model.MontantRedevance.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white redevance-card">
+                    <div class="card-body text-center">
+                        <h6>États de Ventes</h6>
+                        <h4>@Model.NombreEtats</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white redevance-card">
+                    <div class="card-body text-center">
+                        <h6>Statut</h6>
+                        <h4>@(Model.IsValidated ? "Validée" : "En attente")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Breakdown -->
+        <div class="card redevance-card">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Détail des États de Ventes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Numéro État</th>
+                                <th>Date Édition</th>
+                                <th>Total Ventes</th>
+                                <th>Redevance</th>
+                                <th>Articles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in Model.RedevanceDetails)
+                            {
+                                <tr>
+                                    <td>@detail.NumeroEtat</td>
+                                    <td>@detail.DateEtat.ToString("dd/MM/yyyy")</td>
+                                    <td class="amount-display">@detail.TotalVentes.ToString("C")</td>
+                                    <td class="amount-display">@detail.MontantRedevance.ToString("C")</td>
+                                    <td>@detail.NombreArticles</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-secondary">
+                                <th colspan="2">TOTAL</th>
+                                <th class="amount-display">@Model.TotalVentes.ToString("C")</th>
+                                <th class="amount-display">@Model.MontantRedevance.ToString("C")</th>
+                                <th>@Model.RedevanceDetails.Sum(d => d.NombreArticles)</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        @if (!Model.IsValidated)
+        {
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-success" onclick="validateRedevance(@Model.Id)">
+                    <i class="fas fa-check"></i> Valider Redevance
+                </button>
+                <button type="button" class="btn btn-warning" onclick="recalculateRedevance(@Model.Mois, @Model.Annee)">
+                    <i class="fas fa-redo"></i> Recalculer
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success text-center">
+                <i class="fas fa-check-circle"></i> Validée le @Model.DateCalcul.ToString("dd/MM/yyyy")
+            </div>
+        }
+    }
+    else
+    {
+        <!-- No Redevance Found -->
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle"></i> Aucune redevance trouvée</h5>
+            <p>Aucune redevance n'a été calculée pour cette période.</p>
+            @if (ViewBag.CanCalculate == true)
+            {
+                <button type="button" class="btn btn-primary" onclick="calculateForPeriod(@ViewBag.Mois, @ViewBag.Annee)">
+                    <i class="fas fa-calculator"></i> Calculer Redevance pour @ViewBag.MoisNom @ViewBag.Annee
+                </button>
+            }
+            else
+            {
+                <p class="text-muted">Aucun état de ventes validé disponible.</p>
+            }
+        </div>
+    }
+
+    <!-- Top Products (Optional, included if ViewBag.TopProducts is provided) -->
+    @if (ViewBag.TopProducts != null)
+    {
+        <div class="card redevance-card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-star"></i> Top Produits - @ViewBag.MoisNom @ViewBag.Annee</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var produit in ViewBag.TopProducts)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                <div>
+                                    <h6 class="mb-1">@produit.Description</h6>
+                                    <small class="text-muted">@produit.Categorie • @produit.QuantiteTotale unités</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-success fw-bold amount-display">@produit.ValeurTotale.ToString("C")</div>
+                                    <small class="text-primary">@produit.RedevanceGeneree.ToString("C") redevance</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Reinitialize DataTables for modal table
+        $('table').DataTable({
+            responsive: true,
+            lengthChange: false,
+            autoWidth: false,
+            language: { url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json' }
+        });
+    });
+
+    function validateRedevance(id) {
+        if (confirm('Valider cette redevance ?')) {
+            $.post('@Url.Action("Validate", "Redevance")', { id: id })
+                .done(response => {
+                    if (response.success) {
+                        alert('Redevance validée !');
+                        $('#viewDetailsModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + (response.message || 'Inconnue'));
+                    }
+                })
+                .fail(() => alert('Erreur lors de la validation.'));
+        }
+    }
+
+    function calculateForPeriod(mois, annee) {
+        if (confirm('Calculer la redevance ?')) {
+            $.post('@Url.Action("Calculate", "Redevance")', { mois: mois, annee: annee })
+                .done(response => {
+                    if (response.success) {
+                        alert('Redevance calculée !');
+                        $('#viewDetailsModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + (response.message || 'Inconnue'));
+                    }
+                })
+                .fail(() => alert('Erreur lors du calcul.'));
+        }
+    }
+
+    function recalculateRedevance(mois, annee) {
+        if (confirm('Recalculer la redevance ?')) {
+            $.post('@Url.Action("Calculate", "Redevance")', { mois: mois, annee: annee })
+                .done(response => {
+                    if (response.success) {
+                        alert('Redevance recalculée !');
+                        $('#viewDetailsModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + (response.message || 'Inconnue'));
+                    }
+                })
+                .fail(() => alert('Erreur lors du recalcul.'));
+        }
+    }
+</script>

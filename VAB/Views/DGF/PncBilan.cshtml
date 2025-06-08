@@ -2,282 +2,792 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
+    ViewData["Title"] = $"Bilan PNC - {Model.PncNomComplet}";
+    Layout = null;
 }
 @model VAB.ViewModel.PncBilanViewModel
-@{
-    ViewData["Title"] = $"Bilan PNC - {Model.PncNomComplet}";
-    Layout = "_Layout";
-}
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">
-                    <i class="fas fa-user-tie text-primary"></i>
-                    Bilan PNC - @Model.PncNomComplet
-                </h1>
-                <small class="text-muted">Matricule: @Model.PncMatricule</small>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item">
-                        <a asp-controller="DGF" asp-action="Dashboard">DGF</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a asp-controller="DGF" asp-action="PncBilanDashboard">Bilan PNC</a>
-                    </li>
-                    <li class="breadcrumb-item active">@Model.PncNomComplet</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bilan PNC - @Model.PncNomComplet">
+    <title>@ViewData["Title"]</title>
 
-<section class="content">
-    <div class="container-fluid">
-        <!-- Filter Card -->
-        <div class="card card-outline card-primary">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-calendar-alt"></i>
-                    Période d'Analyse
-                </h3>
-            </div>
-            <div class="card-body">
-                <form method="get" class="row">
-                    <input type="hidden" name="pncId" value="@Model.PncId" />
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="dateDebut">Date Début</label>
-                            <input type="date" class="form-control" id="dateDebut" name="dateDebut"
-                                   value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="dateFin">Date Fin</label>
-                            <input type="date" class="form-control" id="dateFin" name="dateFin"
-                                   value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> Filtrer
-                                </button>
-                                <a href="@Url.Action("PncBilan", new { pncId = Model.PncId })" class="btn btn-outline-secondary">
-                                    <i class="fas fa-times"></i> Réinitialiser
-                                </a>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .card-body-icon i {
+            opacity: 0.3;
+            font-size: 4rem;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            padding: 12px 20px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+            .nav-tabs .nav-link.active {
+                color: #007bff;
+                border-bottom: 3px solid #007bff;
+                background-color: transparent;
+            }
+
+        .small-box {
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 0;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .small-box h3 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: white;
+            }
+
+            .small-box p {
+                font-size: 1rem;
+                color: rgba(255,255,255,0.8);
+            }
+
+        .small-box-footer {
+            position: relative;
+            text-align: center;
+            padding: 3px 0;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            display: block;
+        }
+
+            .small-box-footer:hover {
+                color: #fff;
+                background: rgba(0,0,0,0.15);
+                text-decoration: none;
+            }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 8px;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                border-bottom-width: 1px;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+
+        .table-bordered {
+            border: 1px solid #e9ecef;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.02);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,.04);
+        }
+
+        .btn {
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .card-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 12px 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .animated {
+            animation-duration: 0.5s;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 15px;
+            }
+
+            .small-box h3 {
+                font-size: 1.8rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .card-tools {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        /* Modal styles for CodePen-inspired design */
+        .modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+            .modal.show {
+                display: flex !important;
+            }
+
+        .modal-dialog.modal-alert {
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-body {
+            min-height: 10rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+            .icon-container .icon {
+                width: 40px;
+                height: 40px;
+                fill: currentColor;
+            }
+
+        .modal-footer {
+            border-top: none;
+            padding: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .text-warning {
+            color: #ffc107 !important;
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        @@media (max-width: 576px) {
+            .modal-dialog.modal-alert {
+                max-width: 90%;
+            }
+        }
+
+        @@media print {
+            .card-tools, .btn, .breadcrumb, .content-header {
+                display: none !important;
+            }
+
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .table {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg style="display: none;">
+        <symbol id="info-circle-outline" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+        </symbol>
+        <symbol id="warning-triangle-outline" viewBox="0 0 24 24">
+            <path d="M12 2L1 21h22L12 2zm0 2.83L19.07 18H4.93L12 4.83zM12 9h-1v6h1V9zm0 8h-1v2h1v-2z" />
+        </symbol>
+        <symbol id="error-circle-outline" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 6.48 10 12 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1.41-11.41L13 9l-1.41 1.41L10.17 12l1.41 1.41L13 12l1.41 1.41L15.83 12l-1.41-1.41L13 10.59l1.41-1.41z" />
+        </symbol>
+        <symbol id="check-circle-outline" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z" />
+        </symbol>
+    </svg>
+
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <!-- Brand logo -->
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-        </div>
 
-        <!-- Summary Cards -->
-        <div class="row">
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>@Model.NombreTransactions</h3>
-                        <p>Transactions</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-list"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>@Model.TotalCredits.ToString("C")</h3>
-                        <p>Total Crédits</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-plus-circle"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>@Model.TotalDebits.ToString("C")</h3>
-                        <p>Total Débits</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-minus-circle"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box @(Model.SoldeFinal >= 0 ? "bg-success" : "bg-danger")">
-                    <div class="inner">
-                        <h3>@Model.SoldeFinal.ToString("C")</h3>
-                        <p>Solde Final</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Transactions Table -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-receipt"></i>
-                    Détail des Transactions
-                </h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-success btn-sm" onclick="exportBilan()">
-                        <i class="fas fa-file-excel"></i> Exporter
-                    </button>
-                    <button type="button" class="btn btn-info btn-sm" onclick="printBilan()">
-                        <i class="fas fa-print"></i> Imprimer
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                @if (Model.Transactions.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover" id="transactionsTable">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                    <th>Référence</th>
-                                    <th>Débit</th>
-                                    <th>Crédit</th>
-                                    <th>Solde</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var transaction in Model.Transactions)
+                    <!-- User profile dropdown -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
                                 {
-                                    <tr>
-                                        <td>@transaction.Date.ToString("dd/MM/yyyy")</td>
-                                        <td>
-                                            @switch (transaction.TypeTransaction)
-                                            {
-                                                case "Commission":
-                                                    <span class="badge badge-success">
-                                                        <i class="fas fa-coins"></i> Commission
-                                                    </span>
-                                                    break;
-                                                case "Trou de Caisse":
-                                                    <span class="badge badge-danger">
-                                                        <i class="fas fa-exclamation-triangle"></i> Trou de Caisse
-                                                    </span>
-                                                    break;
-                                                default:
-                                                    <span class="badge badge-secondary">@transaction.TypeTransaction</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>@transaction.Description</td>
-                                        <td>
-                                            <code>@transaction.Reference</code>
-                                        </td>
-                                        <td class="text-danger">
-                                            @if (transaction.Debit.HasValue)
-                                            {
-                                                <strong>@transaction.Debit.Value.ToString("C")</strong>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">-</span>
-                                            }
-                                        </td>
-                                        <td class="text-success">
-                                            @if (transaction.Credit.HasValue)
-                                            {
-                                                <strong>@transaction.Credit.Value.ToString("C")</strong>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">-</span>
-                                            }
-                                        </td>
-                                        <td class="@(transaction.SoldeApres >= 0 ? "text-success" : "text-danger")">
-                                            <strong>@transaction.SoldeApres.ToString("C")</strong>
-                                        </td>
-                                        <td>
-                                            @switch (transaction.Statut)
-                                            {
-                                                case "Validé":
-                                                    <span class="badge badge-success">Validé</span>
-                                                    break;
-                                                case "En Attente":
-                                                    <span class="badge badge-warning">En Attente</span>
-                                                    break;
-                                                case "Appliqué":
-                                                    <span class="badge badge-info">Appliqué</span>
-                                                    break;
-                                                default:
-                                                    <span class="badge badge-secondary">@transaction.Statut</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (transaction.EtatDesVentesArriveeId.HasValue)
-                                            {
-                                                <button type="button" class="btn btn-sm btn-outline-primary"
-                                                        onclick="viewEtatDetails(@transaction.EtatDesVentesArriveeId.Value)">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                            }
-                                            @if (transaction.TrouDeCaisseId.HasValue)
-                                            {
-                                                <button type="button" class="btn btn-sm btn-outline-warning"
-                                                        onclick="viewTrouDetails(@transaction.TrouDeCaisseId.Value)">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                </button>
-                                            }
-                                        </td>
-                                    </tr>
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Administrateur DGF</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
                                 }
-                            </tbody>
-                            <tfoot class="thead-light">
-                                <tr>
-                                    <th colspan="4">TOTAUX</th>
-                                    <th class="text-danger">
-                                        <strong>@Model.TotalDebits.ToString("C")</strong>
-                                    </th>
-                                    <th class="text-success">
-                                        <strong>@Model.TotalCredits.ToString("C")</strong>
-                                    </th>
-                                    <th class="@(Model.SoldeFinal >= 0 ? "text-success" : "text-danger")">
-                                        <strong>@Model.SoldeFinal.ToString("C")</strong>
-                                    </th>
-                                    <th colspan="2"></th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                            </li>
+                        </ul>
                     </div>
-                }
-                else
-                {
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-info-circle fa-2x mb-3"></i>
-                        <h5>Aucune Transaction</h5>
-                        <p>Aucune transaction trouvée pour ce PNC dans la période sélectionnée.</p>
-                    </div>
-                }
+                </nav>
             </div>
         </div>
-    </div>
-</section>
+    </header>
 
-@section Scripts {
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a asp-controller="DGF" asp-action="PncBilanDashboard">
+                                <i class="material-icons">assessment</i> Transaction Pnc
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Edit">
+                                <i class="material-icons">settings</i> Taux D'echange
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Redevance" asp-action="Dashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Redevance
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Breadcrumb -->
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">
+                                <i class="fas fa-user-tie text-primary"></i>
+                                Bilan PNC - @Model.PncNomComplet
+                            </h1>
+                            <small class="text-muted">Matricule: @Model.PncMatricule</small>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-right">
+                                <li class="breadcrumb-item">
+                                    <a asp-controller="DGF" asp-action="Dashboard">DGF</a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a asp-controller="DGF" asp-action="PncBilanDashboard">Bilan PNC</a>
+                                </li>
+                                <li class="breadcrumb-item active">@Model.PncNomComplet</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="content">
+                <div class="container-fluid">
+                    <!-- Filter Card -->
+                    <div class="card card-outline card-primary animated fadeIn">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-calendar-alt"></i>
+                                Période d'Analyse
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row">
+                                <input type="hidden" name="pncId" value="@Model.PncId" />
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="dateDebut">Date Début</label>
+                                        <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                               value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="dateFin">Date Fin</label>
+                                        <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                               value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label> </label>
+                                        <div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-search"></i> Filtrer
+                                            </button>
+                                            <a href="@Url.Action("PncBilan", new { pncId = Model.PncId })" class="btn btn-outline-secondary">
+                                                <i class="fas fa-times"></i> Réinitialiser
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="row animated fadeInUp">
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3>@Model.NombreTransactions</h3>
+                                    <p>Transactions</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>@Model.TotalCredits.ToString("C")</h3>
+                                    <p>Total Crédits</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>@Model.TotalDebits.ToString("C")</h3>
+                                    <p>Total Débits</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-minus-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box @(Model.SoldeFinal >= 0 ? "bg-success" : "bg-danger")">
+                                <div class="inner">
+                                    <h3>@Model.SoldeFinal.ToString("C")</h3>
+                                    <p>Solde Final</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-receipt"></i>
+                                Détail des Transactions
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportBilan()">
+                                    <i class="fas fa-file-excel"></i> Exporter
+                                </button>
+                                <button type="button" class="btn btn-info btn-sm" onclick="printBilan()">
+                                    <i class="fas fa-print"></i> Imprimer
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Transactions.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-hover" id="transactionsTable">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th>Description</th>
+                                                <th>Référence</th>
+                                                <th>Débit</th>
+                                                <th>Crédit</th>
+                                                <th>Solde</th>
+                                                <th>Statut</th>
+                                               
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var transaction in Model.Transactions)
+                                            {
+                                                <tr>
+                                                    <td>@transaction.Date.ToString("dd/MM/yyyy")</td>
+                                                    <td>
+                                                        @switch (transaction.TypeTransaction)
+                                                        {
+                                                            case "Commission":
+                                                                <span class="badge badge-success">
+                                                                    <i class="fas fa-coins"></i> Commission
+                                                                </span>
+                                                                break;
+                                                            case "Trou de Caisse":
+                                                                <span class="badge badge-danger">
+                                                                    <i class="fas fa-exclamation-triangle"></i> Trou de Caisse
+                                                                </span>
+                                                                break;
+                                                            default:
+                                                                <span class="badge badge-secondary">@transaction.TypeTransaction</span>
+                                                                break;
+                                                        }
+                                                    </td>
+                                                    <td>@transaction.Description</td>
+                                                    <td>
+                                                        <code>@transaction.Reference</code>
+                                                    </td>
+                                                    <td class="text-danger">
+                                                        @if (transaction.Debit.HasValue)
+                                                        {
+                                                            <strong>@transaction.Debit.Value.ToString("C")</strong>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-success">
+                                                        @if (transaction.Credit.HasValue)
+                                                        {
+                                                            <strong>@transaction.Credit.Value.ToString("C")</strong>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </td>
+                                                    <td class="@(transaction.SoldeApres >= 0 ? "text-success" : "text-danger")">
+                                                        <strong>@transaction.SoldeApres.ToString("C")</strong>
+                                                    </td>
+                                                    <td>
+                                                        @switch (transaction.Statut)
+                                                        {
+                                                            case "Validé":
+                                                                <span class="badge badge-success">Validé</span>
+                                                                break;
+                                                            case "En Attente":
+                                                                <span class="badge badge-warning">En Attente</span>
+                                                                break;
+                                                            case "Appliqué":
+                                                                <span class="badge badge-info">Appliqué</span>
+                                                                break;
+                                                            default:
+                                                                <span class="badge badge-secondary">@transaction.Statut</span>
+                                                                break;
+                                                        }
+                                                    </td>
+                                                   
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot class="thead-light">
+                                            <tr>
+                                                <th colspan="4">TOTAUX</th>
+                                                <th class="text-danger">
+                                                    <strong>@Model.TotalDebits.ToString("C")</strong>
+                                                </th>
+                                                <th class="text-success">
+                                                    <strong>@Model.TotalCredits.ToString("C")</strong>
+                                                </th>
+                                                <th class="@(Model.SoldeFinal >= 0 ? "text-success" : "text-danger")">
+                                                    <strong>@Model.SoldeFinal.ToString("C")</strong>
+                                                </th>
+                                                <th colspan="2"></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                    <h5>Aucune Transaction</h5>
+                                    <p>Aucune transaction trouvée pour ce PNC dans la période sélectionnée.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <!-- Modal Container for viewing details -->
+    <div id="modalContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
         $(document).ready(function() {
             $('#transactionsTable').DataTable({
@@ -289,6 +799,11 @@
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
                 }
             });
+
+            // Initialize animations
+            if (typeof WOW !== 'undefined') {
+                new WOW().init();
+            }
         });
 
         function exportBilan() {
@@ -315,27 +830,5 @@
                 });
         }
     </script>
-}
-
-<style>
-    @@media print {
-        .card-tools, .btn, .breadcrumb, .content-header
-
-    {
-        display: none !important;
-    }
-
-    .card {
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    .table {
-        font-size: 12px;
-    }
-
-    }
-</style>
-
-<!-- Modal Container for viewing details -->
-<div id="modalContainer"></div>
+</body>
+</html>

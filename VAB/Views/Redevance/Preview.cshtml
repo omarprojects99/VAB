@@ -1,0 +1,85 @@
+﻿@model List<VAB.Models.EtatDesVentesArrivee>
+@{
+    var mois = ViewBag.Mois;
+    var annee = ViewBag.Annee;
+    var totalCA = ViewBag.TotalCA;
+    var montantRedevance = ViewBag.MontantRedevance;
+}
+
+<div class="mb-3">
+    <h6>Période: @GetMonthName(mois) @annee</h6>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6>Chiffre d'Affaires Total</h6>
+                    <h4>@totalCA.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6>Redevance (40%)</h6>
+                    <h4>@montantRedevance.ToString("C")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>N° État</th>
+                    <th>Date</th>
+                    <th>Montant</th>
+                    <th>Redevance</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var etat in Model)
+                {
+                    <tr>
+                        <td>@etat.Numero</td>
+                        <td>@etat.DateEdition.ToString("dd/MM/yyyy")</td>
+                        <td>@(etat.TotalEncaisse?.ToString("C") ?? "0,00 €")</td>
+                        <td>@((etat.TotalEncaisse * 0.40m)?.ToString("C") ?? "0,00 €")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aucun état de ventes validé trouvé pour cette période.
+    </div>
+}
+
+@functions {
+    private string GetMonthName(int month)
+    {
+        return month switch
+        {
+            1 => "Janvier",
+            2 => "Février",
+            3 => "Mars",
+            4 => "Avril",
+            5 => "Mai",
+            6 => "Juin",
+            7 => "Juillet",
+            8 => "Août",
+            9 => "Septembre",
+            10 => "Octobre",
+            11 => "Novembre",
+            12 => "Décembre",
+            _ => "Inconnu"
+        };
+    }
+}

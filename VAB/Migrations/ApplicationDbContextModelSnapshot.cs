@@ -1000,6 +1000,92 @@ namespace VAB.Migrations
                     b.ToTable("Prix");
                 });
 
+            modelBuilder.Entity("VAB.Models.Redevance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Annee")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CalculeParId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateCalcul")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Mois")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MontantRedevance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("NombreEtats")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalVentes")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalculeParId");
+
+                    b.HasIndex("Annee", "Mois")
+                        .IsUnique();
+
+                    b.ToTable("Redevances");
+                });
+
+            modelBuilder.Entity("VAB.Models.RedevanceDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateEtat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EtatDesVentesArriveeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MontantRedevance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("NombreArticles")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NumeroEtat")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RedevanceId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalVentes")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EtatDesVentesArriveeId");
+
+                    b.HasIndex("RedevanceId");
+
+                    b.ToTable("RedevanceDetails");
+                });
+
             modelBuilder.Entity("VAB.Models.SalesComparison", b =>
                 {
                     b.Property<int>("Id")
@@ -1573,6 +1659,36 @@ namespace VAB.Migrations
                     b.Navigation("Article");
                 });
 
+            modelBuilder.Entity("VAB.Models.Redevance", b =>
+                {
+                    b.HasOne("VAB.Models.User", "CalculePar")
+                        .WithMany()
+                        .HasForeignKey("CalculeParId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CalculePar");
+                });
+
+            modelBuilder.Entity("VAB.Models.RedevanceDetail", b =>
+                {
+                    b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
+                        .WithMany()
+                        .HasForeignKey("EtatDesVentesArriveeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("VAB.Models.Redevance", "Redevance")
+                        .WithMany("RedevanceDetails")
+                        .HasForeignKey("RedevanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EtatDesVentesArrivee");
+
+                    b.Navigation("Redevance");
+                });
+
             modelBuilder.Entity("VAB.Models.TrouDeCaisse", b =>
                 {
                     b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
@@ -1672,6 +1788,11 @@ namespace VAB.Migrations
             modelBuilder.Entity("VAB.Models.PncCommissionCalculation", b =>
                 {
                     b.Navigation("PncCommissionDetails");
+                });
+
+            modelBuilder.Entity("VAB.Models.Redevance", b =>
+                {
+                    b.Navigation("RedevanceDetails");
                 });
 
             modelBuilder.Entity("VAB.Models.SalesComparison", b =>

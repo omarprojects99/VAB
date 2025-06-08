@@ -40,6 +40,8 @@ namespace VAB.Data
         public DbSet<PncCommissionDetail> PncCommissionDetails { get; set; }
         public DbSet<ExchangeRate> ExchangeRates { get; set; }
         public DbSet<TrouDeCaisse> TrouDeCaisses { get; set; }
+        public DbSet<Redevance> Redevances { get; set; }
+        public DbSet<RedevanceDetail> RedevanceDetails { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -176,6 +178,23 @@ namespace VAB.Data
                 .WithMany()
                 .HasForeignKey(d => d.PncId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Redevance relationships
+            builder.Entity<RedevanceDetail>()
+                .HasOne(rd => rd.Redevance)
+                .WithMany(r => r.RedevanceDetails)
+                .HasForeignKey(rd => rd.RedevanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RedevanceDetail>()
+                .HasOne(rd => rd.EtatDesVentesArrivee)
+                .WithMany()
+                .HasForeignKey(rd => rd.EtatDesVentesArriveeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Redevance>()
+                .HasIndex(r => new { r.Annee, r.Mois })
+                .IsUnique();
 
 
         }

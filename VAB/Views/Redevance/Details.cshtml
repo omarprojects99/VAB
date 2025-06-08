@@ -1,0 +1,90 @@
+﻿@model VAB.Models.Redevance
+@{
+    ViewData["Title"] = $"Redevance {Model.PeriodeDisplay}";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Redevance @Model.PeriodeDisplay</h2>
+        <div>
+            @if (!Model.IsValidated)
+            {
+                <button onclick="validateRedevance()" class="btn btn-success me-2">Valider</button>
+            }
+            <a asp-action="Index" class="btn btn-secondary">Retour</a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5>Total Ventes</h5>
+                    <h3>@Model.TotalVentes.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5>Redevance (40%)</h5>
+                    <h3>@Model.MontantRedevance.ToString("C")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Détails par État de Ventes</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>N° État</th>
+                        <th>Date</th>
+                        <th>Total Ventes</th>
+                        <th>Redevance</th>
+                        <th>Articles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detail in Model.RedevanceDetails)
+                    {
+                        <tr>
+                            <td>@detail.NumeroEtat</td>
+                            <td>@detail.DateEtat.ToString("dd/MM/yyyy")</td>
+                            <td class="text-success">@detail.TotalVentes.ToString("C")</td>
+                            <td class="text-primary">@detail.MontantRedevance.ToString("C")</td>
+                            <td>@detail.NombreArticles</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary">
+                        <th colspan="2">TOTAL</th>
+                        <th class="text-success">@Model.TotalVentes.ToString("C")</th>
+                        <th class="text-primary">@Model.MontantRedevance.ToString("C")</th>
+                        <th>@Model.RedevanceDetails.Sum(d => d.NombreArticles)</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function validateRedevance() {
+            if (confirm('Valider cette redevance?')) {
+                fetch('@Url.Action("Validate", new { id = Model.Id })', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    }
+                }).then(() => location.reload());
+            }
+        }
+    </script>
+}

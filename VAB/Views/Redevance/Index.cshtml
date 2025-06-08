@@ -1,0 +1,670 @@
+﻿@model List<VAB.Models.Redevance>
+@{
+    ViewData["Title"] = "Gestion des Redevances";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestion des Redevances - Tableau de bord">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <style>
+        .redevance-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 4px solid #007bff;
+        }
+
+            .redevance-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .month-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .month-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }
+
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .amount-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .growth-indicator {
+            font-size: 0.9rem;
+        }
+        /* ADDING THE SPECIFIC STYLES FROM YOUR DASHBOARD */
+        .small-box {
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 0;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .small-box h3 {
+                font-size: 2.2rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                color: white;
+            }
+
+            .small-box p {
+                font-size: 1rem;
+                color: rgba(255,255,255,0.8);
+            }
+
+        .small-box-footer {
+            position: relative;
+            text-align: center;
+            padding: 3px 0;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            display: block;
+        }
+
+            .small-box-footer:hover {
+                color: #fff;
+                background: rgba(0,0,0,0.15);
+                text-decoration: none;
+            }
+
+        .bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <!-- Brand logo -->
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User profile dropdown -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Gestionnaire Redevances</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Reports">
+                                <i class="material-icons">assessment</i> Rapports
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Edit">
+                                <i class="material-icons">settings</i> Taux D'echange
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a asp-controller="Redevance" asp-action="Index">
+                                <i class="fas fa-calculator"></i> Redevances
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Breadcrumb -->
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index"><i class="material-icons">home</i></a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="fas fa-calculator"></i> Gestion des Redevances
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Dashboard content -->
+            <div class="main-content">
+                <div class="container-fluid">
+                    <!-- Quick Actions -->
+                    <div class="card animated fadeIn">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Actions Rapides
+                            </h5>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-primary btn-sm" id="btnCalculateRedevance">
+                                    <i class="fas fa-plus"></i> Calculer Nouvelle Redevance
+                                </button>
+                                <a href="@Url.Action("Dashboard")" class="btn btn-info btn-sm">
+                                    <i class="fas fa-chart-line"></i> Dashboard Analytics
+                                </a>
+                                <button type="button" class="btn btn-success btn-sm" id="btnExportRedevances">
+                                    <i class="fas fa-file-excel"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <!-- Summary Cards - NOW MATCHING YOUR DASHBOARD STYLE -->
+                    <div class="row animated fadeInUp">
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3>@Model.Count</h3>
+                                    <p>Total Redevances</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <a href="#redevances-list" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>@Model.Count(r => r.IsValidated)</h3>
+                                    <p>Validées</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <a href="#redevances-list" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>@Model.Count(r => !r.IsValidated)</h3>
+                                    <p>En Attente</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <a href="#redevances-list" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3>@Model.Sum(r => r.MontantRedevance).ToString("C")</h3>
+                                    <p>Total Montant</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-euro-sign"></i>
+                                </div>
+                                <a href="#redevances-list" class="small-box-footer">
+                                    Plus d'infos <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Redevances List -->
+                    <div class="card animated fadeIn" id="redevances-list">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-list mr-2"></i>
+                                Liste des Redevances
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover" id="redevancesTable">
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th>Période</th>
+                                            <th>Chiffre d'Affaires</th>
+                                            <th>Montant Redevance</th>
+                                            <th>Nombre États</th>
+                                            <th>Date Calcul</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var redevance in Model.OrderByDescending(r => r.Annee).ThenByDescending(r => r.Mois))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@GetMonthName(redevance.Mois) @redevance.Annee</strong>
+                                                </td>
+                                                <td>@redevance.TotalVentes.ToString("C")</td>
+                                                <td>
+                                                    <span class="amount-display">@redevance.MontantRedevance.ToString("C")</span>
+                                                </td>
+                                                <td>@redevance.NombreEtats</td>
+                                                <td>@redevance.DateCalcul.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>
+                                                    @if (redevance.IsValidated)
+                                                    {
+                                                        <span class="badge badge-success">
+                                                            <i class="fas fa-check"></i> Validée
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-warning">
+                                                            <i class="fas fa-clock"></i> En attente
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-info btn-view-details"
+                                                            data-mois="@redevance.Mois" data-annee="@redevance.Annee">
+                                                        <i class="fas fa-eye"></i> Détails
+                                                    </button>
+                                                    @if (!redevance.IsValidated)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-success btn-validate"
+                                                                data-id="@redevance.Id">
+                                                            <i class="fas fa-check"></i> Valider
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-danger btn-delete"
+                                                                data-id="@redevance.Id">
+                                                            <i class="fas fa-trash"></i> Supprimer
+                                                        </button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculate Redevance Modal -->
+    <div class="modal fade" id="calculateRedevanceModal" tabindex="-1" aria-labelledby="calculateRedevanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="calculateRedevanceModalLabel">
+                        <i class="fas fa-calculator mr-2"></i>Calculer Nouvelle Redevance
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="calculateRedevanceModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewDetailsModalLabel">
+                        <i class="fas fa-eye mr-2"></i>Détails de la Redevance
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewDetailsModalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTables
+            $('#redevancesTable').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "order": [[4, "desc"]], // Sort by date descending
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json"
+                }
+            });
+
+            // Calculate Redevance Modal
+            $('#btnCalculateRedevance').on('click', function(e) {
+                e.preventDefault();
+
+                $('#calculateRedevanceModalBody').html(`
+                    <form id="calculateRedevanceForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="mois">Mois</label>
+                                    <select name="mois" id="mois" class="form-control" required>
+                                        <option value="1">Janvier</option>
+                                        <option value="2">Février</option>
+                                        <option value="3">Mars</option>
+                                        <option value="4">Avril</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Juin</option>
+                                        <option value="7">Juillet</option>
+                                        <option value="8">Août</option>
+                                        <option value="9">Septembre</option>
+                                        <option value="10">Octobre</option>
+                                        <option value="11">Novembre</option>
+                                        <option value="12">Décembre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="annee">Année</label>
+                                    <select name="annee" id="annee" class="form-control" required>
+                                        ${Array.from({length: 5}, (_, i) => {
+                                            const year = new Date().getFullYear() - i;
+                                            return `<option value="${year}">${year}</option>`;
+                                        }).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                La redevance sera calculée à 40% du chiffre d'affaires total des états de ventes validés pour la période sélectionnée.
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-calculator"></i> Calculer
+                            </button>
+                        </div>
+                    </form>
+                `);
+
+                // Set current month and year as default
+                const now = new Date();
+                $('#mois').val(now.getMonth() + 1);
+                $('#annee').val(now.getFullYear());
+
+                $('#calculateRedevanceModal').modal('show');
+            });
+
+            // Handle calculate form submission
+            $(document).on('submit', '#calculateRedevanceForm', function(e) {
+                e.preventDefault();
+
+                const formData = $(this).serialize();
+                const submitBtn = $(this).find('button[type="submit"]');
+
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Calcul en cours...');
+
+                $.post('@Url.Action("Calculate")', formData)
+                    .done(function(response) {
+                        $('#calculateRedevanceModal').modal('hide');
+                        if (response.success) {
+                            alert('Redevance calculée avec succès!');
+                            location.reload();
+                        } else {
+                            alert('Erreur: ' + (response.message || 'Erreur inconnue'));
+                        }
+                    })
+                    .fail(function() {
+                        alert('Erreur lors de la communication avec le serveur.');
+                    })
+                    .always(function() {
+                        submitBtn.prop('disabled', false).html('<i class="fas fa-calculator"></i> Calculer');
+                    });
+            });
+
+            // View Details
+            $('.btn-view-details').on('click', function(e) {
+                e.preventDefault();
+                const mois = $(this).data('mois');
+                const annee = $(this).data('annee');
+
+                $('#viewDetailsModalBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Chargement...</div>');
+                $('#viewDetailsModal').modal('show');
+
+                $.get('@Url.Action("MonthlyDetails")', { mois: mois, annee: annee })
+                    .done(function(data) {
+                        $('#viewDetailsModalBody').html(data);
+                    })
+                    .fail(function() {
+                        $('#viewDetailsModalBody').html('<div class="alert alert-danger">Erreur lors du chargement des données.</div>');
+                    });
+            });
+
+            // Validate Redevance
+            $('.btn-validate').on('click', function(e) {
+                e.preventDefault();
+                const id = $(this).data('id');
+
+                if (confirm('Êtes-vous sûr de vouloir valider cette redevance ?')) {
+                    $.post('@Url.Action("Validate")', { id: id })
+                        .done(function(response) {
+                            if (response.success) {
+                                alert('Redevance validée avec succès!');
+                                location.reload();
+                            } else {
+                                alert('Erreur: ' + (response.message || 'Erreur inconnue'));
+                            }
+                        })
+                        .fail(function() {
+                            alert('Erreur lors de la validation.');
+                        });
+                }
+            });
+
+            // Delete Redevance
+            $('.btn-delete').on('click', function(e) {
+                e.preventDefault();
+                const id = $(this).data('id');
+
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette redevance ?')) {
+                    $.post('@Url.Action("Delete")', { id: id })
+                        .done(function(response) {
+                            if (response.success) {
+                                alert('Redevance supprimée avec succès!');
+                                location.reload();
+                            } else {
+                                alert('Erreur: ' + (response.message || 'Erreur inconnue'));
+                            }
+                        })
+                        .fail(function() {
+                            alert('Erreur lors de la suppression.');
+                        });
+                }
+            });
+
+            // Export functionality
+            $('#btnExportRedevances').on('click', function() {
+                window.location.href = '@Url.Action("Export", new { annee = DateTime.Now.Year })';
+            });
+        });
+
+        @{
+            string GetMonthName(int month)
+            {
+                return month switch
+                {
+                    1 => "Janvier",
+                    2 => "Février",
+                    3 => "Mars",
+                    4 => "Avril",
+                    5 => "Mai",
+                    6 => "Juin",
+                    7 => "Juillet",
+                    8 => "Août",
+                    9 => "Septembre",
+                    10 => "Octobre",
+                    11 => "Novembre",
+                    12 => "Décembre",
+                    _ => "Inconnu"
+                };
+            }
+        }
+    </script>
+</body>
+</html>

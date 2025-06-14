@@ -1,327 +1,49 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 
 @model VAB.ViewModel.UserManagementViewModel
-@Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-@* <!DOCTYPE html> *@
-@* <html lang="en"> *@
-
-@* <head> *@
-@*     <!--====== Required meta tags ======--> *@
-@*     <meta charset="utf-8"> *@
-@*     <meta http-equiv="x-ua-compatible" content="ie=edge"> *@
-@*     <meta name="description" content=""> *@
-
-@*     <!--====== Title ======--> *@
-@*     <title>Admin Dashboard</title> *@
-
-@*     <!--====== Favicon Icon ======--> *@
-@*     <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png"> *@
-
-@*     <!--====== Google Fonts ======--> *@
-@*     <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet"> *@
-
-@*     <!--====== Material Icons ======--> *@
-@*     <link rel="stylesheet" href="~/iconfont/material-icons.css"> *@
-
-@*     <!-- dataTables.bootstrap4.min css--> *@
-@*     <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen"> *@
-
-@*     <!-- Chart.min css--> *@
-@*     <link href="~/css/Chart.min.css" rel="stylesheet" media="screen"> *@
-
-@*     <!-- animate css--> *@
-@*     <link href="~/css/animate.css" rel="stylesheet" media="screen"> *@
-@*     <!-- normalize css--> *@
-@*     <link href="~/css/normalize.css" rel="stylesheet" media="screen"> *@
-@*     <!--====== Bootstrap css ======--> *@
-@*     <link rel="stylesheet" href="~/css/bootstrap.min.css"> *@
-
-@*     <!--====== Style css ======--> *@
-@*     <link rel="stylesheet" href="~/css/style.css"> *@
-@*     <link rel="stylesheet" href="~/css/sidebar.css"> *@
-@*     <!--====== Responsive css ======--> *@
-@*     <link rel="stylesheet" href="~/css/responsive.css"> *@
-
-
-@* </head> *@
-@* <body> *@
-
-@*     <!-- Prealoder --> *@
-@*     <div class="spinner_body"> *@
-@*         <div class="spinner"></div> *@
-@*     </div> *@
-
-@*     <!-- Prealoder --> *@
-@*     <!--====== Start Header Section======--> *@
-@*     <header> *@
-@*         <div class="header"> *@
-
-
-@*             <div class="navigation"> *@
-@*                 <nav class="navbar navbar-expand-lg navbar-bg"> *@
-
-
-@*                     <div class="brand-logo"> *@
-@*                         <a class="navbar-brand" href="index.html" id="menu-action"> *@
-@*                             <div class="logo-tunisair"> *@
-@*                                 <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt=""> *@
-@*                             </div> *@
-@*                         </a> *@
-@*                         <div id="nav-toggle"> *@
-@*                             <div class="cta"> *@
-@*                                 <div class="toggle-btn type1"></div> *@
-@*                             </div> *@
-@*                         </div> *@
-@*                     </div> *@
-@*                     <!--   For Toggle Mobile Nav icon --> *@
-@*                     <div class="for-mobile d-mobile"> *@
-@*                         <div class="toggle-button" id="toggle-button"> *@
-@*                             <span class="material-icons"> *@
-@*                                 menu *@
-@*                             </span> *@
-@*                         </div> *@
-
-@*                     </div> *@
-@*                     <!--   For Toggle Mobile Nav Icon --> *@
-
-@*                     <div class="collapse navbar-collapse pr-3" id="#"> *@
-
-@*                         <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0"> *@
-@*                             <li class="nav-item dropdown show"> *@
-@*                                 @if (User.Identity.IsAuthenticated) // Check if user is logged in *@
-@*                                 { *@
-@*                                     <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true"> *@
-@*                                         <div class="user-photo"> *@
-@*                                             <img src="https://www.kindpng.com/picc/m/21-211180_transparent-businessman-clipart-png-user-man-icon-png.png" alt=""> *@
-@*                                         </div> *@
-@*                                         @User.Identity.Name *@
-@*                                     </a> *@
-@*                                     <div class="dropdown-menu dropdown-menu-right"> *@
-@*                                         <a asp-controller="Admin" asp-action="AccountSettings" class="dropdown-item"> *@
-@*                                             <i class="material-icons">supervisor_account</i> Account Settings *@
-@*                                         </a> *@
-@*                                         <div class="menu-dropdown-divider"></div> *@
-@*                                         <a class="dropdown-item" asp-controller="Account" asp-action="Logout"> *@
-@*                                             <i class="material-icons">exit_to_app</i> Logout *@
-@*                                         </a> *@
-@*                                     </div> *@
-@*                                 } *@
-@*                                 else *@
-@*                                 { *@
-@*                                     <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a> *@
-@*                                 } *@
-@*                             </li> *@
-@*                         </ul> *@
-
-@*                     </div> *@
-
-
-@*                 </nav> *@
-
-@*             </div> *@
-@*             <!--   For Toggle Mobile Nav --> *@
-@*             <div class="toggle-user-menu" id="toggle-user-menu"> *@
-@*                 <ul> *@
-@*                     <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>admin@admin.com</a></li> *@
-@*                     <li> *@
-@*                         <a href=""> *@
-@*                             <i class="material-icons mr-2"> *@
-@*                                 supervisor_account *@
-@*                             </i> *@
-@*                             Account Settings *@
-@*                         </a> *@
-@*                     </li> *@
-@*                     <li><a href=""><i class="material-icons mr-2">exit_to_app</i>Logout</a></li> *@
-
-@*                 </ul> *@
-@*             </div> *@
-@*             <!--   For Toggle Mobile Nav --> *@
-@*         </div> *@
-@*     </header> *@
-@*     <!--====== End Header Section======--> *@
-@*     <!--====== Start Left Sidebar Section======--> *@
-@*     <section id="left-sidebar-area"> *@
-@*         <!--   Left Sidebar  --> *@
-@*         <div id="left-sidebar-section"> *@
-
-
-@*             <aside> *@
-@*                 <div class="left-sidebar" id="wrapper-sidebar"> *@
-@*                     <ul> *@
-@*                         <li><a href="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li> *@
-@*                         <li><a href="@Url.Action("UsersList", "Admin")"><i class="material-icons">supervisor_account</i>Users</a></li> *@
-@*                         <li><a href="role.html"><i class="material-icons">perm_data_setting</i>Role</a></li> *@
-@*                         <li><a href="permissions.html"><i class="material-icons">lock_open</i>Permissions</a></li> *@
-@*                         <!-- Ui Elements --> *@
-@*                         <li> *@
-@*                             <a data-toggle="collapse" class="dropdown-item-list" href="#dropdown-elements"> *@
-@*                                 <i class="material-icons">collections</i>Ui Elements<span class="collapsed float-right"><i class="material-icons">add</i> </span> *@
-@*                                 <span class="expanded float-right"><i class="material-icons">remove</i> </span> *@
-@*                             </a> *@
-@*                             <!-- Dropdown Menu Start--> *@
-@*                             <div id="dropdown-elements" class="panel-collapse collapse"> *@
-@*                                 <div class="sub-dropdown"> *@
-@*                                     <ul class="sub-list"> *@
-@*                                         <li><a href="cards.html">Cards</a></li> *@
-@*                                         <li><a href="accordion.html">Accordions</a></li> *@
-@*                                         <li><a href="tabs.html">Tabs</a></li> *@
-@*                                         <li><a href="buttons.html">Buttons</a></li> *@
-@*                                         <li><a href="modals.html">Modals</a></li> *@
-@*                                         <li><a href="alert.html">Notifications</a></li> *@
-@*                                         <li><a href="badge.html">Badge & Tags</a></li> *@
-@*                                     </ul> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <!-- Dropdown Menu End--> *@
-@*                         </li> *@
-@*                         <!-- Ui Charts --> *@
-@*                         <li> *@
-@*                             <a data-toggle="collapse" class="dropdown-item-list" href="#dropdown-charts"> *@
-@*                                 <i class="material-icons">pie_chart</i>Ui Charts<span class="collapsed float-right"><i class="material-icons">add</i> </span> *@
-@*                                 <span class="expanded float-right"><i class="material-icons">remove</i> </span> *@
-@*                             </a> *@
-@*                             <!-- Dropdown Menu Start--> *@
-@*                             <div id="dropdown-charts" class="panel-collapse collapse"> *@
-@*                                 <div class="sub-dropdown"> *@
-@*                                     <ul class="sub-list"> *@
-@*                                         <li><a href="chart.html">Chart js</a></li> *@
-
-@*                                     </ul> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <!-- Dropdown Menu End--> *@
-@*                         </li> *@
-@*                         <!--Forms --> *@
-@*                         <li> *@
-@*                             <a data-toggle="collapse" class="dropdown-item-list" href="#dropdown-forms"> *@
-@*                                 <i class="material-icons">format_align_center</i>Forms<span class="collapsed float-right"><i class="material-icons">add</i> </span> *@
-@*                                 <span class="expanded float-right"><i class="material-icons">remove</i> </span> *@
-@*                             </a> *@
-@*                             <!-- Dropdown Menu Start--> *@
-@*                             <div id="dropdown-forms" class="panel-collapse collapse"> *@
-@*                                 <div class="sub-dropdown"> *@
-@*                                     <ul class="sub-list"> *@
-@*                                         <li><a href="forms.html">Forms</a></li> *@
-
-@*                                     </ul> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <!-- Dropdown Menu End--> *@
-@*                         </li> *@
-@*                         <!--Tables --> *@
-@*                         <li> *@
-@*                             <a data-toggle="collapse" class="dropdown-item-list" href="#dropdown-tables"> *@
-@*                                 <i class="material-icons">equalizer</i>Tables<span class="collapsed float-right"><i class="material-icons">add</i> </span> *@
-@*                                 <span class="expanded float-right"><i class="material-icons">remove</i> </span> *@
-@*                             </a> *@
-@*                             <!-- Dropdown Menu Start--> *@
-@*                             <div id="dropdown-tables" class="panel-collapse collapse"> *@
-@*                                 <div class="sub-dropdown"> *@
-@*                                     <ul class="sub-list"> *@
-@*                                         <li><a href="basictable.html">Basic</a></li> *@
-@*                                         <li><a href="datatable.html">DataTable</a></li> *@
-@*                                         <li><a href="responsivetable.html">Responsive</a></li> *@
-
-@*                                     </ul> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <!--Widgets --> *@
-@*                         <li> *@
-@*                             <a data-toggle="collapse" class="dropdown-item-list" href="#dropdown-widgets"> *@
-@*                                 <i class="material-icons">send</i>Widgets<span class="collapsed float-right"><i class="material-icons">add</i> </span> *@
-@*                                 <span class="expanded float-right"><i class="material-icons">remove</i> </span> *@
-@*                             </a> *@
-@*                             <!-- Dropdown Menu Start--> *@
-@*                             <div id="dropdown-widgets" class="panel-collapse collapse"> *@
-@*                                 <div class="sub-dropdown"> *@
-@*                                     <ul class="sub-list"> *@
-@*                                         <li><a href="#">Boxes</a></li> *@
-@*                                         <li><a href="#">Lists</a></li> *@
-@*                                         <li><a href="#">Card</a></li> *@
-
-@*                                     </ul> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <!-- Dropdown Menu End--> *@
-@*                         </li> *@
-@*                         <!-- Pages --> *@
-@*                         <li> *@
-@*                             <a data-toggle="collapse" class="dropdown-item-list" href="#dropdown-page"> *@
-@*                                 <i class="material-icons">description</i>Pages<span class="collapsed float-right"><i class="material-icons">add</i> </span> *@
-@*                                 <span class="expanded float-right"><i class="material-icons">remove</i> </span> *@
-@*                             </a> *@
-
-@*                             <!-- Dropdown Menu Start--> *@
-@*                             <div id="dropdown-page" class="panel-collapse collapse"> *@
-@*                                 <div class="sub-dropdown"> *@
-@*                                     <ul class="sub-list"> *@
-@*                                         <li><a href="create.html">Create Page</a></li> *@
-@*                                         <li><a href="login.html">Sign In</a></li> *@
-@*                                         <li><a href="register.html">Register</a></li> *@
-@*                                         <li><a href="reset-password.html">Forgot Password</a></li> *@
-@*                                         <li><a href="404.html">404</a></li> *@
-
-@*                                     </ul> *@
-@*                                 </div> *@
-@*                             </div> *@
-@*                             <!-- Dropdown Menu End--> *@
-
-@*                         </li> *@
-@*                         <li><a href="settings.html"><i class="material-icons">settings</i>General Settings</a></li> *@
-@*                     </ul> *@
-@*                 </div> *@
-@*             </aside> *@
-@*         </div> *@
-@*         <!--   Left Sidebar  --> *@
-@*     </section> *@
-@*     <!--====== End Left Sidebar Section======--> *@
-@*     <!--====== Start Main Wrapper Section======--> *@
-@*     <section class="d-flex" id="wrapper"> *@
-
-
-
-@*         <div class="page-content-wrapper"> *@
-@*             <!--  Header BreadCrumb --> *@
-@*             <div class="content-header"> *@
-@*                 <nav aria-label="breadcrumb"> *@
-@*                     <ol class="breadcrumb"> *@
-@*                         <li class="breadcrumb-item"><a href="index.html"><i class="material-icons">home</i>Home</a></li> *@
-@*                         <li class="breadcrumb-item"><a href="#">Users</a></li> *@
-@*                         <li class="breadcrumb-item active" aria-current="page">Add new User</li> *@
-@*                     </ol> *@
-@*                 </nav> *@
-@*             </div> *@
-            <!--  Header BreadCrumb -->
-            <!-- Create New User -->
 <div class="container-fluid px-4 py-3">
-    <h5 class="mb-4 fw-bold text-danger"> Add New User</h5>
+    <h5 class="mb-4 fw-bold text-danger">Add New User</h5>
 
-    <form asp-action="AddUser" method="post">
+    <form id="addUserForm">
         @Html.AntiForgeryToken()
 
-        <div class="mb-3">
-            <label class="form-label fw-semibold text-dark">Name</label>
-            <input asp-for="NomPrenom" class="form-control border-1 px-3 py-2" style="border-radius: 0;" placeholder="Full Name" required />
+        <!-- Validation Summary -->
+        <div id="validationSummary" class="alert alert-danger" style="display: none;">
+            <ul id="validationList"></ul>
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold text-dark">Email</label>
-            <input asp-for="Email" type="email" class="form-control border-1 px-3 py-2" style="border-radius: 0;" placeholder="example@domain.com" required />
+            <label class="form-label fw-semibold text-dark">Name <span class="text-danger">*</span></label>
+            <input asp-for="NomPrenom" class="form-control border-1 px-3 py-2"
+                   style="border-radius: 0;" placeholder="Full Name" required
+                   minlength="2" maxlength="100" />
+            <div class="invalid-feedback"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold text-dark">Phone Number</label>
-            <input asp-for="Telephone" class="form-control border-1 px-3 py-2" style="border-radius: 0;" placeholder="+216 XX XXX XXX" required />
+            <label class="form-label fw-semibold text-dark">Email <span class="text-danger">*</span></label>
+            <input asp-for="Email" type="email" class="form-control border-1 px-3 py-2"
+                   style="border-radius: 0;" placeholder="example@domain.com" required />
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold text-dark">Phone Number <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text" style="border-radius: 0;">+216</span>
+                <input asp-for="Telephone" class="form-control border-1 px-3 py-2"
+                       style="border-radius: 0;" placeholder="XX XXX XXX" required
+                       pattern="[0-9]{8}" maxlength="8" id="phoneInput" />
+            </div>
+            <small class="form-text text-muted">Enter 8 digits (e.g., 12345678)</small>
+            <div class="invalid-feedback"></div>
         </div>
 
         <div class="mb-4">
-            <label class="form-label fw-semibold text-dark">Role</label>
+            <label class="form-label fw-semibold text-dark">Role <span class="text-danger">*</span></label>
             <select asp-for="Role" class="form-select border-1 px-3 py-2" style="border-radius: 0;" required>
                 <option value="">-- Select Role --</option>
                 <option value="Admin">Admin</option>
@@ -329,49 +51,176 @@
                 <option value="DGF">DGF</option>
                 <option value="ResponsableCatering">Responsable Catering</option>
             </select>
+            <div class="invalid-feedback"></div>
         </div>
 
         <div class="text-end">
-            <button type="submit" class="btn px-4 py-2 text-white fw-semibold" style="background-color: #8B0000; border-radius: 0;">
+            <button type="button" class="btn px-4 py-2 text-white fw-semibold"
+                    style="background-color: #8B0000; border-radius: 0;" id="submitBtn">
                 <i class="bi bi-person-plus-fill me-2"></i> Create
+            </button>
+            <button type="button" class="btn btn-secondary px-4 py-2 ms-2"
+                    style="border-radius: 0;" onclick="closeModal()">
+                Cancel
             </button>
         </div>
     </form>
 </div>
 
+<script>
+    $(document).ready(function() {
+        const form = document.getElementById('addUserForm');
+        const phoneInput = document.getElementById('phoneInput');
+        const submitBtn = document.getElementById('submitBtn');
 
-@*             <!-- Create New User--> *@
+        // Phone number validation
+        phoneInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, ''); // Remove non-digits
+            if (value.length > 8) {
+                value = value.substring(0, 8);
+            }
+            this.value = value;
 
+            // Real-time validation
+            if (value.length === 8) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+                if (value.length > 0) {
+                    this.classList.add('is-invalid');
+                }
+            }
+        });
 
+        // Form submission - using click event instead of submit
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-@*         </div> *@
-@*         <!--  main-content --> *@
-        
+            console.log('Submit button clicked');
 
-@*     </section> *@
+            if (validateForm()) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
 
-@*     <!--====== End Main Wrapper Section======--> *@
-@*     <!--====== JQuery from CDN ======--> *@
-@*     <script src="~/js/jquery.min.js"></script> *@
+                // Get form data
+                const formData = {
+                    NomPrenom: $('input[name="NomPrenom"]').val(),
+                    Email: $('input[name="Email"]').val(),
+                    Telephone: $('input[name="Telephone"]').val(),
+                    Role: $('select[name="Role"]').val(),
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                };
 
-@*     <!--====== Bootstrap js ======--> *@
-@*     <script src="~/js/bootstrap.min.js"></script> *@
-@*     <script src="~/js/popper.min.js"></script> *@
+                console.log('Sending data:', formData);
 
-@*     <!--====== dataTables js ======--> *@
-@*     <script src="~/js/dataTables.bootstrap4.min.js"></script> *@
-@*     <script src="~/js/jquery.dataTables.min.js"></script> *@
+                // Use jQuery AJAX
+                $.ajax({
+                    url: '/Admin/AddUser',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        console.log('Success response:', response);
 
-@*     <!--====== Chart.min js ======--> *@
-@*     <script src="~/js/Chart.min.js"></script> *@
-@*     <script src="~/js/Chart.bundle.min.js"></script> *@
-@*     <script src="~/js/chartfunction.js"></script> *@
+                        if (response.success) {
+                            // Close modal
+                            $('#userModal').modal('hide');
 
-@*     <!--====== wow.min js ======--> *@
-@*     <script src="~/js/wow.min.js"></script> *@
-@*     <!--====== Main js ======--> *@
-@*     <script src="~/js/script.js"></script> *@
+                            // Show success message with password
+                            showSuccessMessage(`User created successfully! Default password: ${response.defaultPassword}`);
 
+                            // Reload the parent page after a short delay
+                            setTimeout(function() {
+                                if (window.parent && window.parent !== window) {
+                                    window.parent.location.reload();
+                                } else {
+                                    window.location.href = '/Admin/UsersList';
+                                }
+                            }, 2000);
+                        } else {
+                            showError(response.message || 'An error occurred');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        showError('An unexpected error occurred: ' + error);
+                    },
+                    complete: function() {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="bi bi-person-plus-fill me-2"></i> Create';
+                    }
+                });
+            }
+        });
 
-@* </body> *@
-@* </html> *@
+        function validateForm() {
+            let isValid = true;
+            const inputs = form.querySelectorAll('input[required], select[required]');
+
+            console.log('Validating form...');
+
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                    console.log(`Validation failed for: ${input.name || input.id}`);
+                } else {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                }
+            });
+
+            // Specific phone validation
+            if (phoneInput.value.length !== 8) {
+                phoneInput.classList.add('is-invalid');
+                isValid = false;
+                console.log('Phone validation failed');
+            }
+
+            console.log('Form is valid:', isValid);
+            return isValid;
+        }
+
+        function showError(message) {
+            console.log('Showing error:', message);
+            const validationSummary = document.getElementById('validationSummary');
+            const validationList = document.getElementById('validationList');
+
+            if (validationSummary && validationList) {
+                validationList.innerHTML = `<li>${message}</li>`;
+                validationSummary.style.display = 'block';
+
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    validationSummary.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function showSuccessMessage(message) {
+            // Create a temporary success alert
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show position-fixed"
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            // Add to body
+            $('body').append(alertHtml);
+
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                $('.alert-success').fadeOut();
+            }, 5000);
+        }
+    });
+
+    function closeModal() {
+        $('#userModal').modal('hide');
+    }
+</script>

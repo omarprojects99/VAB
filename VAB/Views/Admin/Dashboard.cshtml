@@ -1,106 +1,55 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model VAB.ViewModel.DashboardViewModel
 @{
-}
-@* <h2>Welcome Admin</h2>  *@
-@* <a href="/Account/Logout">Logout</a>  *@
-@{
-    // ViewData["Title"] = "Login";
     Layout = null;
 }
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <!--====== Required meta tags ======-->
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="description" content="">
-
-    <!--====== Title ======-->
     <title>Admin Dashboard</title>
 
-    <!--====== Favicon Icon ======-->
-    @* <link rel="shortcut icon" href="~/favicon.png" type="image/png"> *@
-
-
-    <!--====== Google Fonts ======-->
-    @* <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet"> *@
-
-    <!--====== Material Icons ======-->
     <link rel="stylesheet" href="~/iconfont/material-icons.css">
-
-    <!-- dataTables.bootstrap4.min css-->
     <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
-
-    <!-- Chart.min css-->
     <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
-
-    <!-- animate css-->
     <link href="~/css/animate.css" rel="stylesheet" media="screen">
-
-    <!--====== Bootstrap css ======-->
     <link rel="stylesheet" href="~/css/bootstrap.min.css">
-
-    <!--====== Style css ======-->
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/sidebar.css">
-    <!--====== Responsive css ======-->
     <link rel="stylesheet" href="~/css/responsive.css">
-
-    <!--====== CkEditors js ======-->
-    <link rel="stylesheet" href="~/js/ckeditor.js">
-
-
-
 </head>
 <body>
-
-   
-
-    <!-- Prealoder -->
-    <!--====== Start Header Section======-->
+    <!-- Header (same as before) -->
     <header>
         <div class="header">
-
-
             <div class="navigation">
                 <nav class="navbar navbar-expand-lg navbar-bg">
-
                     <div class="brand-logo">
-                        <a class="navbar-brand" href="index.html" id="menu-action">
+                        <a class="navbar-brand" href="@Url.Action("Dashboard", "Admin")" id="menu-action">
                             <div class="logo-tunisair">
-                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="" >
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
                             </div>
-                       </a>
+                        </a>
                         <div id="nav-toggle">
                             <div class="cta">
                                 <div class="toggle-btn type1"></div>
                             </div>
                         </div>
                     </div>
-                    <!--   For Toggle Mobile Nav icon -->
                     <div class="for-mobile d-mobile">
                         <div class="toggle-button" id="toggle-button">
-                            <span class="material-icons">
-                                menu
-                            </span>
+                            <span class="material-icons">menu</span>
                         </div>
-
                     </div>
-                    <!--   For Toggle Mobile Nav Icon -->
-
                     <div class="collapse navbar-collapse pr-3" id="#">
-
                         <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
                             <li class="nav-item dropdown show">
-                                @if (User.Identity.IsAuthenticated) // Check if user is logged in
+                                @if (User.Identity.IsAuthenticated)
                                 {
                                     <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
                                         <div class="user-photo">
-                                            <img src="https://www.kindpng.com/picc/m/21-211180_transparent-businessman-clipart-png-user-man-icon-png.png" alt="">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
                                         </div>
                                         @User.Identity.Name
                                     </a>
@@ -114,53 +63,23 @@
                                         </a>
                                     </div>
                                 }
-                                else
-                                {
-                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
-                                }
                             </li>
                         </ul>
-
-
                     </div>
-
-
                 </nav>
-
             </div>
-            <!--   For Toggle Mobile Nav -->
-            <div class="toggle-user-menu" id="toggle-user-menu">
-                <ul>
-                    <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>admin@admin.com</a></li>
-                    <li>
-                        <a href="">
-                            <i class="material-icons mr-2">
-                                supervisor_account
-                            </i>
-                            Account Settings
-                        </a>
-                    </li>
-                    <li><a href=""><i class="material-icons mr-2">exit_to_app</i>Logout</a></li>
-
-                </ul>
-            </div>
-            <!--   For Toggle Mobile Nav -->
         </div>
     </header>
-    <!--====== End Header Section======-->
-    <!--====== Start Left Sidebar Section======-->
+
+    <!-- Left Sidebar (same as before) -->
     <section id="left-sidebar-area">
-        <!--   Left Sidebar  -->
         <div id="left-sidebar-section">
-
-
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li><a href ="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
+                        <li class="active"><a href="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
                         <li><a href="@Url.Action("UsersList", "Admin")"><i class="material-icons">supervisor_account</i>Users</a></li>
-                        <li class="active"><a asp-controller="Admin" asp-action="Prices"><i class="material-icons">attach_money</i>Prices</a></li>
-                        
+                        <li><a asp-controller="Admin" asp-action="Prices"><i class="material-icons">attach_money</i>Prices</a></li>
                         <li>
                             <a href="@Url.Action("Categories", "Admin")">
                                 <i>
@@ -170,53 +89,39 @@
                                 </i> Categories / Articles
                             </a>
                         </li>
-                        
                     </ul>
                 </div>
             </aside>
         </div>
-        <!--   Left Sidebar  -->
     </section>
-    <!--====== End Left Sidebar Section======-->
-    <!--====== Start Main Wrapper Section======-->
-    <section class="d-flex" id="wrapper">
 
+    <!-- Main Content -->
+    <section class="d-flex" id="wrapper">
         <div class="page-content-wrapper">
-            <!--  Header BreadCrumb -->
             <div class="content-header">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="index.html"><i class="material-icons">home</i>Home</a></li>
-                        <li class="breadcrumb-item"><a href="#">Library</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Data</li>
+                        <li class="breadcrumb-item"><a href="#"><i class="material-icons">home</i>Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
                     </ol>
                 </nav>
-                <!--             <div class="create-item">
-                                <a href="" class="btn btn-primary"><i class="material-icons">add</i>Create user</a>
-                            </div> -->
             </div>
-            <!--  Header BreadCrumb -->
-            <!--  main-content -->
+
             <div class="main-content">
-
-
-
-                <!-- Dashboard Box -->
+                <!-- Dashboard Statistics Cards -->
                 <div class="row animated fadeInUp">
                     <div class="col-xl-3 col-sm-6 mb-3">
-                        <div class="card text-white bg-info o-hidden h-100">
+                        <div class="card text-white bg-success o-hidden h-100">
                             <div class="card-body">
                                 <div class="card-body-icon">
-                                    <i class="material-icons float-right text-white md-5em">group_add</i>
+                                    <i class="material-icons float-right text-white md-5em">people_outline</i>
                                 </div>
-                                <div class="mr-5">( 123 )New Users</div>
+                                <div class="mr-5">(@Model.TotalUsers) Total Users</div>
                             </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
+                            <a class="card-footer text-white clearfix small z-1" href="@Url.Action("UsersList", "Admin")">
                                 <span class="float-left">View Details</span>
                                 <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
+                                    <i class="material-icons">keyboard_arrow_right</i>
                                 </span>
                             </a>
                         </div>
@@ -227,14 +132,12 @@
                                 <div class="card-body-icon">
                                     <i class="material-icons float-right text-white md-5em">supervisor_account</i>
                                 </div>
-                                <div class="mr-5">( 123 )Active Users</div>
+                                <div class="mr-5">(@Model.ActiveUsers) Active Users</div>
                             </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
+                            <a class="card-footer text-white clearfix small z-1" href="@Url.Action("UsersList", "Admin")">
                                 <span class="float-left">View Details</span>
                                 <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
+                                    <i class="material-icons">keyboard_arrow_right</i>
                                 </span>
                             </a>
                         </div>
@@ -245,170 +148,213 @@
                                 <div class="card-body-icon">
                                     <i class="material-icons float-right text-white md-5em">person_outline</i>
                                 </div>
-                                <div class="mr-5">( 123 )Banned Users</div>
+                                <div class="mr-5">(@Model.InactiveUsers) Inactive Users</div>
                             </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
+                            <a class="card-footer text-white clearfix small z-1" href="@Url.Action("UsersList", "Admin")">
                                 <span class="float-left">View Details</span>
                                 <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
+                                    <i class="material-icons">keyboard_arrow_right</i>
                                 </span>
                             </a>
                         </div>
                     </div>
                     <div class="col-xl-3 col-sm-6 mb-3">
-                        <div class="card text-white bg-success o-hidden h-100">
+                        <div class="card text-white bg-info o-hidden h-100">
                             <div class="card-body">
                                 <div class="card-body-icon">
-                                    <i class="material-icons float-right text-white md-5em">people_outline</i>
+                                    <i class="material-icons float-right text-white md-5em">group_add</i>
                                 </div>
-                                <div class="mr-5">( 123 )Total Users</div>
+                                <div class="mr-5">(@Model.UsersByRole.Values.Sum()) Role Assignments</div>
                             </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
+                            <a class="card-footer text-white clearfix small z-1" href="@Url.Action("UsersList", "Admin")">
                                 <span class="float-left">View Details</span>
                                 <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
+                                    <i class="material-icons">keyboard_arrow_right</i>
                                 </span>
                             </a>
                         </div>
                     </div>
                 </div>
-                <!-- Dashboard Box -->
 
-
-
-
-
-
-
-
+                <!-- Charts and Tables Row -->
                 <div class="row mt-3">
-
-
-                    <div class="col-md-4">
+                    <!-- User Status Pie Chart -->
+                    <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header">Github Users</div>
+                            <div class="card-header">User Status Distribution</div>
                             <div class="card-body">
-                                <table class="table table-striped">
-                                    <tbody>
-                                        <tr>
-                                            <td><a href="https://www.elmasapp.online/users/248">yash</a></td>
-                                            <td width="1" class="nowrap">Date</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="https://www.elmasapp.online/users/247">test</a></td>
-                                            <td width="1" class="">Date</td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
+                                <canvas id="userStatusChart" style="height: 300px;"></canvas>
                             </div>
                         </div>
                     </div>
 
-
-                    <div class="col-md-4">
+                    <!-- Users by Role Chart -->
+                    <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header">Facebook Users</div>
+                            <div class="card-header">Users by Role</div>
                             <div class="card-body">
-                                <table class="table table-striped">
-                                    <tbody>
-                                        <tr>
-                                            <td><a href="https://www.elmasapp.online/users/248">yash</a></td>
-                                            <td width="1" class="nowrap">Date</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="https://www.elmasapp.online/users/247">test</a></td>
-                                            <td width="1" class="">Date</td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
+                                <canvas id="roleChart" style="height: 300px;"></canvas>
                             </div>
                         </div>
                     </div>
-
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">Gmail Users</div>
-                            <div class="card-body">
-                                <table class="table table-striped">
-                                    <tbody>
-                                        <tr>
-                                            <td><a href="https://www.elmasapp.online/users/248">yash</a></td>
-                                            <td width="1" class="nowrap">Date</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="https://www.elmasapp.online/users/247">test</a></td>
-                                            <td width="1" class="">Date</td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-
                 </div>
 
-
+                <!-- Recent Users Table -->
                 <div class="row mt-3">
-
                     <div class="col-md-12">
                         <div class="card">
+                            <div class="card-header">Recent Users</div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="chart-legend-normal"></canvas>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Phone</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var user in Model.RecentUsers)
+                                            {
+                                                <tr>
+                                                    <td>@user.NomPrenom</td>
+                                                    <td>@user.Email</td>
+                                                    <td>@user.Telephone</td>
+                                                    <td>
+                                                        @if (user.Roles != null && user.Roles.Any())
+                                                        {
+                                                            <span class="badge badge-primary">@string.Join(", ", user.Roles)</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-secondary">No Role</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (user.IsActive)
+                                                        {
+                                                            <span class="badge badge-success">Active</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-danger">Inactive</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
-
-
-
-
-
-
             </div>
-            <!--  main-content -->
         </div>
-
     </section>
 
-    <!--====== End Main Wrapper Section======-->
-    <!--====== JQuery from CDN ======-->
+    <!-- Scripts -->
     <script src="~/js/jquery.min.js"></script>
-
-    <!--====== Bootstrap js ======-->
     <script src="~/js/bootstrap.min.js"></script>
     <script src="~/js/popper.min.js"></script>
-
-    <!--====== dataTables js ======-->
-    <script src="~/js/dataTables.bootstrap4.min.js"></script>
-    <script src="~/js/jquery.dataTables.min.js"></script>
-
-    <!--====== Chart.min js ======-->
-    <script src="~/js/Chart.min.js"></script>
-    <script src="~/js/Chart.bundle.min.js"></script>
-    <script src="~/js/chartfunction.js"></script>
-
-    <!--====== wow.min js ======-->
-    <script src="~/js/wow.min.js"></script>
-    <!--====== Main js ======-->
     <script src="~/js/script.js"></script>
 
-    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script>
+        $(document).ready(function() {
+            console.log('Dashboard loaded');
+            console.log('Total Users: @Model.TotalUsers');
+            console.log('Active Users: @Model.ActiveUsers');
+            console.log('Inactive Users: @Model.InactiveUsers');
+
+            // User Status Pie Chart
+            const userStatusCtx = document.getElementById('userStatusChart');
+            if (userStatusCtx) {
+                const userStatusChart = new Chart(userStatusCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Active Users', 'Inactive Users'],
+                        datasets: [{
+                            data: [@Model.ActiveUsers, @Model.InactiveUsers],
+                            backgroundColor: ['#28a745', '#dc3545'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('User Status Chart created');
+            } else {
+                console.error('userStatusChart canvas not found');
+            }
+
+            // Role Distribution Bar Chart
+            const roleCtx = document.getElementById('roleChart');
+            if (roleCtx) {
+                const roleLabels = [@Html.Raw(string.Join(",", Model.UsersByRole.Keys.Select(k => $"'{k}'")))];
+                const roleData = [@string.Join(",", Model.UsersByRole.Values)];
+                const roleColors = ['#007bff', '#28a745', '#ffc107', '#17a2b8', '#6c757d'];
+
+                console.log('Role Labels:', roleLabels);
+                console.log('Role Data:', roleData);
+
+                const roleChart = new Chart(roleCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: roleLabels,
+                        datasets: [{
+                            label: 'Number of Users',
+                            data: roleData,
+                            backgroundColor: roleColors.slice(0, roleLabels.length),
+                            borderColor: roleColors.slice(0, roleLabels.length),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                console.log('Role Chart created');
+            } else {
+                console.error('roleChart canvas not found');
+            }
+        });
+    </script>
 </body>
 </html>
-
-

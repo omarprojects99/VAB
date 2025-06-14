@@ -6,28 +6,41 @@ using VAB.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using VAB.Data;
+using System.Linq;
 
 namespace VAB.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
-        public AdminController(UserManager<User> userManager,RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
+
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
         }
-        
-       
-        public IActionResult Dashboard()
-        {
-            return View();
-        }
-        public async Task<IActionResult> UsersListAsync()
+
+        //// Dashboard with statistics
+        //public async Task<IActionResult> Dashboard()
+        //{
+        //    var dashboardData = new DashboardViewModel
+        //    {
+        //        TotalUsers = await _userManager.Users.CountAsync(),
+        //        ActiveUsers = await _userManager.Users.Where(u => u.IsActive).CountAsync(),
+        //        InactiveUsers = await _userManager.Users.Where(u => !u.IsActive).CountAsync(),
+        //        UsersByRole = await GetUsersByRoleAsync(),
+        //        RecentUsers = await GetRecentUsersAsync()
+        //    };
+
+        //    return View(dashboardData);
+        //}
+
+        // Users List
+        public async Task<IActionResult> UsersList()
         {
             var users = _userManager.Users.ToList();
             var userList = new List<UserManagementViewModel>();
@@ -36,106 +49,128 @@ namespace VAB.Controllers
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 userList.Add(new UserManagementViewModel
-                {   Id= user.Id,
+                {
+                    Id = user.Id,
                     NomPrenom = user.NomPrenom,
                     Email = user.Email,
                     Telephone = user.Telephone,
-                    Roles = roles.ToList()
+                    Roles = roles.ToList(),
+                    IsActive = user.IsActive
                 });
             }
 
             return View(userList);
         }
+
+        // Add User GET
         public IActionResult AddUser()
         {
             return View();
         }
+
+        // Add User POST
+        // Add User POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddUser(UserManagementViewModel model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var user = new User
+            try
             {
-                UserName = model.Email,
-                Email = model.Email,
-                Telephone = model.Telephone,
-                NomPrenom = model.NomPrenom,
-                IsActive = true,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                ConcurrencyStamp = Guid.NewGuid().ToString(),
-                EmailConfirmed = true,
-                LockoutEnabled = true,
-            };
+                Console.WriteLine($"AddUser called with: {model.NomPrenom}, {model.Email}, {model.Telephone}, {model.Role}");
 
-            var defaultPassword = "[REDACTED]"; // Update this for production
-            var result = await _userManager.CreateAsync(user, defaultPassword);
-
-            if (result.Succeeded)
-            {
-                // Check if Role exists
-                var roleExists = await _roleManager.RoleExistsAsync(model.Role);
-                if (!roleExists)
+                if (!ModelState.IsValid)
                 {
-                    ModelState.AddModelError("", "❌ Role does not exist!");
-                    return View(model);
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    Console.WriteLine($"ModelState errors: {string.Join(", ", errors)}");
+                    return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Assign Role
-                try
+                // Enhanced validation
+                if (!IsValidPhoneNumber(model.Telephone))
                 {
+                    Console.WriteLine("Phone validation failed");
+                    return Json(new { success = false, message = "Phone number must be exactly 8 digits" });
+                }
+
+                if (!IsValidEmail(model.Email))
+                {
+                    Console.WriteLine("Email validation failed");
+                    return Json(new { success = false, message = "Please enter a valid email address" });
+                }
+
+                // Check if user already exists
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    Console.WriteLine("User already exists");
+                    return Json(new { success = false, message = "A user with this email already exists" });
+                }
+
+                var user = new User
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    Telephone = model.Telephone,
+                    NomPrenom = model.NomPrenom,
+                    IsActive = true,
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    EmailConfirmed = true,
+                    LockoutEnabled = true,
+                };
+
+                var defaultPassword = GenerateSecurePassword();
+                Console.WriteLine($"Creating user with password: {defaultPassword}");
+
+                var result = await _userManager.CreateAsync(user, defaultPassword);
+
+                if (result.Succeeded)
+                {
+                    Console.WriteLine("User created successfully");
+
+                    // Check if Role exists
+                    var roleExists = await _roleManager.RoleExistsAsync(model.Role);
+                    if (!roleExists)
+                    {
+                        Console.WriteLine($"Role {model.Role} does not exist");
+                        await _userManager.DeleteAsync(user); // Cleanup
+                        return Json(new { success = false, message = "Selected role does not exist" });
+                    }
+
+                    // Assign Role
                     var roleResult = await _userManager.AddToRoleAsync(user, model.Role);
                     if (!roleResult.Succeeded)
                     {
-                        foreach (var error in roleResult.Errors)
-                        {
-                            Console.WriteLine($"Error assigning role: {error.Description}");
-                        }
-                        ModelState.AddModelError("", "❌ Failed to assign role!");
-                        return View(model);
+                        Console.WriteLine("Failed to assign role");
+                        await _userManager.DeleteAsync(user); // Cleanup
+                        return Json(new { success = false, message = "Failed to assign role to user" });
                     }
+
+                    // Set TempData for success message like other forms
+                    TempData["Success"] = $"✅ User '{model.NomPrenom}' created successfully! Default password: {defaultPassword}";
+
+                    Console.WriteLine("User creation completed successfully");
+                    return Json(new
+                    {
+                        success = true,
+                        message = "User created successfully",
+                        defaultPassword = defaultPassword
+                    });
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Exception: {ex.Message}");
-                    ModelState.AddModelError("", "❌ An unexpected error occurred while assigning the role.");
-                    return View(model);
-                }
 
-                // Debug the assigned role
-                var roles = await _userManager.GetRolesAsync(user);
-                Console.WriteLine("✅ User roles: " + string.Join(", ", roles));
-
-                TempData["Success"] = "✅ User created and role assigned successfully";
-                return RedirectToAction("UsersList");
+                var errorMessages = result.Errors.Select(e => e.Description);
+                Console.WriteLine($"User creation failed: {string.Join(", ", errorMessages)}");
+                return Json(new { success = false, message = string.Join(", ", errorMessages) });
             }
-
-            // Display Identity errors
-            foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
-
-            return View(model);
-        }
-        [HttpPost]
-        public async Task<IActionResult> DeleteUser(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                Console.WriteLine($"Exception in AddUser: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, message = "An unexpected error occurred while creating the user" });
             }
-
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-            {
-                return RedirectToAction("UsersList");
-            }
-
-            return BadRequest("Error deleting user");
         }
 
+        // View User
         public async Task<IActionResult> ViewUser(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -157,12 +192,14 @@ namespace VAB.Controllers
                 NomPrenom = user.NomPrenom,
                 Email = user.Email,
                 Telephone = user.Telephone,
-                Roles = roles.ToList()
+                Roles = roles.ToList(),
+                IsActive = user.IsActive
             };
 
             return View(model);
         }
 
+        // Edit User GET
         public async Task<IActionResult> EditUser(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -177,7 +214,7 @@ namespace VAB.Controllers
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-            var availableRoles = _roleManager.Roles.Select(r => r.Name).ToList(); // Fetch all available roles
+            var availableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
 
             var model = new UserManagementViewModel
             {
@@ -186,70 +223,246 @@ namespace VAB.Controllers
                 Email = user.Email,
                 Telephone = user.Telephone,
                 Roles = roles.ToList(),
-                AvailableRoles = availableRoles
+                AvailableRoles = availableRoles,
+                IsActive = user.IsActive
             };
 
             return View(model);
         }
+
+        // Edit User POST
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditUserPost(UserManagementViewModel model)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return View("EditUser", model);
-            }
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return Json(new { success = false, message = string.Join(", ", errors) });
+                }
 
-            var user = await _userManager.FindByIdAsync(model.Id);
-            if (user == null)
+                // Enhanced validation
+                if (!IsValidPhoneNumber(model.Telephone))
+                {
+                    return Json(new { success = false, message = "Phone number must be exactly 8 digits" });
+                }
+
+                var user = await _userManager.FindByIdAsync(model.Id);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                // Check if email is being changed and if it already exists
+                if (user.Email != model.Email)
+                {
+                    var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                    if (existingUser != null && existingUser.Id != model.Id)
+                    {
+                        return Json(new { success = false, message = "A user with this email already exists" });
+                    }
+                }
+
+                user.NomPrenom = model.NomPrenom;
+                user.Email = model.Email;
+                user.UserName = model.Email;
+                user.Telephone = model.Telephone;
+
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    var errors = updateResult.Errors.Select(e => e.Description);
+                    return Json(new { success = false, message = string.Join(", ", errors) });
+                }
+
+                // Update user roles
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+                if (model.Roles != null && model.Roles.Any())
+                {
+                    var roleResult = await _userManager.AddToRolesAsync(user, model.Roles);
+                    if (!roleResult.Succeeded)
+                    {
+                        var errors = roleResult.Errors.Select(e => e.Description);
+                        return Json(new { success = false, message = "User updated but failed to assign roles: " + string.Join(", ", errors) });
+                    }
+                }
+
+                return Json(new { success = true, message = "User updated successfully" });
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                Console.WriteLine($"Error updating user: {ex.Message}");
+                return Json(new { success = false, message = "An unexpected error occurred while updating the user" });
             }
-
-            user.NomPrenom = model.NomPrenom;
-            user.Email = model.Email;
-            user.Telephone = model.Telephone;
-
-            var updateResult = await _userManager.UpdateAsync(user);
-            if (!updateResult.Succeeded)
-            {
-                ModelState.AddModelError("", "Failed to update user.");
-                return View("EditUser", model);
-            }
-
-            // Update user roles
-            var currentRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, currentRoles); // Remove old roles
-            await _userManager.AddToRolesAsync(user, model.Roles); // Add new roles
-
-            return RedirectToAction("UsersList");
         }
 
+        // Deactivate User (Soft Delete)
+        [HttpPost]
+        public async Task<IActionResult> DeactivateUser(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "User ID is required" });
+                }
+
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                // Check if trying to deactivate the current user
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser?.Id == id)
+                {
+                    return Json(new { success = false, message = "You cannot deactivate your own account" });
+                }
+
+                // Soft delete - just deactivate
+                user.IsActive = false;
+                user.LockoutEnd = DateTimeOffset.MaxValue;
+
+                var result = await _userManager.UpdateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true, message = "User deactivated successfully" });
+                }
+
+                var errors = result.Errors.Select(e => e.Description);
+                return Json(new { success = false, message = string.Join(", ", errors) });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deactivating user: {ex.Message}");
+                return Json(new { success = false, message = "An unexpected error occurred" });
+            }
+        }
+
+        // Reactivate User
+        [HttpPost]
+        public async Task<IActionResult> ReactivateUser(string id)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                user.IsActive = true;
+                user.LockoutEnd = null;
+
+                var result = await _userManager.UpdateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true, message = "User reactivated successfully" });
+                }
+
+                var errors = result.Errors.Select(e => e.Description);
+                return Json(new { success = false, message = string.Join(", ", errors) });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reactivating user: {ex.Message}");
+                return Json(new { success = false, message = "An unexpected error occurred" });
+            }
+        }
+
+        // Password Management
+        [HttpPost]
+        public async Task<IActionResult> ResetUserPassword(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                var newPassword = GenerateSecurePassword();
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true, newPassword = newPassword });
+                }
+
+                return Json(new { success = false, message = "Failed to reset password" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error resetting password: {ex.Message}");
+                return Json(new { success = false, message = "An unexpected error occurred" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetUserPassword(string userId, string newPassword)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true, message = "Password updated successfully" });
+                }
+
+                return Json(new { success = false, message = "Failed to update password" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting password: {ex.Message}");
+                return Json(new { success = false, message = "An unexpected error occurred" });
+            }
+        }
+
+        // Account Settings
         [HttpGet]
         public async Task<IActionResult> AccountSettings()
         {
             if (!User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Login"); // Redirect if not logged in
+                return RedirectToAction("Login");
             }
 
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
             if (user == null)
             {
-                return RedirectToAction("Login"); // Redirect if user not found
+                return RedirectToAction("Login");
             }
 
-            var roles = await _userManager.GetRolesAsync(user); // Get user roles
+            var roles = await _userManager.GetRolesAsync(user);
 
             var model = new UserManagementViewModel
             {
                 NomPrenom = user.NomPrenom,
                 Email = user.Email,
                 Telephone = user.Telephone,
-                Role = roles.FirstOrDefault() ?? "User" // Get first role or default to 'User'
+                Role = roles.FirstOrDefault() ?? "User"
             };
 
             return View(model);
         }
+
         [HttpGet]
         public async Task<IActionResult> UpdateProfile()
         {
@@ -268,22 +481,19 @@ namespace VAB.Controllers
 
             return View("UpdateProfile", model);
         }
-        //categorie
+
+        // Categories Management
         public async Task<IActionResult> Categories()
         {
             var categories = await _context.Categories.ToListAsync();
             return View(categories);
         }
-        // Show all categories
 
-        // GET: Add Category
-        // GET: Add Category
         public IActionResult AddCategorie()
         {
             return View(new CategorieManagementViewModel());
         }
 
-        // POST: Add Category
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCategorie(CategorieManagementViewModel model)
@@ -320,7 +530,6 @@ namespace VAB.Controllers
             return View(model);
         }
 
-        // GET: Edit Category
         public async Task<IActionResult> EditCategorie(int id)
         {
             if (id == 0)
@@ -343,7 +552,6 @@ namespace VAB.Controllers
             return View(model);
         }
 
-        // POST: Edit Category
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCategorie(CategorieManagementViewModel model)
@@ -384,9 +592,6 @@ namespace VAB.Controllers
             return View(model);
         }
 
-
-        // Other actions (e.g., Categories, DeleteCategorie) assumed unchanged
-
         [HttpPost]
         public async Task<IActionResult> DeleteCategorie(int id)
         {
@@ -399,9 +604,10 @@ namespace VAB.Controllers
             _context.Categories.Remove(categorie);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Categories"); // Adjust this to your listing view
+            return RedirectToAction("Categories");
         }
-        // GET: /Admin/Articles?categoryId={id}
+
+        // Articles Management
         public async Task<IActionResult> Articles(int categoryId)
         {
             var articles = await _context.Articles
@@ -411,8 +617,6 @@ namespace VAB.Controllers
             return View(articles);
         }
 
-        // GET: /Admin/AddArticle?categoryId={id}
-        // GET: /Admin/AddArticle?categoryId={id}
         public IActionResult AddArticle(int categoryId)
         {
             ViewBag.CategoryId = categoryId;
@@ -445,7 +649,6 @@ namespace VAB.Controllers
                     IdArticle = model.IdArticle,
                     Description = model.Description,
                     CategorieId = model.CategorieId,
-                   
                     PrixHistorique = new List<Prix>()
                 };
                 _context.Articles.Add(article);
@@ -460,8 +663,7 @@ namespace VAB.Controllers
                 return PartialView(model);
             }
         }
-        // POST: /Admin/EditArticle
-        // GET: /Admin/EditArticle/{id}
+
         public async Task<IActionResult> EditArticle(int id)
         {
             var article = await _context.Articles.FindAsync(id);
@@ -479,7 +681,6 @@ namespace VAB.Controllers
             return PartialView(model);
         }
 
-        // POST: /Admin/EditArticle
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditArticle(int id, ArticleViewModel model)
@@ -501,7 +702,6 @@ namespace VAB.Controllers
                     return NotFound();
                 }
 
-                // Check for duplicate IdArticle, excluding the current article
                 if (await _context.Articles.AnyAsync(a => a.IdArticle == model.IdArticle && a.Id != id))
                 {
                     ModelState.AddModelError("IdArticle", "An article with this ID already exists.");
@@ -511,7 +711,6 @@ namespace VAB.Controllers
                 article.IdArticle = model.IdArticle;
                 article.Description = model.Description;
                 article.CategorieId = model.CategorieId;
-                // Other properties remain unchanged
 
                 _context.Update(article);
                 await _context.SaveChangesAsync();
@@ -526,7 +725,6 @@ namespace VAB.Controllers
             }
         }
 
-        // POST: /Admin/DeleteArticle
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteArticle(int id)
@@ -542,7 +740,8 @@ namespace VAB.Controllers
             TempData["Success"] = "✅ Article deleted successfully";
             return RedirectToAction("Articles", new { categoryId = article.CategorieId });
         }
-        // Price Management Actions
+
+        // Price Management
         public async Task<IActionResult> Prices(int? categoryId)
         {
             var query = _context.Articles.AsQueryable();
@@ -575,7 +774,7 @@ namespace VAB.Controllers
 
             ViewBag.Article = article;
             ViewBag.PriceHistory = article.PrixHistorique.OrderByDescending(p => p.DateDebut);
-            ViewBag.CategoryId = Request.Query["categoryId"].ToString(); // Pass categoryId from query
+            ViewBag.CategoryId = Request.Query["categoryId"].ToString();
             return PartialView(model);
         }
 
@@ -588,7 +787,7 @@ namespace VAB.Controllers
                 var article = await _context.Articles.FindAsync(model.ArticleId);
                 ViewBag.Article = article;
                 ViewBag.PriceHistory = await _context.Prix
-                    .Where(p => p.ArticleId == model.ArticleId)
+                    .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
                     .OrderByDescending(p => p.DateDebut)
                     .ToListAsync();
                 ViewBag.CategoryId = Request.Query["categoryId"].ToString();
@@ -668,58 +867,58 @@ namespace VAB.Controllers
         }
 
         [HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> EditPrice(PrixViewModel model)
-{
-    if (!ModelState.IsValid)
-    {
-        var article = await _context.Articles.FindAsync(model.ArticleId);
-        ViewBag.Article = article;
-        ViewBag.CategoryId = Request.Query["categoryId"].ToString();
-        return PartialView(model);
-    }
-
-    try
-    {
-        var prix = await _context.Prix.FindAsync(model.Id);
-        if (prix == null)
-            return NotFound();
-
-        var article = await _context.Articles.FindAsync(model.ArticleId);
-        if (article == null)
-            return NotFound();
-
-        prix.Valeur = model.Valeur;
-        prix.DateDebut = model.DateDebut;
-        prix.DateFin = model.DateFin;
-        _context.Update(prix);
-
-        if (prix.DateFin == null)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPrice(PrixViewModel model)
         {
-            article.PrixUnitaireHT = model.Valeur;
-        }
-        else
-        {
-            var activePrice = await _context.Prix
-                .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
-                .FirstOrDefaultAsync();
-            if (activePrice != null)
+            if (!ModelState.IsValid)
             {
-                article.PrixUnitaireHT = activePrice.Valeur;
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                ViewBag.Article = article;
+                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
+                return PartialView(model);
             }
-            else
-            {
-                var mostRecentPrice = await _context.Prix
-                    .Where(p => p.ArticleId == model.ArticleId)
-                    .OrderByDescending(p => p.DateDebut)
-                    .FirstOrDefaultAsync();
-                article.PrixUnitaireHT = mostRecentPrice?.Valeur ?? 0m;
-            }
-        }
-        _context.Update(article);
 
-        await _context.SaveChangesAsync();
-        TempData["Success"] = "✅ Prix mis à jour avec succès";
+            try
+            {
+                var prix = await _context.Prix.FindAsync(model.Id);
+                if (prix == null)
+                    return NotFound();
+
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                if (article == null)
+                    return NotFound();
+
+                prix.Valeur = model.Valeur;
+                prix.DateDebut = model.DateDebut;
+                prix.DateFin = model.DateFin;
+                _context.Update(prix);
+
+                if (prix.DateFin == null)
+                {
+                    article.PrixUnitaireHT = model.Valeur;
+                }
+                else
+                {
+                    var activePrice = await _context.Prix
+                        .Where(p => p.ArticleId == model.ArticleId && p.DateFin == null)
+                        .FirstOrDefaultAsync();
+                    if (activePrice != null)
+                    {
+                        article.PrixUnitaireHT = activePrice.Valeur;
+                    }
+                    else
+                    {
+                        var mostRecentPrice = await _context.Prix
+                            .Where(p => p.ArticleId == model.ArticleId)
+                            .OrderByDescending(p => p.DateDebut)
+                            .FirstOrDefaultAsync();
+                        article.PrixUnitaireHT = mostRecentPrice?.Valeur ?? 0m;
+                    }
+                }
+                _context.Update(article);
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "✅ Prix mis à jour avec succès";
                 return Json(new
                 {
                     success = true,
@@ -728,18 +927,17 @@ public async Task<IActionResult> EditPrice(PrixViewModel model)
                     dateDebut = prix.DateDebut.ToString("yyyy-MM-dd"),
                     dateFin = prix.DateFin?.ToString("yyyy-MM-dd") ?? "Actif"
                 });
-
             }
             catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
-        ModelState.AddModelError("", $"Erreur lors de la mise à jour du prix: {ex.Message}");
-        var article = await _context.Articles.FindAsync(model.ArticleId);
-        ViewBag.Article = article;
-        ViewBag.CategoryId = Request.Query["categoryId"].ToString();
-        return PartialView(model);
-    }
-}
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur base de données: {ex.Message}");
+                ModelState.AddModelError("", $"Erreur lors de la mise à jour du prix: {ex.Message}");
+                var article = await _context.Articles.FindAsync(model.ArticleId);
+                ViewBag.Article = article;
+                ViewBag.CategoryId = Request.Query["categoryId"].ToString();
+                return PartialView(model);
+            }
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -775,17 +973,135 @@ public async Task<IActionResult> EditPrice(PrixViewModel model)
             }
         }
 
+        // Helper Methods
+        private async Task<Dictionary<string, int>> GetUsersByRoleAsync()
+        {
+            var roleStats = new Dictionary<string, int>();
+            var roles = await _roleManager.Roles.ToListAsync();
+
+            foreach (var role in roles)
+            {
+                var usersInRole = await _userManager.GetUsersInRoleAsync(role.Name);
+                roleStats[role.Name] = usersInRole.Count;
+            }
+
+            return roleStats;
+        }
+
+        private async Task<List<UserManagementViewModel>> GetRecentUsersAsync()
+        {
+            var recentUsers = await _userManager.Users
+                .OrderByDescending(u => u.Id)
+                .Take(5)
+                .ToListAsync();
+
+            var userList = new List<UserManagementViewModel>();
+            foreach (var user in recentUsers)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userList.Add(new UserManagementViewModel
+                {
+                    Id = user.Id,
+                    NomPrenom = user.NomPrenom,
+                    Email = user.Email,
+                    Telephone = user.Telephone,
+                    Roles = roles.ToList(),
+                    IsActive = user.IsActive
+                });
+            }
+
+            return userList;
+        }
+
+        private bool IsValidPhoneNumber(string phoneNumber)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+                return false;
+
+            var digitsOnly = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            return digitsOnly.Length == 8;
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return false;
+
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private string GenerateSecurePassword()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            var random = new Random();
+            var password = new string(Enumerable.Repeat(chars, 12)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            return password + "A1!";
+        }
+        // Dashboard with statistics
+        public async Task<IActionResult> Dashboard()
+        {
+            try
+            {
+                var totalUsers = await _userManager.Users.CountAsync();
+                var activeUsers = await _userManager.Users.Where(u => u.IsActive).CountAsync();
+                var inactiveUsers = await _userManager.Users.Where(u => !u.IsActive).CountAsync();
+
+                Console.WriteLine($"Dashboard Stats - Total: {totalUsers}, Active: {activeUsers}, Inactive: {inactiveUsers}");
+
+                var dashboardData = new DashboardViewModel
+                {
+                    TotalUsers = totalUsers,
+                    ActiveUsers = activeUsers,
+                    InactiveUsers = inactiveUsers,
+                    UsersByRole = await GetUsersByRoleAsync(),
+                    RecentUsers = await GetRecentUsersAsync(),
+
+                    // Prepare chart data
+                    UserStatusData = new List<ChartDataPoint>
+            {
+                new ChartDataPoint { Label = "Active Users", Value = activeUsers, Color = "#28a745" },
+                new ChartDataPoint { Label = "Inactive Users", Value = inactiveUsers, Color = "#dc3545" }
+            },
+
+                    RoleDistributionData = (await GetUsersByRoleAsync()).Select(kvp => new ChartDataPoint
+                    {
+                        Label = kvp.Key,
+                        Value = kvp.Value,
+                        Color = GetRoleColor(kvp.Key)
+                    }).ToList()
+                };
+
+                return View(dashboardData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Dashboard error: {ex.Message}");
+                // Return empty dashboard on error
+                return View(new DashboardViewModel());
+            }
+        }
+
+        private string GetRoleColor(string roleName)
+        {
+            return roleName switch
+            {
+                "Admin" => "#007bff",
+                "AgentSaisie" => "#28a745",
+                "DGF" => "#ffc107",
+                "ResponsableCatering" => "#17a2b8",
+                _ => "#6c757d"
+            };
+        }
     }
 
-
-
-
-
 }
-
-
-
-
-
-
-

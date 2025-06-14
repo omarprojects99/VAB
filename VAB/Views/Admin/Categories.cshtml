@@ -87,21 +87,23 @@
     </style>
 </head>
 <body>
-  
 
-    <!-- Header -->
+
+    <!-- Header (same as before) -->
     <header>
         <div class="header">
             <div class="navigation">
                 <nav class="navbar navbar-expand-lg navbar-bg">
                     <div class="brand-logo">
-                        <a class="navbar-brand" asp-controller="Admin" asp-action="Dashboard" id="menu-action">
+                        <a class="navbar-brand" href="@Url.Action("Dashboard", "Admin")" id="menu-action">
                             <div class="logo-tunisair">
-                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
                             </div>
                         </a>
                         <div id="nav-toggle">
-                            <div class="cta"><div class="toggle-btn type1"></div></div>
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="for-mobile d-mobile">
@@ -109,14 +111,14 @@
                             <span class="material-icons">menu</span>
                         </div>
                     </div>
-                    <div class="collapse navbar-collapse pr-3">
+                    <div class="collapse navbar-collapse pr-3" id="#">
                         <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
                             <li class="nav-item dropdown show">
                                 @if (User.Identity.IsAuthenticated)
                                 {
-                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown">
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
                                         <div class="user-photo">
-                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="User">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
                                         </div>
                                         @User.Identity.Name
                                     </a>
@@ -124,15 +126,11 @@
                                         <a asp-controller="Admin" asp-action="AccountSettings" class="dropdown-item">
                                             <i class="material-icons">supervisor_account</i> Account Settings
                                         </a>
-                                        <div class="dropdown-divider"></div>
+                                        <div class="menu-dropdown-divider"></div>
                                         <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
                                             <i class="material-icons">exit_to_app</i> Logout
                                         </a>
                                     </div>
-                                }
-                                else
-                                {
-                                    <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Login</a>
                                 }
                             </li>
                         </ul>
@@ -142,18 +140,15 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
+    <!-- Left Sidebar (same as before) -->
     <section id="left-sidebar-area">
-        <!--   Left Sidebar  -->
         <div id="left-sidebar-section">
-
-
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li><a href="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
+                        <li class="active"><a href="@Url.Action("Dashboard", "Admin")"><i class="material-icons">home</i>Dashboard</a></li>
                         <li><a href="@Url.Action("UsersList", "Admin")"><i class="material-icons">supervisor_account</i>Users</a></li>
-                        <li class="active"><a asp-controller="Admin" asp-action="Prices"><i class="material-icons">attach_money</i>Prices</a></li>
+                        <li><a asp-controller="Admin" asp-action="Prices"><i class="material-icons">attach_money</i>Prices</a></li>
                         <li>
                             <a href="@Url.Action("Categories", "Admin")">
                                 <i>
@@ -163,12 +158,10 @@
                                 </i> Categories / Articles
                             </a>
                         </li>
-
                     </ul>
                 </div>
             </aside>
         </div>
-        <!--   Left Sidebar  -->
     </section>
 
     <!-- Main Content -->

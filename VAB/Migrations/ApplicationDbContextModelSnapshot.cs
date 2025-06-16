@@ -722,6 +722,125 @@ namespace VAB.Migrations
                     b.ToTable("ExchangeRates");
                 });
 
+            modelBuilder.Entity("VAB.Models.ExtractedPdfData", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateExtraction")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ExtractedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsProcessed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JsonData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ProcessedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DateExtraction");
+
+                    b.HasIndex("ExtractedBy");
+
+                    b.HasIndex("Numero")
+                        .IsUnique();
+
+                    b.ToTable("ExtractedPdfData");
+                });
+
+            modelBuilder.Entity("VAB.Models.ExtractedPdfItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ColumnNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExtractedPdfDataId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ItemDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RawData")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExtractedPdfDataId");
+
+                    b.ToTable("ExtractedPdfItems");
+                });
+
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>
                 {
                     b.Property<int>("Id")
@@ -1561,6 +1680,17 @@ namespace VAB.Migrations
                     b.Navigation("Equipage");
                 });
 
+            modelBuilder.Entity("VAB.Models.ExtractedPdfItem", b =>
+                {
+                    b.HasOne("VAB.Models.ExtractedPdfData", "ExtractedPdfData")
+                        .WithMany("ExtractedItems")
+                        .HasForeignKey("ExtractedPdfDataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExtractedPdfData");
+                });
+
             modelBuilder.Entity("VAB.Models.FeuilleEtatDesVentesArrivee", b =>
                 {
                     b.HasOne("VAB.Models.EtatDesVentesArrivee", "EtatDesVentesArrivee")
@@ -1769,6 +1899,11 @@ namespace VAB.Migrations
                     b.Navigation("ArticleVentesDepart");
 
                     b.Navigation("FeuilleEtatDesVentes");
+                });
+
+            modelBuilder.Entity("VAB.Models.ExtractedPdfData", b =>
+                {
+                    b.Navigation("ExtractedItems");
                 });
 
             modelBuilder.Entity("VAB.Models.FeuilleDeLignes", b =>

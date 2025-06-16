@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Reflection.Emit;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VAB.Models;
@@ -42,6 +43,9 @@ namespace VAB.Data
         public DbSet<TrouDeCaisse> TrouDeCaisses { get; set; }
         public DbSet<Redevance> Redevances { get; set; }
         public DbSet<RedevanceDetail> RedevanceDetails { get; set; }
+        // New DbSets for PDF extraction
+        public DbSet<ExtractedPdfData> ExtractedPdfData { get; set; }
+        public DbSet<ExtractedPdfItem> ExtractedPdfItems { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -196,7 +200,36 @@ namespace VAB.Data
                 .HasIndex(r => new { r.Annee, r.Mois })
                 .IsUnique();
 
+            // New relationships for PDF extraction
+            builder.Entity<ExtractedPdfItem>()
+                .HasOne(e => e.ExtractedPdfData)
+                .WithMany(p => p.ExtractedItems)
+                .HasForeignKey(e => e.ExtractedPdfDataId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure decimal precision
+            builder.Entity<ExtractedPdfItem>()
+                .Property(e => e.Quantity)
+            .HasPrecision(18, 2);
+
+            builder.Entity<ExtractedPdfItem>()
+                .Property(e => e.UnitPrice)
+            .HasPrecision(18, 2);
+
+            builder.Entity<ExtractedPdfItem>()
+                .Property(e => e.TotalPrice)
+                .HasPrecision(18, 2);
+
+            // Add indexes for better performance
+            builder.Entity<ExtractedPdfData>()
+                .HasIndex(e => e.Numero)
+            .IsUnique();
+
+            builder.Entity<ExtractedPdfData>()
+                .HasIndex(e => e.DateExtraction);
+
+            builder.Entity<ExtractedPdfData>()
+                .HasIndex(e => e.ExtractedBy);
         }
 
 

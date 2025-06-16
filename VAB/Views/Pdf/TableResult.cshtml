@@ -1,144 +1,844 @@
-﻿@{
-    ViewData["Title"] = "Extracted Table Data";
+﻿@model List<List<string>>
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@inject Microsoft.AspNetCore.Identity.UserManager<VAB.Models.User> UserManager
+@inject VAB.Data.ApplicationDbContext Context
+@{
+    ViewData["Title"] = "Données Extraites du PDF";
     Layout = null;
+    var userId = UserManager.GetUserId(User);
+    var notifications = await Context.Notifications
+        .Where(n => n.UserId == userId)
+        .OrderByDescending(n => n.CreatedAt)
+        .Take(10)
+        .ToListAsync();
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="fr">
+
 <head>
-    <title>@ViewData["Title"]</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+
+    <!-- Title -->
+    <title>Agent de Saisie - Données PDF Extraites</title>
+
+    <!-- Favicon Icon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+
+    <!-- DataTables Bootstrap 4 CSS -->
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+
+    <!-- Chart.min CSS -->
+    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
+
+    <!-- Animate CSS -->
+    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+    <!-- Normalize CSS -->
+    <link href="~/css/normalize.css" rel="stylesheet" media="screen">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="~/css/responsive.css">
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .header-section {
-            background-color: #e6f2ff;
-            font-weight: bold;
-        }
-
-        .subheader {
-            background-color: #f0f7ff;
-        }
-
-        .signature-row td {
-            padding: 15px 0;
-            border-bottom: 2px solid #333;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #4CAF50;
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
             color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            margin-top: 20px;
         }
 
-            .btn:hover {
-                background-color: #45a049;
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
             }
 
-        .json-view {
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        /* Extraction specific styles */
+        .extraction-container {
+            background: #f5f5f5;
+            min-height: calc(100vh - 70px);
+            padding: 20px 0;
+        }
+
+        .extraction-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin: 20px auto;
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border: none;
+        }
+
+            .card-header-custom h2 {
+                margin: 0;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            transition: transform 0.3s ease;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-modern {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #7b7b7b 0%, #7b7b7b 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #168bce 0%, #168bce 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-modern:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 25px 0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin: 0;
+        }
+
+            .modern-table th {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                color: #495057;
+                font-weight: 600;
+                padding: 15px 12px;
+                text-align: left;
+                border-bottom: 2px solid #dee2e6;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .modern-table td {
+                padding: 12px;
+                border-bottom: 1px solid #f1f3f4;
+                vertical-align: top;
+            }
+
+            .modern-table tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .row-header {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            font-weight: bold;
+            text-align: center;
+            color: #495057;
+            min-width: 60px;
+        }
+
+        .cell-content {
+            max-width: 200px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .empty-cell {
+            background-color: #f8f9fa;
+            color: #adb5bd;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .loading-overlay {
             display: none;
-            background: #f4f4f4;
-            padding: 10px;
-            border: 1px solid #ddd;
-            overflow: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        .file-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #ececec 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3d0101;
+        }
+
+            .file-info h4 {
+                color: #1565c0;
+                margin: 0 0 15px 0;
+                font-weight: 600;
+            }
+
+        .alert-modern {
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        @@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .extraction-card {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .card-header-custom {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-modern {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .modern-table {
+                font-size: 12px;
+            }
+
+                .modern-table th,
+                .modern-table td {
+                    padding: 8px;
+                }
         }
     </style>
 </head>
+
 <body>
-    <h2>Extracted Table Data</h2>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard"
+                           id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- For Toggle Mobile Nav icon -->
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <!-- For Toggle Mobile Nav Icon -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <!-- Notifications dropdown -->
+                            <li class="nav-item dropdown notification-dropdown">
+                                <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" id="notificationDropdown" aria-expanded="false">
+                                    <i class="material-icons">notifications</i>
+                                    <span id="notificationBadge" class="badge bg-danger notification-badge" style="display: none;">0</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <div class="notification-header">
+                                        <h6 class="mb-0 fw-semibold">Notifications</h6>
+                                        <button id="clearNotifications" class="btn btn-sm btn-outline-danger">Effacer</button>
+                                    </div>
+                                    <div id="notificationList" class="notification-list-container">
+                                        @if (notifications.Any())
+                                        {
+                                            @foreach (var item in notifications)
+                                            {
+                                                <div class="notification-item @(!item.IsRead ? "unread" : "")" data-id="@item.Id">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="flex-grow-1">@item.Name</div>
+                                                        <small class="text-muted ms-2">@item.CreatedAt.ToString("HH:mm")</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="notification-item text-muted text-center py-3">
+                                                <i class="material-icons mb-2" style="font-size: 2rem; opacity: 0.5;">notifications_none</i>
+                                                <div>Aucune notification</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </li>
 
-    @if (ViewBag.TableData != null)
-    {
-        <div id="extractedTable">
-            @{
-                var jsonData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(ViewBag.TableData);
-                var document = jsonData.document;
-                var page = document.page;
-                var rows = page.row;
-            }
-
-            <table>
-                <!-- Process and display table data here -->
-                @foreach (var row in rows)
-                {
-                    <tr>
-                        @foreach (var column in row.column)
-                        {
-                            <td>
-                                @if (column.text != null)
+                            <!-- User profile dropdown -->
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
                                 {
-                                    if (column.text is Newtonsoft.Json.Linq.JObject)
-                                    {
-                                        @column.text["#text"]
-                                    }
-                                    else
-                                    {
-                                        @column.text
-                                    }
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Agent de Saisie</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
                                 }
-                            </td>
-                        }
-                    </tr>
-                }
-            </table>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <!-- For Toggle Mobile Nav -->
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li>
+                        <a href="#">
+                            <div class="user-photo">
+                                <img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg"
+                                     alt="">
+                            </div>@User.Identity.Name
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Paramètres du compte
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout">
+                            <i class="material-icons mr-2">exit_to_app</i>Déconnexion
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
+    </header>
 
-        <button onclick="toggleJsonView()" class="btn">Toggle JSON View</button>
-        <pre id="jsonView" class="json-view">@Html.Raw(ViewBag.TableData)</pre>
-    }
-    else
-    {
-        <p>No data extracted.</p>
-    }
+    <!-- Left Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li class="active">
+                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
 
-    <a href="@Url.Action("Upload", "Pdf")" class="btn">Upload Another File</a>
+                        <!-- Sales states dropdown -->
+                        <li>
+                            <a data-bs-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i> Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">
+                                                <i class="material-icons">flight_takeoff</i> État des Ventes Départ
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">
+                                                <i class="material-icons">flight_land</i> État des Ventes Arrivée
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Offers states dropdown -->
+                        <li>
+                            <a data-bs-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">local_offer</i> Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">
+                                                <i class="material-icons">flight_takeoff</i> État des Offres Départ
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">
+                                                <i class="material-icons">flight_land</i> État des Offres Arrivée
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <a asp-controller="AgentSaisie" asp-action="Extract">
+                                <i class="material-icons">scanner</i> Scanner
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("ViewExtractions", "Pdf")">
+                                <i class="material-icons">receipt</i>Extraction par Ai
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main Wrapper -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Header BreadCrumb -->
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="AgentSaisie" asp-action="Extract">
+                                <i class="material-icons">scanner</i> Scanner
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="material-icons">table_chart</i> Données Extraites du PDF
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="container-fluid">
+                    <!-- Modern extraction card -->
+                    <div class="extraction-card">
+                        <!-- Header -->
+                        
+
+                        <!-- Content -->
+                        <div class="p-4">
+                            <!-- Alert Container -->
+                            <div id="alertContainer"></div>
+
+                            @if (ViewBag.TableData != null)
+                            {
+                                var tableData = ViewBag.TableData as List<List<string>>;
+                                var totalCells = tableData.Sum(row => row.Count);
+                                var nonEmptyCells = tableData.Sum(row => row.Count(cell => !string.IsNullOrWhiteSpace(cell)));
+                                var maxColumns = tableData.Any() ? tableData.Max(row => row.Count) : 0;
+
+                                <!-- File Info -->
+                                <div class="file-info">
+                                    <h4>
+                                        <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">description</i>
+                                        Fichier: @ViewBag.FileName
+                                    </h4>
+
+                                    <!-- Stats Grid -->
+                                    <div class="stats-grid">
+                                        <div class="stat-card">
+                                            <div class="stat-number">@tableData.Count</div>
+                                            <div class="stat-label">Lignes</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-number">@maxColumns</div>
+                                            <div class="stat-label">Colonnes</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-number">@nonEmptyCells</div>
+                                            <div class="stat-label">Cellules avec données</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-number">@totalCells</div>
+                                            <div class="stat-label">Total cellules</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <button onclick="saveData()" class="btn-modern btn-save" id="saveBtn">
+                                        <i class="material-icons">save</i>
+                                        Sauvegarder
+                                    </button>
+                                    <a href="@Url.Action("ViewExtractions", "Pdf")" class="btn-modern btn-view">
+                                        <i class="material-icons">visibility</i>
+                                        Voir les données sauvegardées
+                                    </a>
+                                    <a href="@Url.Action("Extract", "AgentSaisie")" class="btn-modern btn-back">
+                                        <i class="material-icons">arrow_back</i>
+                                        Retour au scanner
+                                    </a>
+                                </div>
+
+                                <!-- Table Container -->
+                                <div class="table-container">
+                                    <div class="table-wrapper">
+                                        <table class="modern-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="row-header">
+                                                        <i class="material-icons" style="vertical-align: middle;">format_list_numbered</i>
+                                                        Ligne
+                                                    </th>
+                                                    @for (int i = 1; i <= maxColumns; i++)
+                                                    {
+                                                        <th>Colonne @i</th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int rowIndex = 0; rowIndex < tableData.Count; rowIndex++)
+                                                {
+                                                    var row = tableData[rowIndex];
+                                                    <tr>
+                                                        <td class="row-header">@(rowIndex + 1)</td>
+                                                        @for (int colIndex = 0; colIndex < maxColumns; colIndex++)
+                                                        {
+                                                            var cellValue = colIndex < row.Count ? row[colIndex] : "";
+                                                            <td class="@(string.IsNullOrWhiteSpace(cellValue) ? "empty-cell" : "")">
+                                                                @if (string.IsNullOrWhiteSpace(cellValue))
+                                                                {
+                                                                    <span class="cell-content">-</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="cell-content">@cellValue</span>
+                                                                }
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert-modern alert-danger">
+                                    <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">error</i>
+                                    Aucune donnée extraite du fichier PDF.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h5>Sauvegarde en cours...</h5>
+            <p>Veuillez patienter pendant que nous sauvegardons vos données.</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/Chart.bundle.min.js"></script>
+    <script src="~/js/chartfunction.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
 
     <script>
-        function toggleJsonView() {
-            var jsonView = document.getElementById("jsonView");
-            var extractedTable = document.getElementById("extractedTable");
+        function saveData() {
+            const saveBtn = document.getElementById('saveBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const alertContainer = document.getElementById('alertContainer');
 
-            if (jsonView.style.display === "none") {
-                jsonView.style.display = "block";
-                extractedTable.style.display = "none";
-            } else {
-                jsonView.style.display = "none";
-                extractedTable.style.display = "block";
-            }
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+
+            // Disable button
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="material-icons">hourglass_empty</i> Sauvegarde...';
+
+            // Clear previous alerts
+            alertContainer.innerHTML = '';
+
+            // Send AJAX request to save data (no parameters needed now)
+            $.ajax({
+                url: '@Url.Action("SaveExtractedData", "Pdf")',
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        showAlert('success', `
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">check_circle</i>
+                            <strong>Données sauvegardées avec succès!</strong><br>
+                            <div style="margin-top: 10px;">
+                                <strong>Numéro:</strong> ${response.numero}<br>
+                                <strong>ID:</strong> ${response.id}<br>
+                                <strong>Éléments sauvegardés:</strong> ${response.itemCount}<br>
+                                <strong>Extrait par:</strong> ${response.extractedBy}
+                            </div>
+                        `);
+
+                        saveBtn.innerHTML = '<i class="material-icons">check</i> Sauvegardé!';
+                        saveBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+
+                        setTimeout(() => {
+                            saveBtn.innerHTML = '<i class="material-icons">save</i> Sauvegarder';
+                            saveBtn.disabled = false;
+                        }, 3000);
+                    } else {
+                        showAlert('danger', `
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">error</i>
+                            <strong>Erreur lors de la sauvegarde:</strong> ${response.message}
+                        `);
+                        saveBtn.innerHTML = '<i class="material-icons">save</i> Sauvegarder';
+                        saveBtn.disabled = false;
+                    }
+                },
+                error: function(xhr, status, error) {
+                    let errorMessage = error;
+                    if (xhr.status === 431) {
+                        errorMessage = "Les données sont trop volumineuses. Veuillez essayer avec un fichier plus petit.";
+                    }
+                    showAlert('danger', `
+                        <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">error</i>
+                        <strong>Une erreur s'est produite:</strong> ${errorMessage}
+                    `);
+                    saveBtn.innerHTML = '<i class="material-icons">save</i> Sauvegarder';
+                    saveBtn.disabled = false;
+                },
+                complete: function() {
+                    // Hide loading overlay
+                    loadingOverlay.style.display = 'none';
+                }
+            });
         }
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert-modern alert-${type}`;
+            alertDiv.innerHTML = message;
+
+            alertContainer.appendChild(alertDiv);
+
+            // Auto-hide after delay
+            const hideTime = type === 'success' ? 10000 : 8000;
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+                alertDiv.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 300);
+            }, hideTime);
+        }
+
+        // Initialize page
+        $(document).ready(function() {
+            // Add smooth scrolling
+            $('html').css('scroll-behavior', 'smooth');
+
+            // Add loading animation to buttons
+            $('.btn-modern').on('mouseenter', function() {
+                $(this).css('transform', 'translateY(-2px)');
+            }).on('mouseleave', function() {
+                if (!$(this).is(':disabled')) {
+                    $(this).css('transform', 'translateY(0)');
+                }
+            });
+        });
     </script>
 </body>
 </html>

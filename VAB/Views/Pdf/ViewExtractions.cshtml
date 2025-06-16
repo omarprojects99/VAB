@@ -1,0 +1,739 @@
+﻿@model List<VAB.Models.ExtractedPdfData>
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@inject Microsoft.AspNetCore.Identity.UserManager<VAB.Models.User> UserManager
+@inject VAB.Data.ApplicationDbContext Context
+@{
+    ViewData["Title"] = "Données PDF Extraites";
+    Layout = null;
+    var userId = UserManager.GetUserId(User);
+    var notifications = await Context.Notifications
+        .Where(n => n.UserId == userId)
+        .OrderByDescending(n => n.CreatedAt)
+        .Take(10)
+        .ToListAsync();
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+
+    <!-- Title -->
+    <title>Agent de Saisie - Données PDF Extraites</title>
+
+    <!-- Favicon Icon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+
+    <!-- DataTables Bootstrap 4 CSS -->
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+
+    <!-- Chart.min CSS -->
+    <link href="~/css/Chart.min.css" rel="stylesheet" media="screen">
+
+    <!-- Animate CSS -->
+    <link href="~/css/animate.css" rel="stylesheet" media="screen">
+    <!-- Normalize CSS -->
+    <link href="~/css/normalize.css" rel="stylesheet" media="screen">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <style>
+        .dataTables_paginate .pagination .page-item.active .page-link {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .dataTables_paginate .pagination .page-item .page-link {
+            color: #6c757d;
+            background-color: white;
+            border-color: #dee2e6;
+        }
+
+            .dataTables_paginate .pagination .page-item .page-link:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+                color: white;
+            }
+
+        .dataTables_paginate .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        /* Modern card styling */
+        .extraction-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .extraction-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            }
+
+        .card-header-modern {
+            background: linear-gradient(135deg, #490101 0%, #510202 100%);
+            color: white;
+            padding: 25px 30px;
+            border: none;
+        }
+
+            .card-header-modern h5 {
+                margin: 0;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .btn-modern {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+            .btn-primary-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+                color: white;
+            }
+
+        .btn-info-modern {
+            background: linear-gradient(135deg, #6e6e6e 0%, #989898 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(23, 162, 184, 0.3);
+        }
+
+            .btn-info-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+                color: white;
+            }
+
+        .btn-danger-modern {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+        }
+
+            .btn-danger-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+                color: white;
+            }
+
+        .table-modern {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+
+            .table-modern th {
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                color: #495057;
+                font-weight: 600;
+                padding: 15px 12px;
+                text-align: left;
+                border: none;
+            }
+
+            .table-modern td {
+                padding: 15px 12px;
+                border-bottom: 1px solid #f1f3f4;
+                vertical-align: middle;
+            }
+
+            .table-modern tbody tr:hover {
+                background-color: #f8f9fa;
+            }
+
+        .badge-modern {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success-modern {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .badge-warning-modern {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+        }
+
+        .badge-info-modern {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            color: #667eea;
+        }
+
+        .stats-row {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @@media (max-width: 768px) {
+            .card-header-modern
+
+        {
+            padding: 20px;
+        }
+
+        .table-responsive {
+            font-size: 12px;
+        }
+
+        .btn-modern {
+            font-size: 12px;
+            padding: 6px 12px;
+            background-color:darkred;
+        }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Toast notification -->
+    <div id="notificationToast" class="toast toast-notification hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary text-white">
+            <strong class="me-auto">Notification</strong>
+            <small class="text-white">à l'instant</small>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="AgentDashboard"
+                           id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- For Toggle Mobile Nav icon -->
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+                    <!-- For Toggle Mobile Nav Icon -->
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <!-- Notifications dropdown -->
+                            <li class="nav-item dropdown notification-dropdown">
+                                <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" id="notificationDropdown" aria-expanded="false">
+                                    <i class="material-icons">notifications</i>
+                                    <span id="notificationBadge" class="badge bg-danger notification-badge" style="display: none;">0</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <div class="notification-header">
+                                        <h6 class="mb-0 fw-semibold">Notifications</h6>
+                                        <button id="clearNotifications" class="btn btn-sm btn-outline-danger">Effacer</button>
+                                    </div>
+                                    <div id="notificationList" class="notification-list-container">
+                                        @if (notifications.Any())
+                                        {
+                                            @foreach (var item in notifications)
+                                            {
+                                                <div class="notification-item @(!item.IsRead ? "unread" : "")" data-id="@item.Id">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="flex-grow-1">@item.Name</div>
+                                                        <small class="text-muted ms-2">@item.CreatedAt.ToString("HH:mm")</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="notification-item text-muted text-center py-3">
+                                                <i class="material-icons mb-2" style="font-size: 2rem; opacity: 0.5;">notifications_none</i>
+                                                <div>Aucune notification</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- User profile dropdown -->
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Agent de Saisie</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            <!-- For Toggle Mobile Nav -->
+            <div class="toggle-user-menu" id="toggle-user-menu">
+                <ul>
+                    <li>
+                        <a href="#">
+                            <div class="user-photo">
+                                <img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg"
+                                     alt="">
+                            </div>@User.Identity.Name
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings">
+                            <i class="material-icons mr-2">supervisor_account</i> Paramètres du compte
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout">
+                            <i class="material-icons mr-2">exit_to_app</i>Déconnexion
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Left Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li class="active">
+                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+
+                        <!-- Sales states dropdown -->
+                        <li>
+                            <a data-bs-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i> Gérer États des Ventes
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">
+                                                <i class="material-icons">flight_takeoff</i> État des Ventes Départ
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">
+                                                <i class="material-icons">flight_land</i> État des Ventes Arrivée
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Offers states dropdown -->
+                        <li>
+                            <a data-bs-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">local_offer</i> Gérer États des Offres
+                                <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                            </a>
+                            <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                <div class="sub-dropdown">
+                                    <ul class="sub-list">
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">
+                                                <i class="material-icons">flight_takeoff</i> État des Offres Départ
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">
+                                                <i class="material-icons">flight_land</i> État des Offres Arrivée
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <a asp-controller="AgentSaisie" asp-action="Extract">
+                                <i class="material-icons">scanner</i> Scanner
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("ViewExtractions", "Pdf")">
+                                <i class="material-icons">receipt</i>Extraction par Ai
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main Wrapper -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Header BreadCrumb -->
+            <div class="content-header">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="AgentSaisie" asp-action="Extract">
+                                <i class="material-icons">scanner</i> Scanner
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="material-icons">table_chart</i> Données PDF Extraites
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="container-fluid">
+                    <!-- Modern extraction card -->
+                    <div class="extraction-card">
+                        <div class="card-header-modern">
+                            <h5>
+                                <i class="material-icons">table_chart</i>
+                                Historique des Extractions PDF
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Stats row -->
+                            <div class="stats-row mx-3 mt-3">
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <h4 class="text-primary">@Model.Count</h4>
+                                        <small class="text-muted">Total Extractions</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h4 class="text-success">@Model.Count(m => m.IsProcessed)</h4>
+                                        <small class="text-muted">Traitées</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h4 class="text-warning">@Model.Count(m => !m.IsProcessed)</h4>
+                                        <small class="text-muted">En attente</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h4 class="text-info">@Model.Sum(m => m.ExtractedItems.Count)</h4>
+                                        <small class="text-muted">Total Éléments</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action buttons -->
+                            <div class="p-3 border-bottom">
+                                <a href="@Url.Action("Extract", "AgentSaisie")" class="btn" style="background-color:darkgray">
+                                    <i class="material-icons btn-modern">add</i>
+                                    Nouvelle Extraction
+                                </a>
+                            </div>
+
+                            @if (Model.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table-modern">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">confirmation_number</i>
+                                                    Numéro
+                                                </th>
+                                                <th>
+                                                    <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">description</i>
+                                                    Fichier
+                                                </th>
+                                                <th>
+                                                    <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">person</i>
+                                                    Extrait par
+                                                </th>
+                                                <th>
+                                                    <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">schedule</i>
+                                                    Date
+                                                </th>
+                                                <th>
+                                                    <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">list</i>
+                                                    Éléments
+                                                </th>
+                                                
+                                                <th>
+                                                    <i class="material-icons" style="vertical-align: middle; margin-right: 5px;">settings</i>
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td><strong>@item.Numero</strong></td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="material-icons text-primary me-2">description</i>
+                                                            <div>
+                                                                <div class="fw-semibold">@item.FileName</div>
+                                                                @if (!string.IsNullOrEmpty(item.Description))
+                                                                {
+                                                                    <small class="text-muted">@item.Description</small>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="material-icons text-info me-2">account_circle</i>
+                                                            @item.ExtractedBy
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div>
+                                                            <div class="fw-semibold">@item.DateExtraction.ToString("dd/MM/yyyy")</div>
+                                                            <small class="text-muted">@item.DateExtraction.ToString("HH:mm")</small>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge-modern badge-info-modern">
+                                                            @item.ExtractedItems.Count éléments
+                                                        </span>
+                                                    </td>
+                                                    
+                                                    <td>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn-modern btn-info-modern" onclick="viewDetails(@item.Id)">
+                                                                <i class="material-icons">visibility</i>
+                                                                Voir
+                                                            </button>
+                                                            <button type="button" class="btn-modern btn-danger-modern" onclick="deleteItem(@item.Id)">
+                                                                <i class="material-icons">delete</i>
+                                                                Supprimer
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="material-icons">table_chart</i>
+                                    </div>
+                                    <h4>Aucune extraction trouvée</h4>
+                                    <p>Aucune extraction PDF n'a encore été sauvegardée.</p>
+                                    <a href="@Url.Action("Extract", "AgentSaisie")" class="btn-modern btn-primary-modern">
+                                        <i class="material-icons">add</i>
+                                        Créer la première extraction
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header text-white">
+                    <h5 class="modal-title">
+                        <i class="material-icons me-2">table_chart</i>
+                        Détails de l'Extraction
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/Chart.bundle.min.js"></script>
+    <script src="~/js/chartfunction.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <script>
+        function viewDetails(id) {
+            $('#modalBody').html(`
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2">Chargement des détails...</p>
+                </div>
+            `);
+            $('#detailsModal').modal('show');
+
+            $.ajax({
+                url: '@Url.Action("GetExtractionDetails", "Pdf")',
+                type: 'GET',
+                data: { id: id },
+                success: function(response) {
+                    $('#modalBody').html(response);
+                },
+                error: function() {
+                    $('#modalBody').html(`
+                        <div class="alert alert-danger">
+                            <i class="material-icons me-2">error</i>
+                            Erreur lors du chargement des détails
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function deleteItem(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette extraction ?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteExtraction", "Pdf")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Erreur: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Une erreur s\'est produite');
+                    }
+                });
+            }
+        }
+
+        // Initialize page
+        $(document).ready(function() {
+            // Initialize dropdown toggles
+            $('.dropdown-item-list[data-bs-toggle="collapse"]').on('click', function(e) {
+                e.preventDefault();
+                const target = $(this).attr('href');
+                $(target).collapse('toggle');
+                $(this).find('.collapsed, .expanded').toggle();
+            });
+
+            // Add hover effects to buttons
+            $('.btn-modern').on('mouseenter', function() {
+                $(this).css('transform', 'translateY(-2px)');
+            }).on('mouseleave', function() {
+                $(this).css('transform', 'translateY(0)');
+            });
+        });
+    </script>
+</body>
+</html>

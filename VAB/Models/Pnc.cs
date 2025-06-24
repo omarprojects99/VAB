@@ -28,8 +28,11 @@ namespace VAB.Models
         [StringLength(50)]
         public string Secteur { get; set; } = string.Empty;
 
-       
+        [Phone]
+        [StringLength(20)]
+        public string Telephone { get; set; } = string.Empty;
 
-       
+
+
     }
 }

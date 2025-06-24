@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <title>@ViewData["Title"] - VAB Dashboard</title>
+
+    <!-- Favicon Icon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+
+    <!-- DataTables Bootstrap 4 CSS -->
+    <link href="~/css/dataTables.bootstrap4.min.css" rel="stylesheet" media="screen">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" href="#" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="for-mobile d-mobile">
+                        <div class="toggle-button" id="toggle-button">
+                            <span class="material-icons">menu</span>
+                        </div>
+                    </div>
+
+                    <div class="collapse navbar-collapse pr-3">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown show">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="true">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" style="border-radius: 50%;" alt="">
+                                        </div>
+                                        @User.Identity.Name
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        @if (User.IsInRole("ResponsableCatering"))
+                                        {
+                                            <a asp-controller="ResponsableCatering" asp-action="CateringDashboard" class="dropdown-item">
+                                                <i class="material-icons">dashboard</i> Dashboard
+                                            </a>
+                                        }
+                                        @if (User.IsInRole("AgentSaisie"))
+                                        {
+                                            <a asp-controller="AgentSaisie" asp-action="AgentDashboard" class="dropdown-item">
+                                                <i class="material-icons">dashboard</i> Dashboard
+                                            </a>
+                                        }
+                                        <div class="menu-dropdown-divider"></div>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">exit_to_app</i> Logout
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Left Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        @if (User.IsInRole("ResponsableCatering"))
+                        {
+                            <li>
+                                <a asp-controller="ResponsableCatering" asp-action="CateringDashboard">
+                                    <i class="material-icons">dashboard</i>Tableau de Bord
+                                </a>
+                            </li>
+                            <li>
+                                <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                    <i class="material-icons">receipt</i>États des Ventes
+                                    <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                    <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                                </a>
+                                <div id="etatDesVentesDropdown" class="panel-collapse collapse">
+                                    <div class="sub-dropdown">
+                                        <ul class="sub-list">
+                                            <li><a asp-controller="ResponsableCatering" asp-action="EtatDesVentesArrivee">Ventes Arrivée</a></li>
+                                            <li><a asp-controller="ResponsableCatering" asp-action="EtatDesVentesDepart">Ventes Départ</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                    <i class="material-icons">local_offer</i>États des Offres
+                                    <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                    <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                                </a>
+                                <div id="etatDesOffresDropdown" class="panel-collapse collapse">
+                                    <div class="sub-dropdown">
+                                        <ul class="sub-list">
+                                            <li><a asp-controller="ResponsableCatering" asp-action="EtatDesOffresArrivee">Offres Arrivée</a></li>
+                                            <li><a asp-controller="ResponsableCatering" asp-action="EtatDesOffresDepart">Offres Départ</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <a asp-controller="Motif" asp-action="Index">
+                                    <i class="material-icons">message</i>Gestion des Motifs
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("AgentSaisie"))
+                        {
+                            <li>
+                                <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
+                                    <i class="material-icons">dashboard</i>Tableau de Bord
+                                </a>
+                            </li>
+                            <li>
+                                <a data-toggle="collapse" class="dropdown-item-list" href="#agentEtatDesVentesDropdown">
+                                    <i class="material-icons">receipt</i>États des Ventes
+                                    <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                    <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                                </a>
+                                <div id="agentEtatDesVentesDropdown" class="panel-collapse collapse">
+                                    <div class="sub-dropdown">
+                                        <ul class="sub-list">
+                                            <li><a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">Ventes Arrivée</a></li>
+                                            <li><a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">Ventes Départ</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <a data-toggle="collapse" class="dropdown-item-list" href="#agentEtatDesOffresDropdown">
+                                    <i class="material-icons">local_offer</i>États des Offres
+                                    <span class="collapsed float-right"><i class="material-icons">add</i></span>
+                                    <span class="expanded float-right"><i class="material-icons">remove</i></span>
+                                </a>
+                                <div id="agentEtatDesOffresDropdown" class="panel-collapse collapse">
+                                    <div class="sub-dropdown">
+                                        <ul class="sub-list">
+                                            <li><a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">Offres Arrivée</a></li>
+                                            <li><a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">Offres Départ</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <a asp-controller="Motif" asp-action="AgentView">
+                                    <i class="material-icons">inbox</i>Motifs Reçus
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main Wrapper -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            @RenderBody()
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="~/js/script.js"></script>
+
+    <!-- Anti-forgery token for AJAX requests -->
+    @Html.AntiForgeryToken()
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

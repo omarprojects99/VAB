@@ -13,7 +13,7 @@
     <meta name="description" content="">
 
     <!-- Title -->
-    <title>Agent de Saisie Dashboard</title>
+    <title>Responsable Catering Dashboard</title>
 
     <!-- Favicon Icon -->
     <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
@@ -32,8 +32,6 @@
 
     <!-- Animate CSS -->
     <link href="~/css/animate.css" rel="stylesheet" media="screen">
-    <!-- Normalize CSS -->
-    @* <link href="~/css/normalize.css" rel="stylesheet" media="screen"> *@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/css/bootstrap.min.css">
 
@@ -47,7 +45,6 @@
 
 </head>
 <body>
-  
 
     <!-- Header -->
     <header>
@@ -55,7 +52,7 @@
             <div class="navigation">
                 <nav class="navbar navbar-expand-lg navbar-bg">
                     <div class="brand-logo">
-                        <a class="navbar-brand" asp-controller="AgentSaisie" asp-action="EtatDesVentes" id="menu-action">
+                        <a class="navbar-brand" asp-controller="ResponsableCatering" asp-action="CateringDashboard" id="menu-action">
                             <div class="logo-tunisair">
                                 <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="">
                             </div>
@@ -85,7 +82,7 @@
                                         @User.Identity.Name
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        <a asp-controller="AgentSaisie" asp-action="AgentAccountSettings" class="dropdown-item">
+                                        <a asp-controller="ResponsableCatering" asp-action="AccountSettings" class="dropdown-item">
                                             <i class="material-icons">supervisor_account</i> Account Settings
                                         </a>
                                         <div class="menu-dropdown-divider"></div>
@@ -108,7 +105,7 @@
                 <ul>
                     <li><a href="#"><div class="user-photo"><img src="https://dw3i9sxi97owk.cloudfront.net/uploads/thumbs/db9c4e1327eb8fe5e9395a4b04e1ea4a_70x70.jpg" alt=""></div>@User.Identity.Name</a></li>
                     <li>
-                        <a asp-controller="AgentSaisie" asp-action="AccountSettings">
+                        <a asp-controller="ResponsableCatering" asp-action="AccountSettings">
                             <i class="material-icons mr-2">supervisor_account</i> Account Settings
                         </a>
                     </li>
@@ -172,8 +169,6 @@
                                 <i class="bi bi-clipboard-check-fill"></i>Confrontation
                             </a>
                         </li>
-                       
-                      
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="ResponsableCatering" asp-action="ListComparisons">
                                 <i class="material-icons">list</i> Saved Sales Comparisons
@@ -184,10 +179,15 @@
                                 <i class="material-icons">list</i> Saved Offers Comparisons
                             </a>
                         </li>
+                        <li>
+                            <a href="@Url.Action("Index","Motif")">
+                                <i class="material-icons">message</i>
+                                Gestion des Motifs
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </aside>
-
         </div>
     </section>
 
@@ -198,11 +198,11 @@
             <div class="content-header">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">receipt</i>Tableau de bord</li>
+                        <li class="breadcrumb-item active" aria-current="page"><i class="material-icons">dashboard</i>Tableau de bord Catering</li>
                     </ol>
                 </nav>
-
             </div>
+
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success">
@@ -212,57 +212,23 @@
 
             <!-- Main Content -->
             <div class="main-content">
+                <!-- Summary Cards -->
                 <div class="row animated fadeInUp">
                     <div class="col-xl-3 col-sm-6 mb-3">
                         <div class="card text-white bg-info o-hidden h-100">
                             <div class="card-body">
                                 <div class="card-body-icon">
-                                    <i class="material-icons float-right text-white md-5em">description</i>
+                                    <i class="material-icons float-right text-white md-5em">compare_arrows</i>
                                 </div>
                                 <div class="mr-5">
-                                    (@ViewBag.CountThisMonth) État de vente arrivées ce mois
+                                    <strong>3</strong><br>
+                                    Comparaisons ce mois
                                 </div>
                             </div>
                             <a class="card-footer text-white clearfix small z-1" href="#">
-                                <span class="float-left">View Details</span>
+                                <span class="float-left">Voir Détails</span>
                                 <span class="float-right">
                                     <i class="material-icons">keyboard_arrow_right</i>
-                                </span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 mb-3">
-                        <div class="card text-white bg-primary o-hidden h-100">
-                            <div class="card-body">
-                                <div class="card-body-icon">
-                                    <i class="material-icons float-right text-white md-5em">supervisor_account</i>
-                                </div>
-                                <div class="mr-5">( 123 )Active Users</div>
-                            </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
-                                <span class="float-left">View Details</span>
-                                <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
-                                </span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-sm-6 mb-3">
-                        <div class="card text-white bg-danger o-hidden h-100">
-                            <div class="card-body">
-                                <div class="card-body-icon">
-                                    <i class="material-icons float-right text-white md-5em">person_outline</i>
-                                </div>
-                                <div class="mr-5">( 123 )Banned Users</div>
-                            </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
-                                <span class="float-left">View Details</span>
-                                <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
                                 </span>
                             </a>
                         </div>
@@ -271,97 +237,287 @@
                         <div class="card text-white bg-success o-hidden h-100">
                             <div class="card-body">
                                 <div class="card-body-icon">
-                                    <i class="material-icons float-right text-white md-5em">people_outline</i>
+                                    <i class="material-icons float-right text-white md-5em">check_circle</i>
                                 </div>
-                                <div class="mr-5">( 123 )Total Users</div>
+                                <div class="mr-5">
+                                    <strong>87.5%</strong><br>
+                                    Taux de Correspondance
+                                </div>
                             </div>
-                            <a class="card-footer text-white clearfix small z-1" href="#">
-                                <span class="float-left">View Details</span>
+                            <div class="card-footer text-white clearfix small">
+                                <span class="float-left">Excellent</span>
                                 <span class="float-right">
-                                    <i class="material-icons">
-                                        keyboard_arrow_right
-                                    </i>
+                                    <i class="material-icons">trending_up</i>
                                 </span>
-                            </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 mb-3">
+                        <div class="card text-white bg-warning o-hidden h-100">
+                            <div class="card-body">
+                                <div class="card-body-icon">
+                                    <i class="material-icons float-right text-white md-5em">euro_symbol</i>
+                                </div>
+                                <div class="mr-5">
+                                    <strong>€15,847</strong><br>
+                                    Total Encaissé
+                                </div>
+                            </div>
+                            <div class="card-footer text-white clearfix small">
+                                <span class="float-left">Écart: +€234</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 mb-3">
+                        <div class="card text-white bg-danger o-hidden h-100">
+                            <div class="card-body">
+                                <div class="card-body-icon">
+                                    <i class="material-icons float-right text-white md-5em">warning</i>
+                                </div>
+                                <div class="mr-5">
+                                    <strong>2</strong><br>
+                                    Écarts Détectés
+                                </div>
+                            </div>
+                            <div class="card-footer text-white clearfix small">
+                                <span class="float-left">Nécessite Attention</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- Dashboard Box -->
+
+                <!-- Comparison Results -->
                 <div class="row mt-3">
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header">Github Users</div>
+                            <div class="card-header bg-primary text-white">
+                                <i class="material-icons mr-2">flight</i>
+                                Vol TU-456 (Paris-Tunis)
+                            </div>
                             <div class="card-body">
-                                <table class="table table-striped">
+                                <table class="table table-striped table-sm">
                                     <tbody>
                                         <tr>
-                                            <td><a href="https://www.elmasapp.online/users/248">yash</a></td>
-                                            <td width="1" class="nowrap">Date</td>
+                                            <td><strong>Date:</strong></td>
+                                            <td>15/01/2024</td>
                                         </tr>
                                         <tr>
-                                            <td><a href="https://www.elmasapp.online/users/247">test</a></td>
-                                            <td width="1" class="">Date</td>
+                                            <td><strong>Total Encaissé:</strong></td>
+                                            <td class="text-success">€5,420 ✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Écart Plus:</strong></td>
+                                            <td class="text-success">€120 ✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Écart Moins:</strong></td>
+                                            <td class="text-danger">€45 ✗</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Articles:</strong></td>
+                                            <td>24 comparés</td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="text-center">
+                                    <span class="badge badge-warning">Écart Mineur</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header">Facebook Users</div>
+                            <div class="card-header bg-success text-white">
+                                <i class="material-icons mr-2">flight</i>
+                                Vol TU-789 (Rome-Tunis)
+                            </div>
                             <div class="card-body">
-                                <table class="table table-striped">
+                                <table class="table table-striped table-sm">
                                     <tbody>
                                         <tr>
-                                            <td><a href="https://www.elmasapp.online/users/248">yash</a></td>
-                                            <td width="1" class="nowrap">Date</td>
+                                            <td><strong>Date:</strong></td>
+                                            <td>14/01/2024</td>
                                         </tr>
                                         <tr>
-                                            <td><a href="https://www.elmasapp.online/users/247">test</a></td>
-                                            <td width="1" class="">Date</td>
+                                            <td><strong>Total Encaissé:</strong></td>
+                                            <td class="text-success">€6,890 ✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Écart Plus:</strong></td>
+                                            <td class="text-success">€200 ✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Écart Moins:</strong></td>
+                                            <td class="text-success">€85 ✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Articles:</strong></td>
+                                            <td>31 comparés</td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="text-center">
+                                    <span class="badge badge-success">Parfait</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header">Gmail Users</div>
+                            <div class="card-header bg-warning text-white">
+                                <i class="material-icons mr-2">flight</i>
+                                Vol TU-123 (Madrid-Tunis)
+                            </div>
                             <div class="card-body">
-                                <table class="table table-striped">
+                                <table class="table table-striped table-sm">
                                     <tbody>
                                         <tr>
-                                            <td><a href="https://www.elmasapp.online/users/248">yash</a></td>
-                                            <td width="1" class="nowrap">Date</td>
+                                            <td><strong>Date:</strong></td>
+                                            <td>13/01/2024</td>
                                         </tr>
                                         <tr>
-                                            <td><a href="https://www.elmasapp.online/users/247">test</a></td>
-                                            <td width="1" class="">Date</td>
+                                            <td><strong>Total Encaissé:</strong></td>
+                                            <td class="text-danger">€3,537 ✗</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Écart Plus:</strong></td>
+                                            <td class="text-success">€95 ✓</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Écart Moins:</strong></td>
+                                            <td class="text-danger">€180 ✗</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Articles:</strong></td>
+                                            <td>18 comparés</td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div class="text-center">
+                                    <span class="badge badge-danger">Écart Important</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Charts Section -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="material-icons mr-2">trending_up</i>
+                                    Évolution des Ventes (7 derniers jours)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="salesTrendChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="material-icons mr-2">pie_chart</i>
+                                    Répartition des Correspondances
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="matchRatesChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Articles Analysis -->
                 <div class="row mt-3">
                     <div class="col-md-12">
                         <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="material-icons mr-2">bar_chart</i>
+                                    Top 5 Articles par Valeur de Vente
+                                </h5>
+                            </div>
                             <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas id="chart-legend-normal"></canvas>
-                                </div>
+                                <canvas id="topArticlesChart" height="200"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Recent Activity Table -->
                 <div class="row mt-3">
                     <div class="col-md-12">
                         <div class="card bg-white">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="material-icons mr-2">history</i>
+                                    Activité Récente des Comparaisons
+                                </h5>
+                            </div>
                             <div class="card-body mt-3">
                                 <div class="table-responsive">
+                                    <table class="table table-striped" id="recentActivityTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Vol</th>
+                                                <th>Date</th>
+                                                <th>Total Encaissé</th>
+                                                <th>Écart Plus</th>
+                                                <th>Écart Moins</th>
+                                                <th>Articles</th>
+                                                <th>Statut</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>TU-456</strong><br><small>Paris-Tunis</small></td>
+                                                <td>15/01/2024</td>
+                                                <td class="text-success">€5,420</td>
+                                                <td class="text-success">€120</td>
+                                                <td class="text-danger">€45</td>
+                                                <td>24</td>
+                                                <td><span class="badge badge-warning">Écart Mineur</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" title="Voir détails">
+                                                        <i class="material-icons">visibility</i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>TU-789</strong><br><small>Rome-Tunis</small></td>
+                                                <td>14/01/2024</td>
+                                                <td class="text-success">€6,890</td>
+                                                <td class="text-success">€200</td>
+                                                <td class="text-success">€85</td>
+                                                <td>31</td>
+                                                <td><span class="badge badge-success">Parfait</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" title="Voir détails">
+                                                        <i class="material-icons">visibility</i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>TU-123</strong><br><small>Madrid-Tunis</small></td>
+                                                <td>13/01/2024</td>
+                                                <td class="text-danger">€3,537</td>
+                                                <td class="text-success">€95</td>
+                                                <td class="text-danger">€180</td>
+                                                <td>18</td>
+                                                <td><span class="badge badge-danger">Écart Important</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" title="Voir détails">
+                                                        <i class="material-icons">visibility</i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -395,14 +551,137 @@
     <script>
         $(document).ready(function () {
             // Initialize DataTable
-            if (!$.fn.DataTable.isDataTable('#salesReportsTable')) {
-                $('#salesReportsTable').DataTable({
+            if (!$.fn.DataTable.isDataTable('#recentActivityTable')) {
+                $('#recentActivityTable').DataTable({
                     responsive: true,
                     pageLength: 10,
-                    lengthMenu: [10, 15, 25]
+                    lengthMenu: [10, 15, 25],
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/French.json'
+                    }
                 });
             }
+
+            // Initialize Charts
+            initializeCharts();
         });
+
+        function initializeCharts() {
+            // Sales Trend Chart
+            const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['09/01', '10/01', '11/01', '12/01', '13/01', '14/01', '15/01'],
+                    datasets: [{
+                        label: 'Total Encaissé (€)',
+                        data: [4200, 5100, 3800, 6200, 3537, 6890, 5420],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Évolution des Ventes'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Match Rates Chart
+            const matchCtx = document.getElementById('matchRatesChart').getContext('2d');
+            new Chart(matchCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Correspondances Parfaites', 'Écarts Mineurs', 'Écarts Importants'],
+                    datasets: [{
+                        data: [33.3, 33.3, 33.3],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Top Articles Chart
+            const articlesCtx = document.getElementById('topArticlesChart').getContext('2d');
+            new Chart(articlesCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Café Espresso', 'Sandwich Thon', 'Eau Minérale', 'Jus Orange', 'Croissant'],
+                    datasets: [{
+                        label: 'Valeur Totale (€)',
+                        data: [1250, 980, 750, 620, 450],
+                        backgroundColor: [
+                            'rgba(153, 102, 255, 0.8)',
+                            'rgba(255, 159, 64, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
         function loadSalesReportForm(url) {
             $.get(url, function (data) {

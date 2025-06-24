@@ -1,0 +1,950 @@
+﻿@model VAB.ViewModel.FinancialDashboardViewModel
+@{
+    ViewData["Title"] = "Tableau de Bord Financier";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tableau de Bord Financier - Commissions, Redevances, Trous de Caisse">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/images/icons/favicon.png" type="image/png">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="~/iconfont/material-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/css/Chart.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/sidebar.css">
+    <link rel="stylesheet" href="~/css/responsive.css">
+
+    <style>
+        .dashboard-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+            .dashboard-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            }
+
+        .card-body-icon {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            opacity: 0.3;
+            font-size: 4rem;
+        }
+
+        .small-box {
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--bg-color-1), var(--bg-color-2));
+        }
+
+            .small-box .inner {
+                padding: 20px;
+                position: relative;
+                z-index: 2;
+            }
+
+                .small-box .inner h3 {
+                    font-size: 2.2rem;
+                    font-weight: 700;
+                    margin: 0 0 10px 0;
+                    color: white;
+                }
+
+                .small-box .inner p {
+                    font-size: 1rem;
+                    color: rgba(255,255,255,0.9);
+                    margin: 0;
+                }
+
+            .small-box .icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 1;
+                font-size: 70px;
+                color: rgba(255,255,255,0.15);
+                transition: all .3s linear;
+            }
+
+            .small-box:hover .icon {
+                font-size: 80px;
+            }
+
+        .small-box-footer {
+            position: relative;
+            text-align: center;
+            padding: 8px 0;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            z-index: 10;
+            background: rgba(0,0,0,0.1);
+            display: block;
+            transition: all 0.3s;
+        }
+
+            .small-box-footer:hover {
+                color: #fff;
+                background: rgba(0,0,0,0.2);
+                text-decoration: none;
+            }
+
+        .bg-commission {
+            --bg-color-1: #28a745;
+            --bg-color-2: #20c997;
+        }
+
+        .bg-redevance {
+            --bg-color-1: #007bff;
+            --bg-color-2: #6610f2;
+        }
+
+        .bg-trou {
+            --bg-color-1: #dc3545;
+            --bg-color-2: #fd7e14;
+        }
+
+        .bg-performance {
+            --bg-color-1: #17a2b8;
+            --bg-color-2: #6f42c1;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            padding: 20px;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .stats-card-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .stats-card-title {
+            font-weight: 600;
+            margin: 0;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-card-body {
+            padding: 20px;
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .trend-up {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .trend-down {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .trend-neutral {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        .filter-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .table-modern {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+            .table-modern thead th {
+                background: linear-gradient(135deg, #495057, #6c757d);
+                color: white;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+                border: none;
+            }
+
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .animated {
+            animation-duration: 0.8s;
+        }
+
+        @@media (max-width: 768px) {
+            .small-box h3
+
+        {
+            font-size: 1.8rem;
+        }
+
+        .chart-container {
+            height: 250px;
+            padding: 10px;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header">
+            <div class="navigation">
+                <nav class="navbar navbar-expand-lg navbar-bg">
+                    <div class="brand-logo">
+                        <a class="navbar-brand" asp-controller="Home" asp-action="Index" id="menu-action">
+                            <div class="logo-tunisair">
+                                <img src="~/images/icons/Tunisair-Logo-Vector.svg-.png" alt="Tunisair Logo">
+                            </div>
+                        </a>
+                        <div id="nav-toggle">
+                            <div class="cta">
+                                <div class="toggle-btn type1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapse navbar-collapse pr-3" id="navbarContent">
+                        <ul class="navbar-nav user-info ml-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown user-dropdown">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <a href="#" class="navbar-nav-link dropdown-toggle text-light" data-toggle="dropdown" aria-expanded="false">
+                                        <div class="user-photo">
+                                            <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle" width="32" height="32">
+                                        </div>
+                                        <span class="d-none d-md-inline ms-2">@User.Identity.Name</span>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <div class="px-3 py-2 border-bottom">
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://png.pngtree.com/png-clipart/20230919/original/pngtree-user-profile-button-for-web-and-mobile-design-vector-png-image_12420282.png" alt="User profile" class="rounded-circle me-2" width="40" height="40">
+                                                <div>
+                                                    <div class="fw-semibold">@User.Identity.Name</div>
+                                                    <small class="text-muted">Administrateur Financier</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="dropdown-item" href="#">
+                                            <i class="material-icons">settings</i>
+                                            Paramètres du compte
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="material-icons">logout</i>
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <section id="left-sidebar-area">
+        <div id="left-sidebar-section">
+            <aside>
+                <div class="left-sidebar" id="wrapper-sidebar">
+                    <ul>
+                        <li class="active">
+                            <a asp-controller="FinancialDashboard" asp-action="Index">
+                                <i class="material-icons">dashboard</i> Tableau de Bord
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Dashboard">
+                                <i class="material-icons">monetization_on</i> Gestion des Commissions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="PncBilanDashboard">
+                                <i class="material-icons">assessment</i> Transaction Pnc
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="Edit">
+                                <i class="material-icons">settings</i> Taux D'echange
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                <i class="fas fa-exclamation-triangle"></i> Trous de Caisse
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Redevance" asp-action="Dashboard">
+                                <i class="fas fa-calculator"></i> Redevances
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="d-flex" id="wrapper">
+        <div class="page-content-wrapper">
+            <!-- Breadcrumb -->
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                Tableau de Bord Financier
+                            </h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-right">
+                                <li class="breadcrumb-item">
+                                    <a href="#"><i class="material-icons">home</i>Accueil</a>
+                                </li>
+                                <li class="breadcrumb-item active">Tableau de Bord Financier</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="content">
+                <div class="container-fluid">
+                    <!-- Filter Card -->
+                    <div class="filter-card animated fadeIn">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-filter"></i>
+                                Filtres de Période
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="dateDebut">Date Début</label>
+                                        <input type="date" class="form-control" id="dateDebut" name="dateDebut"
+                                               value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="dateFin">Date Fin</label>
+                                        <input type="date" class="form-control" id="dateFin" name="dateFin"
+                                               value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label> </label>
+                                        <div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-search"></i> Filtrer
+                                            </button>
+                                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                                <i class="fas fa-times"></i> Réinitialiser
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row animated fadeInUp">
+                        <!-- Commissions Card -->
+                        <div class="col-xl-3 col-sm-6 mb-3">
+                            <div class="small-box bg-commission dashboard-card">
+                                <div class="inner">
+                                    <h3>@Model.TotalCommissionsAmount.ToString("C")</h3>
+                                    <p>Total Commissions</p>
+                                    <small>@Model.TotalCommissionCalculations calculs</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <a class="small-box-footer" asp-controller="DGF" asp-action="Dashboard">
+                                    Voir Détails <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Redevances Card -->
+                        <div class="col-xl-3 col-sm-6 mb-3">
+                            <div class="small-box bg-redevance dashboard-card">
+                                <div class="inner">
+                                    <h3>@Model.TotalRedevanceAmount.ToString("C")</h3>
+                                    <p>Total Redevances</p>
+                                    <small>
+                                        @if (Model.RedevanceGrowthPercentage > 0)
+                                        {
+                                            <span class="trend-indicator trend-up">
+                                                <i class="fas fa-arrow-up"></i> @Model.RedevanceGrowthPercentage.ToString("F1")%
+                                            </span>
+                                        }
+                                        else if (Model.RedevanceGrowthPercentage < 0)
+                                        {
+                                            <span class="trend-indicator trend-down">
+                                                <i class="fas fa-arrow-down"></i> @Math.Abs(Model.RedevanceGrowthPercentage).ToString("F1")%
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="trend-indicator trend-neutral">
+                                                <i class="fas fa-minus"></i> 0%
+                                            </span>
+                                        }
+                                    </small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-university"></i>
+                                </div>
+                                <a class="small-box-footer" asp-controller="Redevance" asp-action="Dashboard">
+                                    Voir Détails <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Trous de Caisse Card -->
+                        <div class="col-xl-3 col-sm-6 mb-3">
+                            <div class="small-box bg-trou dashboard-card">
+                                <div class="inner">
+                                    <h3>@Model.TotalMontantManquant.ToString("C")</h3>
+                                    <p>Trous de Caisse</p>
+                                    <small>@Model.TrousEnAttente en attente / @Model.TrousAppliques appliqués</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <a class="small-box-footer" asp-controller="DGF" asp-action="TrouDeCaisseDashboard">
+                                    Voir Détails <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Performance Card -->
+                        <div class="col-xl-3 col-sm-6 mb-3">
+                            <div class="small-box bg-performance dashboard-card">
+                                <div class="inner">
+                                    <h3>@Model.ActivePncsWithCommissions</h3>
+                                    <p>PNCs Actifs</p>
+                                    <small>Moyenne: @Model.AverageCommissionPerPnc.ToString("C")</small>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <a class="small-box-footer" asp-controller="DGF" asp-action="PncBilanDashboard">
+                                    Voir Détails <i class="fas fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row mt-3">
+                        <!-- Commission Trends Chart -->
+                        <div class="col-md-6">
+                            <div class="stats-card animated fadeIn">
+                                <div class="stats-card-header">
+                                    <h3 class="stats-card-title">
+                                        <i class="fas fa-chart-line text-success"></i>
+                                        Évolution des Commissions
+                                    </h3>
+                                </div>
+                                <div class="stats-card-body">
+                                    <div class="chart-container">
+                                        <canvas id="commissionTrendsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Redevance Trends Chart -->
+                        <div class="col-md-6">
+                            <div class="stats-card animated fadeIn">
+                                <div class="stats-card-header">
+                                    <h3 class="stats-card-title">
+                                        <i class="fas fa-chart-area text-primary"></i>
+                                        Évolution des Redevances
+                                    </h3>
+                                </div>
+                                <div class="stats-card-body">
+                                    <div class="chart-container">
+                                        <canvas id="redevanceTrendsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trou de Caisse Status Chart -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="stats-card animated fadeIn">
+                                <div class="stats-card-header">
+                                    <h3 class="stats-card-title">
+                                        <i class="fas fa-chart-pie text-danger"></i>
+                                        Statut des Trous de Caisse
+                                    </h3>
+                                </div>
+                                <div class="stats-card-body">
+                                    <div class="chart-container">
+                                        <canvas id="trouStatusChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top PNCs Performance -->
+                        <div class="col-md-6">
+                            <div class="stats-card animated fadeIn">
+                                <div class="stats-card-header">
+                                    <h3 class="stats-card-title">
+                                        <i class="fas fa-trophy text-warning"></i>
+                                        Top PNCs Performance
+                                    </h3>
+                                </div>
+                                <div class="stats-card-body">
+                                    @if (Model.TopPncs.Any())
+                                    {
+                                        @foreach (var pnc in Model.TopPncs.Take(5))
+                                        {
+                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                                <div>
+                                                    <h6 class="mb-1">@pnc.Nom @pnc.Prenom</h6>
+                                                    <small class="text-muted">
+                                                        @pnc.Matricule • @pnc.NombreCalculs calculs • @pnc.CommissionMoyenneParCalcul.ToString("C")/calcul
+                                                    </small>
+                                                    <div class="mt-1">
+                                                        <small class="text-info">Meilleur mois: @pnc.MeilleurMois</small>
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="text-success fw-bold">@pnc.TotalCommissions.ToString("C")</div>
+                                                    @if (pnc.TotalTrousDeCaisse > 0)
+                                                    {
+                                                        <small class="text-danger">-@pnc.TotalTrousDeCaisse.ToString("C") débits</small>
+
+                                                        <br>
+                                                    }
+                                                    <small class="text-primary fw-bold">
+                                                        Net: @pnc.PerformanceNette.ToString("C")
+                                                    </small>
+                                                    <div class="mt-1">
+                                                        @if (pnc.TauxPerformance >= 80)
+                                                        {
+                                                            <span class="badge badge-success">@pnc.TauxPerformance%</span>
+                                                        }
+                                                        else if (pnc.TauxPerformance >= 60)
+                                                        {
+                                                            <span class="badge badge-warning">@pnc.TauxPerformance%</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-danger">@pnc.TauxPerformance%</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted text-center">Aucune donnée de performance disponible</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities Tables -->
+                    <div class="row mt-3">
+                        <!-- Recent Commissions -->
+                        <div class="col-md-6">
+                            <div class="stats-card animated fadeIn">
+                                <div class="stats-card-header">
+                                    <h3 class="stats-card-title">
+                                        <i class="fas fa-clock text-info"></i>
+                                        Commissions Récentes
+                                    </h3>
+                                </div>
+                                <div class="stats-card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>PNC</th>
+                                                    <th>État</th>
+                                                    <th>Date</th>
+                                                    <th>Montant</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var commission in Model.RecentCommissions.Take(8))
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <small><strong>@commission.PncName</strong></small>
+                                                        </td>
+                                                        <td>
+                                                            <code>@commission.NumeroEtat</code>
+                                                        </td>
+                                                        <td>
+                                                            <small>@commission.DateCalcul.ToString("dd/MM/yyyy")</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-success">@commission.CommissionTotale.ToString("C")</span>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Trous de Caisse -->
+                        <div class="col-md-6">
+                            <div class="stats-card animated fadeIn">
+                                <div class="stats-card-header">
+                                    <h3 class="stats-card-title">
+                                        <i class="fas fa-exclamation-circle text-danger"></i>
+                                        Trous de Caisse Récents
+                                    </h3>
+                                </div>
+                                <div class="stats-card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>PNC</th>
+                                                    <th>État</th>
+                                                    <th>Date</th>
+                                                    <th>Montant</th>
+                                                    <th>Statut</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var trou in Model.RecentTrousDeCaisse.Take(8))
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <small><strong>@trou.PncResponsable</strong></small>
+                                                        </td>
+                                                        <td>
+                                                            <code>@trou.NumeroEtat</code>
+                                                        </td>
+                                                        <td>
+                                                            <small>@trou.DateDetection.ToString("dd/MM/yyyy")</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-danger">@trou.MontantManquant.ToString("C")</span>
+                                                        </td>
+                                                        <td>
+                                                            @switch (trou.Statut)
+                                                            {
+                                                                case "En Attente":
+                                                                    <span class="badge badge-warning">En Attente</span>
+                                                                    break;
+                                                                case "Appliqué":
+                                                                    <span class="badge badge-info">Appliqué</span>
+                                                                    break;
+                                                                default:
+                                                                    <span class="badge badge-secondary">@trou.Statut</span>
+                                                                    break;
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <!-- JavaScript -->
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/Chart.min.js"></script>
+    <script src="~/js/wow.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize animations
+            if (typeof WOW !== 'undefined') {
+                new WOW().init();
+            }
+
+            // Load charts
+            loadCommissionTrendsChart();
+            loadRedevanceTrendsChart();
+            loadTrouStatusChart();
+            loadTopPncsChart();
+        });
+
+        function loadCommissionTrendsChart() {
+            $.get('@Url.Action("GetChartData", "FinancialDashboard")', {
+                chartType: 'commission-trends',
+                dateDebut: '@Model.DateDebut?.ToString("yyyy-MM-dd")',
+                dateFin: '@Model.DateFin?.ToString("yyyy-MM-dd")'
+            })
+            .done(function(data) {
+                const ctx = document.getElementById('commissionTrendsChart');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Commissions (€)',
+                            data: data.data,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('fr-FR', {
+                                            style: 'currency',
+                                            currency: 'EUR'
+                                        }).format(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function loadRedevanceTrendsChart() {
+            $.get('@Url.Action("GetChartData", "FinancialDashboard")', {
+                chartType: 'redevance-trends',
+                dateDebut: '@Model.DateDebut?.ToString("yyyy-MM-dd")',
+                dateFin: '@Model.DateFin?.ToString("yyyy-MM-dd")'
+            })
+            .done(function(data) {
+                const ctx = document.getElementById('redevanceTrendsChart');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Redevances (€)',
+                            data: data.data,
+                            backgroundColor: 'rgba(0, 123, 255, 0.8)',
+                            borderColor: '#007bff',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('fr-FR', {
+                                            style: 'currency',
+                                            currency: 'EUR'
+                                        }).format(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function loadTrouStatusChart() {
+            $.get('@Url.Action("GetChartData", "FinancialDashboard")', {
+                chartType: 'trou-status',
+                dateDebut: '@Model.DateDebut?.ToString("yyyy-MM-dd")',
+                dateFin: '@Model.DateFin?.ToString("yyyy-MM-dd")'
+            })
+            .done(function(data) {
+                const ctx = document.getElementById('trouStatusChart');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.data,
+                            backgroundColor: [
+                                '#ffc107',
+                                '#17a2b8',
+                                '#dc3545',
+                                '#28a745'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function loadTopPncsChart() {
+            const topPncs = @Html.Raw(Json.Serialize(Model.TopPncs.Take(5)));
+
+            if (topPncs.length === 0) {
+                document.getElementById('topPncsChart').innerHTML = '<p class="text-center text-muted">Aucune donnée disponible</p>';
+                return;
+            }
+
+            const ctx = document.getElementById('topPncsChart');
+            new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: topPncs.map(p => `${p.nom} ${p.prenom}`),
+                    datasets: [{
+                        label: 'Performance Nette (€)',
+                        data: topPncs.map(p => p.performanceNette),
+                        backgroundColor: topPncs.map(p => {
+                            if (p.tauxPerformance >= 80) return 'rgba(40, 167, 69, 0.8)';
+                            if (p.tauxPerformance >= 60) return 'rgba(255, 193, 7, 0.8)';
+                            return 'rgba(220, 53, 69, 0.8)';
+                        }),
+                        borderColor: topPncs.map(p => {
+                            if (p.tauxPerformance >= 80) return '#28a745';
+                            if (p.tauxPerformance >= 60) return '#ffc107';
+                            return '#dc3545';
+                        }),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const pnc = topPncs[context.dataIndex];
+                                    return [
+                                        `Commissions: ${new Intl.NumberFormat('fr-FR', {style: 'currency', currency: 'EUR'}).format(pnc.totalCommissions)}`,
+                                        `Débits: ${new Intl.NumberFormat('fr-FR', {style: 'currency', currency: 'EUR'}).format(pnc.totalTrousDeCaisse)}`,
+                                        `Taux: ${pnc.tauxPerformance}%`,
+                                        `Calculs: ${pnc.nombreCalculs}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('fr-FR', {
+                                        style: 'currency',
+                                        currency: 'EUR'
+                                    }).format(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

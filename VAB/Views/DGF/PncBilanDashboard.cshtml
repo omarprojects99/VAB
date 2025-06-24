@@ -572,17 +572,17 @@
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li>
-                            <a asp-controller="DGF" asp-action="Dashboard">
+                        <li class="active">
+                            <a asp-controller="FinancialDashboard" asp-action="Index">
                                 <i class="material-icons">dashboard</i> Tableau de Bord
                             </a>
                         </li>
                         <li>
-                            <a asp-controller="DGF" asp-action="ManageCommissions">
+                            <a asp-controller="DGF" asp-action="Dashboard">
                                 <i class="material-icons">monetization_on</i> Gestion des Commissions
                             </a>
                         </li>
-                        <li class="active">
+                        <li>
                             <a asp-controller="DGF" asp-action="PncBilanDashboard">
                                 <i class="material-icons">assessment</i> Transaction Pnc
                             </a>
@@ -599,7 +599,7 @@
                         </li>
                         <li>
                             <a asp-controller="Redevance" asp-action="Dashboard">
-                                <i class="fas fa-exclamation-triangle"></i> Redevance
+                                <i class="fas fa-calculator"></i> Redevances
                             </a>
                         </li>
                     </ul>

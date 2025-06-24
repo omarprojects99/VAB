@@ -644,6 +644,9 @@
                                 Détail des Transactions
                             </h3>
                             <div class="card-tools">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="previewSms()">
+                                    <i class="fas fa-sms"></i> Envoyer SMS
+                                </button>
                                 <button type="button" class="btn btn-success btn-sm" onclick="exportBilan()">
                                     <i class="fas fa-file-excel"></i> Exporter
                                 </button>
@@ -828,6 +831,133 @@
                     $('#modalContainer').html(data);
                     $('#viewTrouModal').modal('show');
                 });
+        }
+    </script>
+    <script>
+        // Add these functions to your existing JavaScript section
+
+        function previewSms() {
+            var pncId = @Model.PncId;
+            var dateDebut = '@Model.DateDebut?.ToString("yyyy-MM-dd")';
+            var dateFin = '@Model.DateFin?.ToString("yyyy-MM-dd")';
+
+            $.get('@Url.Action("PreviewCommissionSms", "DGF")', {
+                pncId: pncId,
+                dateDebut: dateDebut || null,
+                dateFin: dateFin || null
+            })
+            .done(function(response) {
+                if (response.success) {
+                    showSmsPreviewModal(response);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: response.message
+                    });
+                }
+            })
+            .fail(function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Erreur de communication avec le serveur.'
+                });
+            });
+        }
+
+        function showSmsPreviewModal(data) {
+            const phoneStatus = data.hasPhoneNumber ?
+                `<span class="text-success"><i class="fas fa-check-circle"></i> ${data.phoneNumber}</span>` :
+                `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Numéro non disponible</span>`;
+
+            Swal.fire({
+                title: 'Aperçu du SMS',
+                html: `
+                    <div class="text-left">
+                        <div class="mb-3">
+                            <strong>Destinataire:</strong> ${data.pncName}<br>
+                            <strong>Téléphone:</strong> ${phoneStatus}
+                        </div>
+                        <div class="border p-3 bg-light" style="white-space: pre-line; font-family: monospace; font-size: 14px;">
+        ${data.message}
+                        </div>
+                        <div class="mt-2 text-muted small">
+                            <i class="fas fa-info-circle"></i> Longueur: ${data.message.length} caractères
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: data.hasPhoneNumber ? '<i class="fas fa-paper-plane"></i> Envoyer SMS' : 'Fermer',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: data.hasPhoneNumber ? '#28a745' : '#6c757d',
+                width: '600px',
+                showConfirmButton: true
+            }).then((result) => {
+                if (result.isConfirmed && data.hasPhoneNumber) {
+                    sendSms();
+                }
+            });
+        }
+
+        function sendSms() {
+            var pncId = @Model.PncId;
+            var dateDebut = '@Model.DateDebut?.ToString("yyyy-MM-dd")';
+            var dateFin = '@Model.DateFin?.ToString("yyyy-MM-dd")';
+
+            // Show loading
+            Swal.fire({
+                title: 'Envoi en cours...',
+                text: 'Veuillez patienter pendant l\'envoi du SMS.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.post('@Url.Action("SendCommissionSms", "DGF")', {
+                pncId: pncId,
+                dateDebut: dateDebut || null,
+                dateFin: dateFin || null
+            })
+            .done(function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'SMS Envoyé!',
+                        html: `
+                            <div class="text-left">
+                                <p><strong>Destinataire:</strong> ${response.details.pncName}</p>
+                                <p><strong>Téléphone:</strong> ${response.details.phoneNumber}</p>
+                                <hr>
+                                <p><strong>Résumé envoyé:</strong></p>
+                                <ul class="list-unstyled">
+                                    <li>💰 Commissions: ${response.details.totalCredits}</li>
+                                    <li>❌ Débits: ${response.details.totalDebits}</li>
+                                    <li>💳 Solde: ${response.details.soldeFinal}</li>
+                                    <li>📊 Transactions: ${response.details.transactionCount}</li>
+                                </ul>
+                            </div>
+                        `,
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Échec de l\'envoi',
+                        text: response.message
+                    });
+                }
+            })
+            .fail(function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Erreur de communication avec le serveur.'
+                });
+            });
         }
     </script>
 </body>

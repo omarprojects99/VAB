@@ -46,6 +46,7 @@ namespace VAB.Data
         // New DbSets for PDF extraction
         public DbSet<ExtractedPdfData> ExtractedPdfData { get; set; }
         public DbSet<ExtractedPdfItem> ExtractedPdfItems { get; set; }
+        public DbSet<Motif> Motifs { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -230,6 +231,42 @@ namespace VAB.Data
 
             builder.Entity<ExtractedPdfData>()
                 .HasIndex(e => e.ExtractedBy);
+            builder.Entity<Motif>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.NumeroEtatVenteArrivee)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.CreatedBy)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.ReadBy)
+                    .HasMaxLength(100)
+                    .IsRequired(false); // Explicitly set as nullable
+
+                entity.Property(e => e.DateCreation)
+                    .HasDefaultValueSql("GETDATE()");
+
+                entity.Property(e => e.Status)
+                    .HasDefaultValue(MotifStatus.NonLu);
+
+                // Indexes
+                entity.HasIndex(e => e.NumeroEtatVenteArrivee)
+                    .HasDatabaseName("IX_Motifs_NumeroEtatVenteArrivee");
+
+                entity.HasIndex(e => e.DateCreation)
+                    .HasDatabaseName("IX_Motifs_DateCreation");
+
+                entity.HasIndex(e => e.Status)
+                    .HasDatabaseName("IX_Motifs_Status");
+            });
         }
 
 

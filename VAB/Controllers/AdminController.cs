@@ -24,21 +24,6 @@ namespace VAB.Controllers
             _context = context;
         }
 
-        //// Dashboard with statistics
-        //public async Task<IActionResult> Dashboard()
-        //{
-        //    var dashboardData = new DashboardViewModel
-        //    {
-        //        TotalUsers = await _userManager.Users.CountAsync(),
-        //        ActiveUsers = await _userManager.Users.Where(u => u.IsActive).CountAsync(),
-        //        InactiveUsers = await _userManager.Users.Where(u => !u.IsActive).CountAsync(),
-        //        UsersByRole = await GetUsersByRoleAsync(),
-        //        RecentUsers = await GetRecentUsersAsync()
-        //    };
-
-        //    return View(dashboardData);
-        //}
-
         // Users List
         public async Task<IActionResult> UsersList()
         {
@@ -68,7 +53,6 @@ namespace VAB.Controllers
             return View();
         }
 
-        // Add User POST
         // Add User POST
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -230,29 +214,77 @@ namespace VAB.Controllers
             return View(model);
         }
 
-        // Edit User POST
+        // Edit User POST - FIXED VERSION WITH PROPER REDIRECTION
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditUserPost(UserManagementViewModel model)
         {
             try
             {
+                Console.WriteLine($"EditUserPost called with: Id={model.Id}, Name={model.NomPrenom}, Email={model.Email}, Phone={model.Telephone}");
+                Console.WriteLine($"Roles: {(model.Roles != null ? string.Join(", ", model.Roles) : "null")}");
+
+                // Remove password validation for edit operations
+                ModelState.Remove("Password");
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                    return Json(new { success = false, message = string.Join(", ", errors) });
+                    Console.WriteLine($"ModelState errors: {string.Join(", ", errors)}");
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = string.Join(", ", errors) });
+                    }
+
+                    // Reload available roles for non-AJAX requests
+                    model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                    return View("EditUser", model);
                 }
 
                 // Enhanced validation
                 if (!IsValidPhoneNumber(model.Telephone))
                 {
-                    return Json(new { success = false, message = "Phone number must be exactly 8 digits" });
+                    Console.WriteLine("Phone validation failed");
+                    var message = "Phone number must be exactly 8 digits";
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = message });
+                    }
+
+                    ModelState.AddModelError("Telephone", message);
+                    model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                    return View("EditUser", model);
+                }
+
+                if (!IsValidEmail(model.Email))
+                {
+                    Console.WriteLine("Email validation failed");
+                    var message = "Please enter a valid email address";
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = message });
+                    }
+
+                    ModelState.AddModelError("Email", message);
+                    model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                    return View("EditUser", model);
                 }
 
                 var user = await _userManager.FindByIdAsync(model.Id);
                 if (user == null)
                 {
-                    return Json(new { success = false, message = "User not found" });
+                    Console.WriteLine("User not found");
+                    var message = "User not found";
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = message });
+                    }
+
+                    return NotFound();
                 }
 
                 // Check if email is being changed and if it already exists
@@ -261,42 +293,108 @@ namespace VAB.Controllers
                     var existingUser = await _userManager.FindByEmailAsync(model.Email);
                     if (existingUser != null && existingUser.Id != model.Id)
                     {
-                        return Json(new { success = false, message = "A user with this email already exists" });
+                        Console.WriteLine("Email already exists");
+                        var message = "A user with this email already exists";
+
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new { success = false, message = message });
+                        }
+
+                        ModelState.AddModelError("Email", message);
+                        model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                        return View("EditUser", model);
                     }
                 }
 
+                // Update user properties
                 user.NomPrenom = model.NomPrenom;
                 user.Email = model.Email;
                 user.UserName = model.Email;
                 user.Telephone = model.Telephone;
 
+                Console.WriteLine($"Updating user: {user.NomPrenom}, {user.Email}, {user.Telephone}");
+
                 var updateResult = await _userManager.UpdateAsync(user);
                 if (!updateResult.Succeeded)
                 {
                     var errors = updateResult.Errors.Select(e => e.Description);
-                    return Json(new { success = false, message = string.Join(", ", errors) });
+                    Console.WriteLine($"Update failed: {string.Join(", ", errors)}");
+                    var errorMessage = string.Join(", ", errors);
+
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = false, message = errorMessage });
+                    }
+
+                    ModelState.AddModelError("", errorMessage);
+                    model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                    return View("EditUser", model);
                 }
 
                 // Update user roles
                 var currentRoles = await _userManager.GetRolesAsync(user);
-                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                Console.WriteLine($"Current roles: {string.Join(", ", currentRoles)}");
+
+                if (currentRoles.Any())
+                {
+                    var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                    if (!removeResult.Succeeded)
+                    {
+                        Console.WriteLine("Failed to remove current roles");
+                    }
+                }
 
                 if (model.Roles != null && model.Roles.Any())
                 {
+                    Console.WriteLine($"Adding roles: {string.Join(", ", model.Roles)}");
                     var roleResult = await _userManager.AddToRolesAsync(user, model.Roles);
                     if (!roleResult.Succeeded)
                     {
                         var errors = roleResult.Errors.Select(e => e.Description);
-                        return Json(new { success = false, message = "User updated but failed to assign roles: " + string.Join(", ", errors) });
+                        Console.WriteLine($"Role assignment failed: {string.Join(", ", errors)}");
+                        var errorMessage = "User updated but failed to assign roles: " + string.Join(", ", errors);
+
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new { success = false, message = errorMessage });
+                        }
+
+                        ModelState.AddModelError("", errorMessage);
+                        model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                        return View("EditUser", model);
                     }
                 }
 
-                return Json(new { success = true, message = "User updated successfully" });
+                Console.WriteLine("User updated successfully");
+                TempData["Success"] = $"✅ User '{model.NomPrenom}' updated successfully!";
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = "User updated successfully",
+                        redirect = Url.Action("UsersList", "Admin")
+                    });
+                }
+
+                return RedirectToAction("UsersList");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating user: {ex.Message}");
-                return Json(new { success = false, message = "An unexpected error occurred while updating the user" });
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                var message = "An unexpected error occurred while updating the user";
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = message });
+                }
+
+                ModelState.AddModelError("", message);
+                model.AvailableRoles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return View("EditUser", model);
             }
         }
 
@@ -1047,6 +1145,8 @@ namespace VAB.Controllers
 
             return password + "A1!";
         }
+
+
         // Dashboard with statistics
         public async Task<IActionResult> Dashboard()
         {
@@ -1068,10 +1168,10 @@ namespace VAB.Controllers
 
                     // Prepare chart data
                     UserStatusData = new List<ChartDataPoint>
-            {
-                new ChartDataPoint { Label = "Active Users", Value = activeUsers, Color = "#28a745" },
-                new ChartDataPoint { Label = "Inactive Users", Value = inactiveUsers, Color = "#dc3545" }
-            },
+                    {
+                        new ChartDataPoint { Label = "Active Users", Value = activeUsers, Color = "#28a745" },
+                        new ChartDataPoint { Label = "Inactive Users", Value = inactiveUsers, Color = "#dc3545" }
+                    },
 
                     RoleDistributionData = (await GetUsersByRoleAsync()).Select(kvp => new ChartDataPoint
                     {
@@ -1103,5 +1203,4 @@ namespace VAB.Controllers
             };
         }
     }
-
 }

@@ -5,6 +5,10 @@ using VAB.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using VAB.Data;
+using VAB.Services;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace VAB.Controllers
 {
@@ -13,11 +17,13 @@ namespace VAB.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly HttpClient _httpClient;
+        private readonly ITwilioSmsService _twilioSmsService;
 
-        public DGFController(ApplicationDbContext context, IHttpClientFactory httpClientFactory)
+        public DGFController(ApplicationDbContext context, IHttpClientFactory httpClientFactory, ITwilioSmsService twilioSmsService)
         {
             _context = context;
             _httpClient = httpClientFactory.CreateClient();
+            _twilioSmsService = twilioSmsService;
         }
 
         public async Task<IActionResult> Dashboard(DateTime? dateDebut, DateTime? dateFin)
@@ -44,7 +50,8 @@ namespace VAB.Controllers
                 .Where(e => e.IsValidated)
                 .Where(e => dateDebut == null || e.DateEdition >= dateDebut.Value)
                 .Where(e => dateFin == null || e.DateEdition <= dateFin.Value)
-                .Select(e => new {
+                .Select(e => new
+                {
                     Id = e.Id,
                     EcartMoins = e.EcartMoins ?? 0,
                     TotalEncaisse = e.TotalEncaisse ?? 0
@@ -836,7 +843,8 @@ namespace VAB.Controllers
                     .Select(t => t.EtatDesVentesArriveeId)
                     .ToListAsync();
 
-                var result = etatsWithEcartMoins.Select(e => new {
+                var result = etatsWithEcartMoins.Select(e => new
+                {
                     Id = e.Id,
                     Numero = e.Numero,
                     EcartMoins = e.EcartMoins,
@@ -1180,5 +1188,223 @@ namespace VAB.Controllers
             return View(viewModel);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SendCommissionSms(int pncId, DateTime? dateDebut, DateTime? dateFin)
+        {
+            try
+            {
+                // Get PNC details
+                var pnc = await _context.Pncs
+                    .FirstOrDefaultAsync(p => p.PncId == pncId);
+
+                if (pnc == null)
+                {
+                    return Json(new { success = false, message = "PNC non trouvé." });
+                }
+
+                // Check if PNC has a phone number
+                if (string.IsNullOrEmpty(pnc.Telephone))
+                {
+                    return Json(new { success = false, message = "Numéro de téléphone non disponible pour ce PNC." });
+                }
+
+                // Get commission data for the period
+                var commissionQuery = _context.PncCommissionDetails
+                    .Include(d => d.PncCommissionCalculation)
+                        .ThenInclude(c => c.EtatDesVentesArrivee)
+                    .Where(d => d.PncId == pncId);
+
+                // Apply date filters
+                if (dateDebut.HasValue)
+                {
+                    commissionQuery = commissionQuery.Where(d => d.PncCommissionCalculation.DateCalcul >= dateDebut.Value);
+                }
+                if (dateFin.HasValue)
+                {
+                    commissionQuery = commissionQuery.Where(d => d.PncCommissionCalculation.DateCalcul <= dateFin.Value);
+                }
+
+                var commissions = await commissionQuery.ToListAsync();
+
+                // Get trous de caisse (debits)
+                var trouQuery = _context.TrouDeCaisses
+                    .Include(t => t.EtatDesVentesArrivee)
+                    .Where(t => t.PncResponsableId == pncId && t.EstApplique);
+
+                if (dateDebut.HasValue)
+                {
+                    trouQuery = trouQuery.Where(t => t.DateApplication >= dateDebut.Value);
+                }
+                if (dateFin.HasValue)
+                {
+                    trouQuery = trouQuery.Where(t => t.DateApplication <= dateFin.Value);
+                }
+
+                var trous = await trouQuery.ToListAsync();
+
+                // Calculate totals
+                var totalCredits = commissions.Sum(c => c.CommissionTotale);
+                var totalDebits = trous.Sum(t => t.MontantManquant);
+                var soldeFinal = totalCredits - totalDebits;
+
+                // Create SMS message
+                var periodText = "";
+                if (dateDebut.HasValue || dateFin.HasValue)
+                {
+                    var debut = dateDebut?.ToString("dd/MM/yyyy") ?? "début";
+                    var fin = dateFin?.ToString("dd/MM/yyyy") ?? "aujourd'hui";
+                    periodText = $" (Période: {debut} - {fin})";
+                }
+
+                var smsMessage = $"🛩️ TUNISAIR - Commission {periodText}\n" +
+                 $"{pnc.Nom} {pnc.Prenom} ({pnc.Matricule})\n" +
+                 $"✅ Crédits: {totalCredits:C}, ❌ Débits: {totalDebits:C}\n" +
+                 $"💳 Solde: {soldeFinal:C}\n" +
+                 $"📅 {DateTime.Now:dd/MM/yyyy HH:mm}";
+
+
+                // Format phone number (ensure it starts with +216 for Tunisia)
+                var phoneNumber = pnc.Telephone;
+                if (!phoneNumber.StartsWith("+"))
+                {
+                    // Assume Tunisian number if no country code
+                    phoneNumber = phoneNumber.StartsWith("216") ? "+" + phoneNumber : "+216" + phoneNumber.TrimStart('0');
+                }
+
+                // Send SMS
+                var smsResult = await _twilioSmsService.SendSmsAsync(phoneNumber, smsMessage);
+
+                if (smsResult)
+                {
+                    // Log the SMS sending activity
+                    // You might want to create a SMS log table to track sent messages
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"SMS envoyé avec succès à {pnc.Nom} {pnc.Prenom} ({phoneNumber})",
+                        details = new
+                        {
+                            pncName = $"{pnc.Nom} {pnc.Prenom}",
+                            phoneNumber = phoneNumber,
+                            totalCredits = totalCredits.ToString("C"),
+                            totalDebits = totalDebits.ToString("C"),
+                            soldeFinal = soldeFinal.ToString("C"),
+                            transactionCount = commissions.Count + trous.Count
+                        }
+                    });
+                }
+                else
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Échec de l'envoi du SMS. Veuillez vérifier le numéro de téléphone et réessayer."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Erreur lors de l'envoi du SMS: " + ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PreviewCommissionSms(int pncId, DateTime? dateDebut, DateTime? dateFin)
+        {
+            try
+            {
+                // Get PNC details
+                var pnc = await _context.Pncs
+                    .FirstOrDefaultAsync(p => p.PncId == pncId);
+
+                if (pnc == null)
+                {
+                    return Json(new { success = false, message = "PNC non trouvé." });
+                }
+
+                // Get commission data (same logic as SendCommissionSms)
+                var commissionQuery = _context.PncCommissionDetails
+                    .Include(d => d.PncCommissionCalculation)
+                    .Where(d => d.PncId == pncId);
+
+                if (dateDebut.HasValue)
+                {
+                    commissionQuery = commissionQuery.Where(d => d.PncCommissionCalculation.DateCalcul >= dateDebut.Value);
+                }
+                if (dateFin.HasValue)
+                {
+                    commissionQuery = commissionQuery.Where(d => d.PncCommissionCalculation.DateCalcul <= dateFin.Value);
+                }
+
+                var commissions = await commissionQuery.ToListAsync();
+
+                var trouQuery = _context.TrouDeCaisses
+                    .Where(t => t.PncResponsableId == pncId && t.EstApplique);
+
+                if (dateDebut.HasValue)
+                {
+                    trouQuery = trouQuery.Where(t => t.DateApplication >= dateDebut.Value);
+                }
+                if (dateFin.HasValue)
+                {
+                    trouQuery = trouQuery.Where(t => t.DateApplication <= dateFin.Value);
+                }
+
+                var trous = await trouQuery.ToListAsync();
+
+                var totalCredits = commissions.Sum(c => c.CommissionTotale);
+                var totalDebits = trous.Sum(t => t.MontantManquant);
+                var soldeFinal = totalCredits - totalDebits;
+
+                // Create preview message
+                var periodText = "";
+                if (dateDebut.HasValue || dateFin.HasValue)
+                {
+                    var debut = dateDebut?.ToString("dd/MM/yyyy") ?? "début";
+                    var fin = dateFin?.ToString("dd/MM/yyyy") ?? "aujourd'hui";
+                    periodText = $" (Période: {debut} - {fin})";
+                }
+
+                var previewMessage = $"🛩️ TUNISAIR - Bilan Commission{periodText}\n\n" +
+                                   $"👤 {pnc.Nom} {pnc.Prenom}\n" +
+                                   $"📋 Matricule: {pnc.Matricule}\n\n" +
+                                   $"💰 RÉSUMÉ FINANCIER:\n" +
+                                   $"✅ Total Commissions: {totalCredits:C}\n" +
+                                   $"❌ Total Débits: {totalDebits:C}\n" +
+                                   $"💳 Solde Final: {soldeFinal:C}\n\n" +
+                                   $"📊 Transactions: {commissions.Count + trous.Count}\n" +
+                                   $"📅 Généré le: {DateTime.Now:dd/MM/yyyy HH:mm}\n\n" +
+                                   $"Pour plus de détails, consultez votre espace personnel.";
+
+                var phoneNumber = pnc.Telephone;
+                if (!string.IsNullOrEmpty(phoneNumber) && !phoneNumber.StartsWith("+"))
+                {
+                    phoneNumber = phoneNumber.StartsWith("216") ? "+" + phoneNumber : "+216" + phoneNumber.TrimStart('0');
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = previewMessage,
+                    phoneNumber = phoneNumber ?? "Non disponible",
+                    pncName = $"{pnc.Nom} {pnc.Prenom}",
+                    hasPhoneNumber = !string.IsNullOrEmpty(pnc.Telephone)
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Erreur lors de la génération de l'aperçu: " + ex.Message
+                });
+            }
+
+        }
     }
 }

@@ -43,9 +43,24 @@
             border-color: #8B0000;
         }
 
-            .edit-user-card .btn-success:hover {
-                background-color: #a30000;
-            }
+        .edit-user-card .btn-success:hover {
+            background-color: #a30000;
+        }
+
+        .is-invalid {
+            border-color: #dc3545;
+        }
+
+        .is-valid {
+            border-color: #28a745;
+        }
+
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+        }
     </style>
 
     <div class="card">
@@ -54,16 +69,17 @@
         </div>
 
         <div class="form-section">
-            <form id="editUserForm">
-                <input type="hidden" asp-for="Id" />
+            <form id="editUserForm" method="post" action="/Admin/EditUserPost">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id" />
 
                 <div class="row mb-3">
                     <div class="col-md-3">
                         <label class="form-label">Name <span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
-                        <input type="text" asp-for="NomPrenom" class="form-control" required placeholder="Name"
-                               minlength="2" maxlength="100" />
+                        <input type="text" name="NomPrenom" value="@Model.NomPrenom" class="form-control" required 
+                               placeholder="Name" minlength="2" maxlength="100" />
                         <div class="invalid-feedback"></div>
                     </div>
                 </div>
@@ -75,7 +91,7 @@
                     <div class="col-md-9">
                         <div class="input-group">
                             <span class="input-group-text">+216</span>
-                            <input type="text" asp-for="Telephone" class="form-control" required
+                            <input type="text" name="Telephone" value="@Model.Telephone" class="form-control" required
                                    placeholder="XX XXX XXX" pattern="[0-9]{8}" maxlength="8" id="editPhoneInput" />
                         </div>
                         <small class="form-text text-muted">Enter 8 digits (e.g., 12345678)</small>
@@ -88,7 +104,8 @@
                         <label class="form-label">E-Mail Address <span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
-                        <input type="email" asp-for="Email" class="form-control" required placeholder="Enter your email" />
+                        <input type="email" name="Email" value="@Model.Email" class="form-control" required 
+                               placeholder="Enter your email" />
                         <div class="invalid-feedback"></div>
                     </div>
                 </div>
@@ -98,8 +115,18 @@
                         <label class="form-label">Roles <span class="text-danger">*</span></label>
                     </div>
                     <div class="col-md-9">
-                        <select asp-for="Roles" class="form-control" asp-items="@(new SelectList(Model.AvailableRoles))" multiple required>
+                        <select name="Roles" class="form-control" multiple required id="rolesSelect">
+                            @if (Model.AvailableRoles != null)
+                            {
+                                @foreach (var role in Model.AvailableRoles)
+                                {
+                                    <option value="@role" @@(Model.Roles != null && Model.Roles.Contains(role) ? "selected" : "")>
+                                        @role
+                                    </option>
+                                }
+                            }
                         </select>
+                        <small class="form-text text-muted">Hold Ctrl to select multiple roles</small>
                         <div class="invalid-feedback"></div>
                     </div>
                 </div>
@@ -121,6 +148,7 @@
         const form = document.getElementById('editUserForm');
         const phoneInput = document.getElementById('editPhoneInput');
         const updateBtn = document.getElementById('updateBtn');
+        const rolesSelect = document.getElementById('rolesSelect');
 
         // Phone number validation
         phoneInput.addEventListener('input', function() {
@@ -133,10 +161,12 @@
             if (value.length === 8) {
                 this.classList.remove('is-invalid');
                 this.classList.add('is-valid');
+                this.nextElementSibling.nextElementSibling.textContent = '';
             } else {
                 this.classList.remove('is-valid');
                 if (value.length > 0) {
                     this.classList.add('is-invalid');
+                    this.nextElementSibling.nextElementSibling.textContent = 'Phone number must be exactly 8 digits';
                 }
             }
         });
@@ -149,25 +179,41 @@
                 updateBtn.disabled = true;
                 updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
 
+                // Create FormData and handle roles properly
                 const formData = new FormData(form);
+                
+                // Remove existing Roles entries and add selected ones
+                formData.delete('Roles');
+                const selectedRoles = Array.from(rolesSelect.selectedOptions).map(option => option.value);
+                selectedRoles.forEach(role => {
+                    formData.append('Roles', role);
+                });
 
                 fetch('/Admin/EditUserPost', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showSuccess(data.message);
+                        showSuccess(data.message || 'User updated successfully');
                         setTimeout(() => {
-                            $('#userModal').modal('hide');
-                            location.reload();
+                            if (typeof $('#userModal') !== 'undefined') {
+                                $('#userModal').modal('hide');
+                            }
+                            if (typeof location !== 'undefined') {
+                                location.reload();
+                            }
                         }, 2000);
                     } else {
-                        showError(data.message);
+                        showError(data.message || 'Failed to update user');
                     }
                 })
                 .catch(error => {
+                    console.error('Error:', error);
                     showError('An unexpected error occurred');
                 })
                 .finally(() => {
@@ -182,20 +228,60 @@
             const inputs = form.querySelectorAll('input[required], select[required]');
 
             inputs.forEach(input => {
-                if (!input.value.trim()) {
+                const value = input.type === 'select-multiple' ? 
+                    Array.from(input.selectedOptions).length > 0 : 
+                    input.value.trim();
+
+                if (!value) {
                     input.classList.add('is-invalid');
+                    const feedback = input.parentElement.querySelector('.invalid-feedback') || 
+                                   input.closest('.col-md-9').querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = `${input.previousElementSibling?.textContent || 'This field'} is required`;
+                    }
                     isValid = false;
                 } else {
                     input.classList.remove('is-invalid');
+                    const feedback = input.parentElement.querySelector('.invalid-feedback') || 
+                                   input.closest('.col-md-9').querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = '';
+                    }
                 }
             });
 
+            // Special validation for phone
             if (phoneInput.value.length !== 8) {
                 phoneInput.classList.add('is-invalid');
+                const feedback = phoneInput.closest('.col-md-9').querySelector('.invalid-feedback');
+                if (feedback) {
+                    feedback.textContent = 'Phone number must be exactly 8 digits';
+                }
+                isValid = false;
+            }
+
+            // Special validation for roles
+            if (rolesSelect.selectedOptions.length === 0) {
+                rolesSelect.classList.add('is-invalid');
+                const feedback = rolesSelect.closest('.col-md-9').querySelector('.invalid-feedback');
+                if (feedback) {
+                    feedback.textContent = 'At least one role must be selected';
+                }
                 isValid = false;
             }
 
             return isValid;
+        }
+
+        // Helper functions for notifications
+        function showSuccess(message) {
+            // You can implement your preferred notification system here
+            alert('Success: ' + message);
+        }
+
+        function showError(message) {
+            // You can implement your preferred notification system here
+            alert('Error: ' + message);
         }
     });
 </script>

@@ -236,13 +236,13 @@
                     </button>
                 </div>
             }
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
+            @* @if (TempData["Success"] != null) *@
+            @* { *@
+            @*     <div class="alert alert-success alert-dismissible fade show" role="alert"> *@
+            @*         @TempData["Success"] *@
+            @*         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> *@
+            @*     </div> *@
+            @* } *@
 
             @if (TempData["Error"] != null)
             {
@@ -472,11 +472,11 @@
         }
 
         // Show Bootstrap Toast
-        function showToast(message, type = 'success') {
-            const toast = $('#successToast');
-            $('#successToastMessage').text(message);
-            toast.toast('show');
-        }
+         function showToast(message, type = 'success') {
+             const toast = $('#successToast');
+             $('#successToastMessage').text(message);
+             toast.toast('show');
+         }
 
         function deactivateUser(userId, userName) {
             showConfirm(

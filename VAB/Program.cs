@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using VAB.Hubs;
 using VAB.Services;
+using VAB.Extensions;
 //using TextExtraction; pdf extractor
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddTwilioServices();
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ITrouDeCaisseService, TrouDeCaisseService>();
 builder.Services.AddScoped<IRedevanceService, RedevanceService>();

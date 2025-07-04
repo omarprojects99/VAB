@@ -207,7 +207,7 @@
                                         <p class="text-danger">Category ID is missing!</p>
                                     }
                                     <button style="background-color:darkgray" onclick="loadArticleForm('/Admin/AddArticle?categoryId=@ViewBag.CategoryId')" class="btn">
-                                        <i class="material-icons mr-2">add</i> Add Article
+                                        <i class="material-icons mr-2">add</i> Ajouter un Article
                                     </button>
                                     <!-- Test Modal Button -->
                                    
@@ -219,7 +219,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>ID</th>
-                                                    <th>Name</th>
+                                                    <th>Nom</th>
                                                     <th>Prix</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -235,7 +235,7 @@
                                                         <td>
                                                             <div class="button-container">
                                                                 <button class="btn btn-sm btn-warning custom-btn" onclick="loadArticleForm('/Admin/EditArticle/@article.Id')">
-                                                                    <i class="material-icons mr-1">edit</i> Edit
+                                                                    <i class="material-icons mr-1">edit</i> modif
                                                                 </button>
                                                                 <form asp-action="DeleteArticle" method="post" asp-route-id="@article.Id" onsubmit="return confirm('Are you sure you want to delete this article?');">
                                                                     <button type="submit" class="btn btn-sm btn-danger custom-btn">

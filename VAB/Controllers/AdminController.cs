@@ -62,6 +62,9 @@ namespace VAB.Controllers
             {
                 Console.WriteLine($"AddUser called with: {model.NomPrenom}, {model.Email}, {model.Telephone}, {model.Role}");
 
+                // IMPORTANT: Remove Password from ModelState validation for AddUser operation
+                ModelState.Remove("Password");
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
@@ -73,13 +76,20 @@ namespace VAB.Controllers
                 if (!IsValidPhoneNumber(model.Telephone))
                 {
                     Console.WriteLine("Phone validation failed");
-                    return Json(new { success = false, message = "Phone number must be exactly 8 digits" });
+                    return Json(new { success = false, message = "Le numéro de téléphone doit contenir exactement 8 chiffres" });
                 }
 
                 if (!IsValidEmail(model.Email))
                 {
                     Console.WriteLine("Email validation failed");
-                    return Json(new { success = false, message = "Please enter a valid email address" });
+                    return Json(new { success = false, message = "Veuillez entrer une adresse email valide" });
+                }
+
+                // Validate Role is provided
+                if (string.IsNullOrEmpty(model.Role))
+                {
+                    Console.WriteLine("Role validation failed");
+                    return Json(new { success = false, message = "Le rôle est requis" });
                 }
 
                 // Check if user already exists
@@ -87,7 +97,7 @@ namespace VAB.Controllers
                 if (existingUser != null)
                 {
                     Console.WriteLine("User already exists");
-                    return Json(new { success = false, message = "A user with this email already exists" });
+                    return Json(new { success = false, message = "Un utilisateur avec cet email existe déjà" });
                 }
 
                 var user = new User
@@ -118,7 +128,7 @@ namespace VAB.Controllers
                     {
                         Console.WriteLine($"Role {model.Role} does not exist");
                         await _userManager.DeleteAsync(user); // Cleanup
-                        return Json(new { success = false, message = "Selected role does not exist" });
+                        return Json(new { success = false, message = "Le rôle sélectionné n'existe pas" });
                     }
 
                     // Assign Role
@@ -127,17 +137,17 @@ namespace VAB.Controllers
                     {
                         Console.WriteLine("Failed to assign role");
                         await _userManager.DeleteAsync(user); // Cleanup
-                        return Json(new { success = false, message = "Failed to assign role to user" });
+                        return Json(new { success = false, message = "Échec de l'attribution du rôle à l'utilisateur" });
                     }
 
-                    // Set TempData for success message like other forms
-                    TempData["Success"] = $"✅ User '{model.NomPrenom}' created successfully! Default password: {defaultPassword}";
+                    // Set TempData for success message
+                    TempData["Success"] = $"✅ Utilisateur '{model.NomPrenom}' créé avec succès! Mot de passe par défaut: {defaultPassword}";
 
                     Console.WriteLine("User creation completed successfully");
                     return Json(new
                     {
                         success = true,
-                        message = "User created successfully",
+                        message = "Utilisateur créé avec succès",
                         defaultPassword = defaultPassword
                     });
                 }
@@ -150,7 +160,7 @@ namespace VAB.Controllers
             {
                 Console.WriteLine($"Exception in AddUser: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return Json(new { success = false, message = "An unexpected error occurred while creating the user" });
+                return Json(new { success = false, message = "Une erreur inattendue s'est produite lors de la création de l'utilisateur" });
             }
         }
 
@@ -1190,7 +1200,342 @@ namespace VAB.Controllers
                 return View(new DashboardViewModel());
             }
         }
+        // Enhanced method with ALL relationship checks including ExtractedPdfData
+        private async Task<UserRelationshipInfo> GetUserRelationshipDetails(string userId)
+        {
+            try
+            {
+                Console.WriteLine($"=== CHECKING RELATIONSHIPS FOR USER ID: {userId} ===");
 
+                var relationshipInfo = new UserRelationshipInfo
+                {
+                    UserId = userId,
+                    HasRelatedData = false,
+                    RelationshipDetails = new List<string>()
+                };
+
+                // Check Redevance calculations
+                Console.WriteLine("Checking Redevance records...");
+                var redevanceCount = await _context.Set<Redevance>()
+                    .CountAsync(r => r.CalculeParId == userId);
+                Console.WriteLine($"Redevance count for user {userId}: {redevanceCount}");
+                if (redevanceCount > 0)
+                {
+                    relationshipInfo.HasRelatedData = true;
+                    relationshipInfo.RelationshipDetails.Add($"{redevanceCount} calcul(s) de redevance");
+                    Console.WriteLine($"✓ Found {redevanceCount} Redevance records");
+                }
+
+                // Check created Motifs
+                Console.WriteLine("Checking created Motifs...");
+                var createdMotifsCount = await _context.Set<Motif>()
+                    .CountAsync(m => m.CreatedBy == userId);
+                Console.WriteLine($"Created Motifs count for user {userId}: {createdMotifsCount}");
+                if (createdMotifsCount > 0)
+                {
+                    relationshipInfo.HasRelatedData = true;
+                    relationshipInfo.RelationshipDetails.Add($"{createdMotifsCount} motif(s) créé(s)");
+                    Console.WriteLine($"✓ Found {createdMotifsCount} created Motif records");
+                }
+
+                // Check read Motifs
+                Console.WriteLine("Checking read Motifs...");
+                var readMotifsCount = await _context.Set<Motif>()
+                    .CountAsync(m => m.ReadBy == userId);
+                Console.WriteLine($"Read Motifs count for user {userId}: {readMotifsCount}");
+                if (readMotifsCount > 0)
+                {
+                    relationshipInfo.HasRelatedData = true;
+                    relationshipInfo.RelationshipDetails.Add($"{readMotifsCount} motif(s) lu(s)");
+                    Console.WriteLine($"✓ Found {readMotifsCount} read Motif records");
+                }
+
+                // Check PNC Commission calculations
+                Console.WriteLine("Checking PNC Commission calculations...");
+                var pncCommissionCount = await _context.Set<PncCommissionCalculation>()
+                    .CountAsync(p => p.CalculatedBy == userId);
+                Console.WriteLine($"PNC Commission count for user {userId}: {pncCommissionCount}");
+                if (pncCommissionCount > 0)
+                {
+                    relationshipInfo.HasRelatedData = true;
+                    relationshipInfo.RelationshipDetails.Add($"{pncCommissionCount} calcul(s) de commission PNC");
+                    Console.WriteLine($"✓ Found {pncCommissionCount} PNC Commission records");
+                }
+
+                // Check EtatDesVentesArrivee entries
+                Console.WriteLine("Checking EtatDesVentesArrivee entries...");
+                var etatDesVentesCount = await _context.Set<EtatDesVentesArrivee>()
+                    .CountAsync(e => e.AgentSaisieId == userId);
+                Console.WriteLine($"EtatDesVentesArrivee count for user {userId}: {etatDesVentesCount}");
+                if (etatDesVentesCount > 0)
+                {
+                    relationshipInfo.HasRelatedData = true;
+                    relationshipInfo.RelationshipDetails.Add($"{etatDesVentesCount} état(s) de ventes saisi(s)");
+                    Console.WriteLine($"✓ Found {etatDesVentesCount} EtatDesVentesArrivee records");
+                }
+
+                // NEW: Check ExtractedPdfData entries
+                Console.WriteLine("Checking ExtractedPdfData entries...");
+                var extractedPdfCount = await _context.Set<ExtractedPdfData>()
+                    .CountAsync(e => e.ExtractedBy == userId);
+                Console.WriteLine($"ExtractedPdfData count for user {userId}: {extractedPdfCount}");
+                if (extractedPdfCount > 0)
+                {
+                    relationshipInfo.HasRelatedData = true;
+                    relationshipInfo.RelationshipDetails.Add($"{extractedPdfCount} extraction(s) PDF effectuée(s)");
+                    Console.WriteLine($"✓ Found {extractedPdfCount} ExtractedPdfData records");
+                }
+
+                Console.WriteLine($"=== FINAL RESULT FOR USER {userId} ===");
+                Console.WriteLine($"HasRelatedData: {relationshipInfo.HasRelatedData}");
+                Console.WriteLine($"Total relationships: {relationshipInfo.TotalRelationships}");
+                Console.WriteLine($"Details: {string.Join(" | ", relationshipInfo.RelationshipDetails)}");
+                Console.WriteLine("=== END RELATIONSHIP CHECK ===");
+
+                return relationshipInfo;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERROR in GetUserRelationshipDetails: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return new UserRelationshipInfo
+                {
+                    UserId = userId,
+                    HasRelatedData = true, // Err on the side of caution
+                    RelationshipDetails = new List<string> { "Erreur lors de la vérification des relations" }
+                };
+            }
+        }
+
+        // COMPLETELY REWRITTEN DeleteOrDeactivateUser method with better logic
+        [HttpPost]
+        public async Task<IActionResult> DeleteOrDeactivateUser(string id)
+        {
+            try
+            {
+                Console.WriteLine($"🔥 DELETE/DEACTIVATE REQUEST for user ID: {id}");
+
+                if (string.IsNullOrEmpty(id))
+                {
+                    Console.WriteLine("❌ User ID is null or empty");
+                    return Json(new { success = false, message = "User ID is required" });
+                }
+
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null)
+                {
+                    Console.WriteLine($"❌ User not found with ID: {id}");
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                Console.WriteLine($"✓ Found user: {user.NomPrenom} ({user.Email}) - ID: {user.Id}");
+
+                // Check if trying to delete/deactivate the current user
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser?.Id == id)
+                {
+                    Console.WriteLine("❌ Attempting to delete current user - BLOCKED");
+                    return Json(new { success = false, message = "You cannot delete or deactivate your own account" });
+                }
+
+                // Get user roles for additional checks
+                var userRoles = await _userManager.GetRolesAsync(user);
+                Console.WriteLine($"User roles: {string.Join(", ", userRoles)}");
+
+                // Check if user has related data
+                Console.WriteLine("🔍 Starting relationship check...");
+                var relationshipInfo = await GetUserRelationshipDetails(id);
+
+                Console.WriteLine($"🔍 Relationship check completed:");
+                Console.WriteLine($"   - HasRelatedData: {relationshipInfo.HasRelatedData}");
+                Console.WriteLine($"   - Total relationships: {relationshipInfo.TotalRelationships}");
+                Console.WriteLine($"   - Details: {string.Join(" | ", relationshipInfo.RelationshipDetails)}");
+
+                if (relationshipInfo.HasRelatedData)
+                {
+                    Console.WriteLine("⚠️ User has related data - DEACTIVATING instead of deleting");
+
+                    // User has related data - deactivate instead of delete
+                    user.IsActive = false;
+                    user.LockoutEnd = DateTimeOffset.MaxValue;
+
+                    var updateResult = await _userManager.UpdateAsync(user);
+
+                    if (updateResult.Succeeded)
+                    {
+                        var detailsMessage = string.Join(", ", relationshipInfo.RelationshipDetails);
+                        Console.WriteLine($"✅ User DEACTIVATED successfully. Details: {detailsMessage}");
+
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"Impossible de supprimer un utilisateur lié à des actions en cours ({detailsMessage}). L'utilisateur a été désactivé.",
+                            action = "deactivated",
+                            details = relationshipInfo.RelationshipDetails,
+                            userName = user.NomPrenom
+                        });
+                    }
+                    else
+                    {
+                        var errors = updateResult.Errors.Select(e => e.Description);
+                        Console.WriteLine($"❌ Failed to deactivate user: {string.Join(", ", errors)}");
+                        return Json(new { success = false, message = string.Join(", ", errors) });
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("✅ User has NO related data - proceeding with DELETION");
+
+                    // User has no related data - safe to delete
+                    var deleteResult = await _userManager.DeleteAsync(user);
+
+                    if (deleteResult.Succeeded)
+                    {
+                        Console.WriteLine($"✅ User DELETED successfully: {user.NomPrenom}");
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"L'utilisateur {user.NomPrenom} a été supprimé définitivement - aucune donnée liée trouvée",
+                            action = "deleted",
+                            userName = user.NomPrenom
+                        });
+                    }
+                    else
+                    {
+                        var errors = deleteResult.Errors.Select(e => e.Description);
+                        Console.WriteLine($"❌ Failed to delete user: {string.Join(", ", errors)}");
+                        return Json(new { success = false, message = string.Join(", ", errors) });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"💥 EXCEPTION in DeleteOrDeactivateUser: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, message = "Une erreur inattendue s'est produite" });
+            }
+        }
+
+        // Enhanced test method to verify ALL relationships
+        [HttpGet]
+        public async Task<IActionResult> TestUserRelationships(string id)
+        {
+            try
+            {
+                Console.WriteLine($"🧪 TESTING relationships for user ID: {id}");
+
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "User ID is required" });
+                }
+
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
+
+                // Test each relationship individually
+                var testResults = new Dictionary<string, object>();
+
+                // Test Redevance
+                var redevanceCount = await _context.Set<Redevance>().CountAsync(r => r.CalculeParId == id);
+                testResults["Redevance"] = new { count = redevanceCount, hasData = redevanceCount > 0 };
+
+                // Test Motif (Created)
+                var createdMotifsCount = await _context.Set<Motif>().CountAsync(m => m.CreatedBy == id);
+                testResults["MotifsCreated"] = new { count = createdMotifsCount, hasData = createdMotifsCount > 0 };
+
+                // Test Motif (Read)
+                var readMotifsCount = await _context.Set<Motif>().CountAsync(m => m.ReadBy == id);
+                testResults["MotifsRead"] = new { count = readMotifsCount, hasData = readMotifsCount > 0 };
+
+                // Test PNC Commission
+                var pncCount = await _context.Set<PncCommissionCalculation>().CountAsync(p => p.CalculatedBy == id);
+                testResults["PncCommission"] = new { count = pncCount, hasData = pncCount > 0 };
+
+                // Test EtatDesVentesArrivee
+                var etatCount = await _context.Set<EtatDesVentesArrivee>().CountAsync(e => e.AgentSaisieId == id);
+                testResults["EtatDesVentes"] = new { count = etatCount, hasData = etatCount > 0 };
+
+                // Test ExtractedPdfData
+                var pdfCount = await _context.Set<ExtractedPdfData>().CountAsync(e => e.ExtractedBy == id);
+                testResults["ExtractedPdf"] = new { count = pdfCount, hasData = pdfCount > 0 };
+
+                // Get full relationship info
+                var relationshipInfo = await GetUserRelationshipDetails(id);
+
+                return Json(new
+                {
+                    success = true,
+                    userId = id,
+                    userName = user.NomPrenom,
+                    userEmail = user.Email,
+                    hasRelatedData = relationshipInfo.HasRelatedData,
+                    details = relationshipInfo.RelationshipDetails,
+                    totalRelationships = relationshipInfo.TotalRelationships,
+                    individualTests = testResults
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"💥 EXCEPTION in TestUserRelationships: {ex.Message}");
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        // Method to get detailed motif information for a user (for debugging)
+        [HttpGet]
+        public async Task<IActionResult> GetUserMotifs(string id)
+        {
+            try
+            {
+                var createdMotifs = await _context.Set<Motif>()
+                    .Where(m => m.CreatedBy == id)
+                    .Select(m => new {
+                        m.Id,
+                        m.NumeroEtatVenteArrivee,
+                        m.Description,
+                        m.DateCreation,
+                        m.Status
+                    })
+                    .ToListAsync();
+
+                var readMotifs = await _context.Set<Motif>()
+                    .Where(m => m.ReadBy == id)
+                    .Select(m => new {
+                        m.Id,
+                        m.NumeroEtatVenteArrivee,
+                        m.Description,
+                        m.DateLecture,
+                        m.Status
+                    })
+                    .ToListAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    userId = id,
+                    createdMotifs = createdMotifs,
+                    readMotifs = readMotifs,
+                    createdCount = createdMotifs.Count,
+                    readCount = readMotifs.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
         private string GetRoleColor(string roleName)
         {
             return roleName switch

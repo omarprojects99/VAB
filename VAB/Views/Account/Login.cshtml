@@ -1,13 +1,8 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-@model VAB.ViewModel.LoginViewModel
+﻿@model VAB.ViewModel.LoginViewModel
 
 @{
     ViewData["Title"] = "Login";
-    Layout = null; // Disable the layout
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -16,7 +11,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <!-- Force hardware acceleration in Chrome -->
     <style>
         html {
             transform: translateZ(0);
@@ -36,9 +30,7 @@
             transition-duration: 0.3s;
         }
 
-        /* Fix for background image */
         body {
-            /* Use the correct path format for background images in CSS */
             background-image: url('@Url.Content("~/images/Untitled design (2).png")');
             background-repeat: no-repeat;
             background-position: center center;
@@ -46,11 +38,7 @@
             background-size: cover;
             height: 100vh;
             color: white;
-            /* Force hardware acceleration in Chrome */
             -webkit-transform: translateZ(0);
-            -moz-transform: translateZ(0);
-            -ms-transform: translateZ(0);
-            -o-transform: translateZ(0);
             transform: translateZ(0);
         }
 
@@ -80,11 +68,11 @@
             align-items: center;
         }
 
-            .avatar svg {
-                width: 1em;
-                fill: #777;
-                margin-top: -0.05em;
-            }
+        .avatar svg {
+            width: 1em;
+            fill: #777;
+            margin-top: -0.05em;
+        }
 
         .username {
             font-size: 1.5rem;
@@ -93,21 +81,17 @@
             text-align: center;
         }
 
-        /* Windows 11 style input field */
         .win11-input-container {
             position: relative;
             width: 350px;
             margin: 10px 0;
-            /* Create a new stacking context */
             isolation: isolate;
             z-index: 1;
         }
 
-        /* Cross-browser transparent input styling */
         .win11-input {
             width: 100%;
             height: 40px;
-            /* Multiple background declarations for better cross-browser support */
             background-color: rgba(0, 0, 0, 0.3) !important;
             background: rgba(0, 0, 0, 0.3) !important;
             border: none !important;
@@ -115,53 +99,14 @@
             color: white !important;
             font-size: 16px;
             padding: 0 40px 0 40px;
-            /* Apply all vendor prefixes for backdrop-filter */
             -webkit-backdrop-filter: blur(var(--win11-blur));
-            -moz-backdrop-filter: blur(var(--win11-blur));
-            -o-backdrop-filter: blur(var(--win11-blur));
             backdrop-filter: blur(var(--win11-blur));
-            /* Force hardware acceleration */
             -webkit-transform: translateZ(0);
             transform: translateZ(0);
-            /* Remove default styling */
             outline: none;
             -webkit-appearance: none;
-            -moz-appearance: none;
             appearance: none;
-            /* Ensure proper compositing */
             will-change: transform;
-            transform: translateZ(0);
-        }
-
-        /* Alternative method for Chrome */
-        @@supports (-webkit-backdrop-filter: none) {
-            .win11-input
-
-        {
-            -webkit-backdrop-filter: blur(var(--win11-blur));
-            backdrop-filter: blur(var(--win11-blur));
-        }
-
-        }
-
-        /* For browsers that don't support backdrop-filter */
-        @@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-            .win11-input
-
-        {
-            background-color: rgba(0, 0, 0, 0.6) !important; /* Darker fallback */
-        }
-
-        }
-
-        /* Ensure background color remains in all states */
-        .win11-input:hover,
-        .win11-input:focus,
-        .win11-input:active,
-        .win11-input:disabled {
-            background-color: rgba(0, 0, 0, 0.3) !important;
-            background: rgba(0, 0, 0, 0.3) !important;
-            color: white !important;
         }
 
         .win11-input:focus {
@@ -172,7 +117,6 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* Password dot */
         .password-dot {
             position: absolute;
             left: 15px;
@@ -185,7 +129,6 @@
             z-index: 2;
         }
 
-        /* Arrow button */
         .arrow-button {
             position: absolute;
             right: 15px;
@@ -204,114 +147,32 @@
             z-index: 2;
         }
 
-        /* Legacy password input styling - keeping for compatibility */
-        .password {
-            position: relative;
-            color: var(--light-grey);
-            width: 100%;
-            max-width: 350px;
+        .arrow-button:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 50%;
         }
 
-            .password input {
-                color: #fff;
-                padding: 0.4rem 1rem;
-                border-radius: 0.3rem;
-                width: 70%;
-                margin-top: 1rem;
-                border: 0.13rem solid rgba(200, 200, 200, 0.2);
-                background: rgba(38, 38, 38, 0.5);
-                outline: none;
-                font-size: 1rem;
-            }
-
-                .password input:focus {
-                    border-bottom-color: currentcolor;
-                }
-
-                .password input::placeholder {
-                    color: currentcolor;
-                }
-
-            .password svg {
-                width: 1.5em;
-                fill: currentcolor;
-                position: absolute;
-                right: 0.5rem;
-                top: 42%;
-            }
-
-        .btn {
-            min-height: 2.5rem;
-            min-width: 2.5rem;
-            border-radius: 0.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-            .btn:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-
-        .bottom-right {
-            position: absolute;
-            bottom: 1rem;
-            right: 1rem;
-            display: flex;
-            gap: 1rem;
-            color: var(--light-grey);
-        }
-
-            .bottom-right svg {
-                width: 1.5em;
-                fill: currentcolor;
-            }
-
-        .bottom-left {
-            position: absolute;
-            bottom: 1rem;
-            left: 1rem;
-            display: flex;
-            gap: 0.5rem;
-            flex-direction: column;
-        }
-
-            .bottom-left .user .avatar {
-                width: 40px;
-                height: 40px;
-                font-size: 1.3rem;
-            }
-
-            .bottom-left .user {
-                display: flex;
-                padding: 0.3rem 0.5rem;
-                gap: 0.5rem;
-                align-items: center;
-                font-weight: bold;
-                color: var(--light-grey);
-            }
-
-        /* Remember me checkbox */
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--light-grey);
-            margin: 10px 0;
-            align-self: flex-start;
-            margin-left: 10px;
-        }
-
-        /* Validation messages */
         .validation-message {
             color: #ff6b6b;
             font-size: 12px;
             margin-top: 5px;
             width: 100%;
+            text-align: left;
+            padding-left: 5px;
         }
 
-        /* Logo container */
+        .error-message {
+            background-color: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            width: 350px;
+            text-align: center;
+            font-size: 14px;
+        }
+
         .logo-container {
             position: absolute;
             top: 30px;
@@ -323,35 +184,66 @@
             height: auto;
         }
 
-        /* Override any potential browser or framework styles */
-        input[type="email"].win11-input,
-        input[type="password"].win11-input,
-        input[type="text"].win11-input {
-            background-color: rgba(0, 0, 0, 0.3) !important;
-            background: rgba(0, 0, 0, 0.3) !important;
-            color: white !important;
+        .bottom-left {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-direction: column;
         }
 
-        /* Ensure autofill doesn't change background */
-        input.win11-input:-webkit-autofill,
-        input.win11-input:-webkit-autofill:hover,
-        input.win11-input:-webkit-autofill:focus,
-        input.win11-input:-webkit-autofill:active {
-            -webkit-box-shadow: 0 0 0 30px rgba(0, 0, 0, 0.3) inset !important;
-            -webkit-text-fill-color: white !important;
-            transition: background-color 5000s ease-in-out 0s;
-            background-color: rgba(0, 0, 0, 0.3) !important;
+        .bottom-left .user .avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1.3rem;
         }
 
-        /* Chrome-specific fixes */
-        @@media screen and (-webkit-min-device-pixel-ratio:0) {
-            .win11-input
-
-        {
-            background-color: rgba(0, 0, 0, 0.3) !important;
-            -webkit-backdrop-filter: blur(var(--win11-blur));
+        .bottom-left .user {
+            display: flex;
+            padding: 0.3rem 0.5rem;
+            gap: 0.5rem;
+            align-items: center;
+            font-weight: bold;
+            color: var(--light-grey);
+            cursor: pointer;
+            border-radius: 0.5rem;
         }
 
+        .bottom-left .user:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Input validation states */
+        .win11-input.input-validation-error {
+            border: 1px solid #ff6b6b !important;
+            box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.3) !important;
+        }
+
+        .win11-input.valid {
+            border: 1px solid #28a745 !important;
+            box-shadow: 0 0 0 1px rgba(40, 167, 69, 0.3) !important;
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .loading .arrow-button::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -361,8 +253,9 @@
             <img src="@Url.Content("~/images/Tunisair-Logo-Vector.svg-.png")" alt="Logo" class="logo">
         </div>
 
-        <!-- Login Form -->
-        <form asp-action="Login" method="post">
+        <form asp-action="Login" method="post" id="loginForm">
+            @Html.AntiForgeryToken()
+            
             <div class="avatar">
                 <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
                     <path d="M512 625.778c-159.289 0-284.444-125.156-284.444-284.445S352.71 56.89 512 56.89s284.444 125.155 284.444 284.444S671.29 625.778 512 625.778z m0-56.89c125.156 0 227.556-102.4 227.556-227.555S637.156 113.778 512 113.778s-227.556 102.4-227.556 227.555S386.844 568.89 512 568.89z" />
@@ -370,46 +263,130 @@
                 </svg>
             </div>
 
-            <!-- Email Input - Windows 11 Style -->
+            <!-- Display general error messages -->
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState[""]?.Errors.Any() == true)
+            {
+                <div class="error-message">
+                    @foreach (var error in ViewData.ModelState[""].Errors)
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <!-- Email Input -->
             <div class="win11-input-container">
-                <input asp-for="Email" placeholder="Email" class="win11-input" />
+                <input asp-for="Email" placeholder="Email" class="win11-input" autocomplete="email" />
                 <span asp-validation-for="Email" class="validation-message"></span>
             </div>
 
-            <!-- Password Input - Windows 11 Style -->
+            <!-- Password Input -->
             <div class="win11-input-container">
                 <span class="password-dot"></span>
-                <input asp-for="Password" placeholder="Password" type="password" class="win11-input" />
-                <button type="submit" class="arrow-button">→</button>
+                <input asp-for="Password" placeholder="Password" type="password" class="win11-input" autocomplete="current-password" />
+                <button type="submit" class="arrow-button" id="submitBtn">→</button>
                 <span asp-validation-for="Password" class="validation-message"></span>
             </div>
-
-          
         </form>
 
-        <div class="bottom-left">
-            <div class="user btn">
-                <div class="avatar">
-                    <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M512 625.778c-159.289 0-284.444-125.156-284.444-284.445S352.71 56.89 512 56.89s284.444 125.155 284.444 284.444S671.29 625.778 512 625.778z m0-56.89c125.156 0 227.556-102.4 227.556-227.555S637.156 113.778 512 113.778s-227.556 102.4-227.556 227.555S386.844 568.89 512 568.89z" />
-                        <path d="M56.889 1024c0-250.311 204.8-455.111 455.111-455.111S967.111 773.689 967.111 1024h-56.889c0-221.867-176.355-398.222-398.222-398.222S113.778 802.133 113.778 1024h-56.89z" />
-                    </svg>
-                </div>
-                <p>omar bhs</p>
-            </div>
-
-            <div class="user btn">
-                <div class="avatar">
-                    <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M512 625.778c-159.289 0-284.444-125.156-284.444-284.445S352.71 56.89 512 56.89s284.444 125.155 284.444 284.444S671.29 625.778 512 625.778z m0-56.89c125.156 0 227.556-102.4 227.556-227.555S637.156 113.778 512 113.778s-227.556 102.4-227.556 227.555S386.844 568.89 512 568.89z" />
-                        <path d="M56.889 1024c0-250.311 204.8-455.111 455.111-455.111S967.111 773.689 967.111 1024h-56.889c0-221.867-176.355-398.222-398.222-398.222S113.778 802.133 113.778 1024h-56.89z" />
-                    </svg>
-                </div>
-                <p>Other user</p>
-            </div>
-        </div>
+       
     </section>
 
-    <script src="~/js/Login.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const emailInput = document.querySelector('input[name="Email"]');
+            const passwordInput = document.querySelector('input[name="Password"]');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Real-time validation
+            emailInput.addEventListener('blur', function() {
+                validateEmail(this);
+            });
+
+            passwordInput.addEventListener('blur', function() {
+                validatePassword(this);
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (validateForm()) {
+                    // Show loading state
+                    form.classList.add('loading');
+                    submitBtn.innerHTML = '';
+                    
+                    // Submit form
+                    form.submit();
+                }
+            });
+
+            function validateEmail(input) {
+                const email = input.value.trim();
+                const emailRegex = /^[^\s@@]+@@[^\s@@]+/;
+                
+                if (!email) {
+                    showFieldError(input, 'Ladresse e-mail est requise');
+                    return false;
+                } else if (!emailRegex.test(email)) {
+                    showFieldError(input, 'Veuillez entrer une adresse e-mail valide');
+                    return false;
+                } else {
+                    showFieldSuccess(input);
+                    return true;
+                }
+            }
+
+            function validatePassword(input) {
+                const password = input.value;
+                
+                if (!password) {
+                    showFieldError(input, 'Le mot de passe est requis');
+                    return false;
+                } else {
+                    showFieldSuccess(input);
+                    return true;
+                }
+            }
+
+            function validateForm() {
+                const emailValid = validateEmail(emailInput);
+                const passwordValid = validatePassword(passwordInput);
+                
+                return emailValid && passwordValid;
+            }
+
+            function showFieldError(input, message) {
+                input.classList.add('input-validation-error');
+                input.classList.remove('valid');
+                
+                const container = input.closest('.win11-input-container');
+                let errorSpan = container.querySelector('.validation-message');
+                if (errorSpan) {
+                    errorSpan.textContent = message;
+                }
+            }
+
+            function showFieldSuccess(input) {
+                input.classList.remove('input-validation-error');
+                input.classList.add('valid');
+                
+                const container = input.closest('.win11-input-container');
+                let errorSpan = container.querySelector('.validation-message');
+                if (errorSpan) {
+                    errorSpan.textContent = '';
+                }
+            }
+
+            // Demo credentials function
+            window.fillDemoCredentials = function(email, password) {
+                emailInput.value = email;
+                passwordInput.value = password;
+                validateEmail(emailInput);
+                validatePassword(passwordInput);
+            };
+        });
+    </script>
 </body>
 </html>

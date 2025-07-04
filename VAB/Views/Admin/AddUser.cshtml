@@ -5,7 +5,7 @@
 @model VAB.ViewModel.UserManagementViewModel
 
 <div class="container-fluid px-4 py-3">
-    <h5 class="mb-4 fw-bold text-danger">Add New User</h5>
+    <h5 class="mb-4 fw-bold text-danger">Ajouter un nouvel utilisateur</h5>
 
     <form id="addUserForm">
         @Html.AntiForgeryToken()
@@ -16,211 +16,257 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold text-dark">Name <span class="text-danger">*</span></label>
+            <label class="form-label fw-semibold text-dark">Nom <span class="text-danger">*</span></label>
             <input asp-for="NomPrenom" class="form-control border-1 px-3 py-2"
-                   style="border-radius: 0;" placeholder="Full Name" required
+                   style="border-radius: 0;" placeholder="Nom Complet" required
                    minlength="2" maxlength="100" />
-            <div class="invalid-feedback"></div>
+            <div class="invalid-feedback">Le nom est requis (2-100 caractères)</div>
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-semibold text-dark">Email <span class="text-danger">*</span></label>
             <input asp-for="Email" type="email" class="form-control border-1 px-3 py-2"
                    style="border-radius: 0;" placeholder="example@domain.com" required />
-            <div class="invalid-feedback"></div>
+            <div class="invalid-feedback">Veuillez entrer une adresse email valide</div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-semibold text-dark">Phone Number <span class="text-danger">*</span></label>
+            <label class="form-label fw-semibold text-dark">Numéro de téléphone <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text" style="border-radius: 0;">+216</span>
                 <input asp-for="Telephone" class="form-control border-1 px-3 py-2"
                        style="border-radius: 0;" placeholder="XX XXX XXX" required
                        pattern="[0-9]{8}" maxlength="8" id="phoneInput" />
             </div>
-            <small class="form-text text-muted">Enter 8 digits (e.g., 12345678)</small>
-            <div class="invalid-feedback"></div>
+            <small class="form-text text-muted">Entrer 8 chiffres (ex: 12345678)</small>
+            <div class="invalid-feedback">Le numéro de téléphone doit contenir exactement 8 chiffres</div>
         </div>
 
         <div class="mb-4">
-            <label class="form-label fw-semibold text-dark">Role <span class="text-danger">*</span></label>
+            <label class="form-label fw-semibold text-dark">Rôle <span class="text-danger">*</span></label>
             <select asp-for="Role" class="form-select border-1 px-3 py-2" style="border-radius: 0;" required>
-                <option value="">-- Select Role --</option>
+                <option value="">-- Sélectionner un rôle --</option>
                 <option value="Admin">Admin</option>
                 <option value="AgentSaisie">Agent de la saisie</option>
                 <option value="DGF">DGF</option>
                 <option value="ResponsableCatering">Responsable Catering</option>
             </select>
-            <div class="invalid-feedback"></div>
+            <div class="invalid-feedback">Veuillez sélectionner un rôle</div>
+        </div>
+
+        <!-- Password info note -->
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Note:</strong> Un mot de passe sécurisé sera généré automatiquement pour ce nouvel utilisateur.
         </div>
 
         <div class="text-end">
             <button type="button" class="btn px-4 py-2 text-white fw-semibold"
                     style="background-color: #8B0000; border-radius: 0;" id="submitBtn">
-                <i class="bi bi-person-plus-fill me-2"></i> Create
+                <i class="bi bi-person-plus-fill me-2"></i> Créer
             </button>
             <button type="button" class="btn btn-secondary px-4 py-2 ms-2"
                     style="border-radius: 0;" onclick="closeModal()">
-                Cancel
+                Annuler
             </button>
         </div>
     </form>
 </div>
 
 <script>
-    $(document).ready(function() {
-        const form = document.getElementById('addUserForm');
-        const phoneInput = document.getElementById('phoneInput');
-        const submitBtn = document.getElementById('submitBtn');
+$(document).ready(function() {
+    const form = document.getElementById('addUserForm');
+    const phoneInput = document.getElementById('phoneInput');
+    const submitBtn = document.getElementById('submitBtn');
 
-        // Phone number validation
-        phoneInput.addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, ''); // Remove non-digits
-            if (value.length > 8) {
-                value = value.substring(0, 8);
-            }
-            this.value = value;
-
-            // Real-time validation
-            if (value.length === 8) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
-                if (value.length > 0) {
-                    this.classList.add('is-invalid');
-                }
-            }
-        });
-
-        // Form submission - using click event instead of submit
-        submitBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            console.log('Submit button clicked');
-
-            if (validateForm()) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
-
-                // Get form data
-                const formData = {
-                    NomPrenom: $('input[name="NomPrenom"]').val(),
-                    Email: $('input[name="Email"]').val(),
-                    Telephone: $('input[name="Telephone"]').val(),
-                    Role: $('select[name="Role"]').val(),
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                };
-
-                console.log('Sending data:', formData);
-
-                // Use jQuery AJAX
-                $.ajax({
-                    url: '/Admin/AddUser',
-                    type: 'POST',
-                    data: formData,
-                    success: function(response) {
-                        console.log('Success response:', response);
-
-                        if (response.success) {
-                            // Close modal
-                            $('#userModal').modal('hide');
-
-                            // Show success message with password
-                            showSuccessMessage(`User created successfully! Default password: ${response.defaultPassword}`);
-
-                            // Reload the parent page after a short delay
-                            setTimeout(function() {
-                                if (window.parent && window.parent !== window) {
-                                    window.parent.location.reload();
-                                } else {
-                                    window.location.href = '/Admin/UsersList';
-                                }
-                            }, 2000);
-                        } else {
-                            showError(response.message || 'An error occurred');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('AJAX Error:', error);
-                        console.error('Status:', status);
-                        console.error('Response:', xhr.responseText);
-                        showError('An unexpected error occurred: ' + error);
-                    },
-                    complete: function() {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="bi bi-person-plus-fill me-2"></i> Create';
-                    }
-                });
-            }
-        });
-
-        function validateForm() {
-            let isValid = true;
-            const inputs = form.querySelectorAll('input[required], select[required]');
-
-            console.log('Validating form...');
-
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    input.classList.add('is-invalid');
-                    isValid = false;
-                    console.log(`Validation failed for: ${input.name || input.id}`);
-                } else {
-                    input.classList.remove('is-invalid');
-                    input.classList.add('is-valid');
-                }
-            });
-
-            // Specific phone validation
-            if (phoneInput.value.length !== 8) {
-                phoneInput.classList.add('is-invalid');
-                isValid = false;
-                console.log('Phone validation failed');
-            }
-
-            console.log('Form is valid:', isValid);
-            return isValid;
+    // Phone number validation
+    phoneInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 8) {
+            value = value.substring(0, 8);
         }
+        this.value = value;
 
-        function showError(message) {
-            console.log('Showing error:', message);
-            const validationSummary = document.getElementById('validationSummary');
-            const validationList = document.getElementById('validationList');
-
-            if (validationSummary && validationList) {
-                validationList.innerHTML = `<li>${message}</li>`;
-                validationSummary.style.display = 'block';
-
-                // Hide after 5 seconds
-                setTimeout(() => {
-                    validationSummary.style.display = 'none';
-                }, 5000);
+        // Real-time validation
+        if (value.length === 8) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+            if (value.length > 0) {
+                this.classList.add('is-invalid');
             }
-        }
-
-        function showSuccessMessage(message) {
-            // Create a temporary success alert
-            const alertHtml = `
-                <div class="alert alert-success alert-dismissible fade show position-fixed"
-                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-
-            // Add to body
-            $('body').append(alertHtml);
-
-            // Auto-hide after 5 seconds
-            setTimeout(function() {
-                $('.alert-success').fadeOut();
-            }, 5000);
         }
     });
 
-    function closeModal() {
-        $('#userModal').modal('hide');
+    // Form submission
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log('Submit button clicked');
+
+        if (validateForm()) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Création...';
+
+            // Get form data - NOTE: No password field included
+            const formData = {
+                NomPrenom: $('input[name="NomPrenom"]').val().trim(),
+                Email: $('input[name="Email"]').val().trim(),
+                Telephone: $('input[name="Telephone"]').val().trim(),
+                Role: $('select[name="Role"]').val(),
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            };
+
+            console.log('Sending data:', formData);
+
+            // Validate required fields before sending
+            if (!formData.NomPrenom || !formData.Email || !formData.Telephone || !formData.Role) {
+                showError('Tous les champs obligatoires doivent être remplis');
+                resetSubmitButton();
+                return;
+            }
+
+            // Use jQuery AJAX
+            $.ajax({
+                url: '/Admin/AddUser',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    console.log('Success response:', response);
+
+                    if (response.success) {
+                        // Close modal
+                        $('#userModal').modal('hide');
+
+                        // Show success message with password
+                        showSuccessMessage(`Utilisateur créé avec succès! Mot de passe par défaut: ${response.defaultPassword}`);
+
+                        // Reload the parent page after a short delay
+                        setTimeout(function() {
+                            if (window.parent && window.parent !== window) {
+                                window.parent.location.reload();
+                            } else {
+                                window.location.href = '/Admin/UsersList';
+                            }
+                        }, 3000);
+                    } else {
+                        showError(response.message || 'Une erreur s\'est produite');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    
+                    let errorMessage = 'Une erreur inattendue s\'est produite';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            errorMessage = errorData.message || errorMessage;
+                        } catch (e) {
+                            // Keep default message
+                        }
+                    }
+                    
+                    showError(errorMessage);
+                },
+                complete: function() {
+                    resetSubmitButton();
+                }
+            });
+        }
+    });
+
+    function resetSubmitButton() {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-person-plus-fill me-2"></i> Créer';
     }
+
+    function validateForm() {
+        let isValid = true;
+        const inputs = form.querySelectorAll('input[required], select[required]');
+
+        console.log('Validating form...');
+
+        inputs.forEach(input => {
+            const value = input.value.trim();
+            if (!value) {
+                input.classList.add('is-invalid');
+                isValid = false;
+                console.log(`Validation failed for: ${input.name || input.id}`);
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            }
+        });
+
+        // Specific phone validation
+        if (phoneInput.value.length !== 8) {
+            phoneInput.classList.add('is-invalid');
+            isValid = false;
+            console.log('Phone validation failed');
+        }
+
+        // Email validation
+        const emailInput = document.querySelector('input[name="Email"]');
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        if (!emailRegex.test(emailInput.value)) {
+            emailInput.classList.add('is-invalid');
+            isValid = false;
+            console.log('Email validation failed');
+        }
+
+        console.log('Form is valid:', isValid);
+        return isValid;
+    }
+
+    function showError(message) {
+        console.log('Showing error:', message);
+        const validationSummary = document.getElementById('validationSummary');
+        const validationList = document.getElementById('validationList');
+
+        if (validationSummary && validationList) {
+            validationList.innerHTML = `<li>${message}</li>`;
+            validationSummary.style.display = 'block';
+
+            // Scroll to top to show error
+            validationSummary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Hide after 8 seconds
+            setTimeout(() => {
+                validationSummary.style.display = 'none';
+            }, 8000);
+        } else {
+            // Fallback to alert
+            alert('Erreur: ' + message);
+        }
+    }
+
+    function showSuccessMessage(message) {
+        // Create a temporary success alert
+        const alertHtml = `
+            <div class="alert alert-success alert-dismissible fade show position-fixed"
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 350px; max-width: 500px;" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+
+        // Add to body
+        $('body').append(alertHtml);
+
+        // Auto-hide after 8 seconds
+        setTimeout(function() {
+            $('.alert-success').fadeOut();
+        }, 8000);
+    }
+});
+
+function closeModal() {
+    $('#userModal').modal('hide');
+}
 </script>

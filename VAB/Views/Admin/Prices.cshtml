@@ -206,12 +206,12 @@
                                     </div>
                                 }
 
-                                <h2 class="mb-4"> Price Management</h2>
+                                <h2 class="mb-4">Gestion des prix</h2>
 
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <select id="categoryFilter" class="form-control" onchange="filterByCategory()">
-                                            <option value="">Select Category</option>
+                                            <option value=""> Sélectionner une catégorie.</option>
                                             @foreach (var category in (IEnumerable<Categorie>)ViewBag.Categories)
                                             {
                                                 if (ViewBag.CategoryId == category.Id)
@@ -233,8 +233,8 @@
                                             <thead>
                                                 <tr>
                                                     <th>Article ID</th>
-                                                    <th>Name</th>
-                                                    <th>Current Price</th>
+                                                    <th>Nom</th>
+                                                    <th>Prix actuel</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -248,7 +248,7 @@
                                                         <td>
                                                             <div class="button-container">
                                                                 <button class="btn btn-sm btn-primary custom-btn" onclick="loadPriceForm('/Admin/ManagePrices/@article.Id')">
-                                                                    <i class="material-icons mr-1">attach_money</i> Manage Prices
+                                                                    <i class="material-icons mr-1">euro_symbol</i> Gestion des prix
                                                                 </button>
                                                             </div>
                                                         </td>

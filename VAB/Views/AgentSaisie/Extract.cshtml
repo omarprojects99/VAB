@@ -406,14 +406,16 @@
             <aside>
                 <div class="left-sidebar" id="wrapper-sidebar">
                     <ul>
-                        <li>
+                        <li class="active">
                             <a asp-controller="AgentSaisie" asp-action="AgentDashboard">
-                                <i class="material-icons">dashboard</i>Tableau de Bord
+                                <i class="material-icons">dashboard</i> Tableau de Bord
                             </a>
                         </li>
+
+                        <!-- Sales states dropdown -->
                         <li>
-                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
-                                <i class="material-icons">receipt</i>Gérer États des Ventes
+                            <a data-bs-toggle="collapse" class="dropdown-item-list" href="#etatDesVentesDropdown">
+                                <i class="material-icons">receipt</i> Gérer États des Ventes
                                 <span class="collapsed float-right"><i class="material-icons">add</i></span>
                                 <span class="expanded float-right"><i class="material-icons">remove</i></span>
                             </a>
@@ -421,18 +423,24 @@
                                 <div class="sub-dropdown">
                                     <ul class="sub-list">
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">État des Ventes Départ</a>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesDepart">
+                                                <i class="material-icons">flight_takeoff</i> État des Ventes Départ
+                                            </a>
                                         </li>
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">État des Ventes Arrivée</a>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesVentesArrivee">
+                                                <i class="material-icons">flight_land</i> État des Ventes Arrivée
+                                            </a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                         </li>
+
+                        <!-- Offers states dropdown -->
                         <li>
-                            <a data-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
-                                <i class="material-icons">receipt</i>Gérer États des Offres
+                            <a data-bs-toggle="collapse" class="dropdown-item-list" href="#etatDesOffresDropdown">
+                                <i class="material-icons">local_offer</i> Gérer États des Offres
                                 <span class="collapsed float-right"><i class="material-icons">add</i></span>
                                 <span class="expanded float-right"><i class="material-icons">remove</i></span>
                             </a>
@@ -440,18 +448,33 @@
                                 <div class="sub-dropdown">
                                     <ul class="sub-list">
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">État des Offres Départ</a>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresDepart">
+                                                <i class="material-icons">flight_takeoff</i> État des Offres Départ
+                                            </a>
                                         </li>
                                         <li>
-                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">État des Offres Arrivée</a>
+                                            <a asp-controller="AgentSaisie" asp-action="EtatDesOffresArrivee">
+                                                <i class="material-icons">flight_land</i> État des Offres Arrivée
+                                            </a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                         </li>
+
                         <li>
                             <a asp-controller="AgentSaisie" asp-action="Extract">
-                                <i class="material-icons">scanner</i>Scanner
+                                <i class="material-icons">scanner</i> Scanner
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("ViewExtractions", "Pdf")">
+                                <i class="material-icons">receipt</i>Extraction par Ai
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("AgentView","Motif")">
+                                <i class="material-icons">inbox</i>Motifs Reçus
                             </a>
                         </li>
                     </ul>

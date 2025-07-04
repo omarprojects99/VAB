@@ -57,7 +57,7 @@
         }
 
         .not-validated {
-            color: red;
+            color: orange;
             font-weight: bold;
         }
     </style>
@@ -322,7 +322,7 @@
                     {
                         data: 'isValidated',
                         render: function (data) {
-                            return `<span class="${data ? 'validated' : 'not-validated'}">${data ? 'Validé' : 'Non validé'}</span>`;
+                            return `<span class="${data ? 'validated' : 'not-validated'}">${data ? 'Validé' : 'en attente'}</span>`;
                         },
                         defaultContent: '<span class="not-validated">Non validé</span>'
                     },

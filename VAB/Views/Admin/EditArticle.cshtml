@@ -5,7 +5,7 @@
     <input type="hidden" asp-for="CategorieId" value="@Model.CategorieId" />
 
     <div class="modal-header">
-        <h5 class="modal-title">Edit Article</h5>
+        <h5 class="modal-title">Modifier l'article</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">×</span>
         </button>
@@ -23,14 +23,14 @@
             <span asp-validation-for="IdArticle" class="text-danger"></span>
         </div>
         <div class="form-group">
-            <label asp-for="Description">Article Name</label>
+            <label asp-for="Description">Nom d'article </label>
             <input asp-for="Description" class="form-control" required />
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button style="background-color:steelblue" type="submit" class="btn btn-primary">sauvgarder</button>
     </div>
 </form>
 

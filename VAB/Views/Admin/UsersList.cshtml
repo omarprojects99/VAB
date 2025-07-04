@@ -222,8 +222,8 @@
                     </ol>
                 </nav>
                 <div class="create-item">
-                    <button onclick="loadUserForm('/Admin/AddUser')" class="btn btn-secondary"><i class="material-icons">add</i> Add User</button>
-                    <a href="#" name="export" class="btn btn-secondary"><i class="material-icons">download</i>Export Excel</a>
+                    <button onclick="loadUserForm('/Admin/AddUser')" class="btn btn-secondary"><i class="material-icons">add</i> Ajouter un utilisateur</button>
+                   
                 </div>
             </div>
 
@@ -289,22 +289,30 @@
                                                     </td>
                                                     <td>
                                                         <a class="btn btn-sm btn-info custom-btn" href="javascript:void(0);" onclick="loadUserForm('/Admin/ViewUser?id=@user.Id')">
-                                                            <i class="material-icons mr-1">visibility</i> View
+                                                            <i class="material-icons mr-1">visibility</i> Voir
                                                         </a>
                                                         <a href="javascript:void(0);" onclick="loadUserForm('/Admin/EditUser?id=@user.Id')" class="btn btn-sm btn-warning">
-                                                            <i class="material-icons mr-1">edit</i> Edit
+                                                            <i class="material-icons mr-1">edit</i> Modifier
                                                         </a>
 
                                                         @if (user.IsActive)
                                                         {
                                                             <button style="block-size:31px" type="button" class="btn btn-sm btn-danger" onclick="deactivateUser('@user.Id', '@user.NomPrenom')">
-                                                                <i class="bi bi-person-x"></i> Deactivate
+                                                                <i class="bi bi-person-x"></i> Désactiver
+                                                            </button>
+                                                            <!-- New smart delete button -->
+                                                            <button style="block-size:31px" type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOrDeactivateUser('@user.Id', '@user.NomPrenom')">
+                                                                <i class="bi bi-trash"></i> Supprimer
                                                             </button>
                                                         }
                                                         else
                                                         {
                                                             <button style="block-size:31px" type="button" class="btn btn-sm btn-success" onclick="reactivateUser('@user.Id', '@user.NomPrenom')">
-                                                                <i class="bi bi-person-check"></i> Reactivate
+                                                                <i class="bi bi-person-check"></i> Réactiver
+                                                            </button>
+                                                            <!-- Smart delete for inactive users too -->
+                                                            <button style="block-size:31px" type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOrDeactivateUser('@user.Id', '@user.NomPrenom')">
+                                                                <i class="bi bi-trash"></i> Supprimer
                                                             </button>
                                                         }
                                                     </td>
@@ -434,8 +442,9 @@
             }
         });
 
-        // Custom Modal Functions
+        // Custom Modal Functions - ENHANCED VERSION
         function showCustomModal(type, title, message, callback = null) {
+            console.log(`Showing ${type} modal with title: ${title}`);
             const modalId = type + 'Modal';
             const modal = $('#' + modalId);
 
@@ -455,6 +464,16 @@
                         callback();
                     });
                 }
+            } else {
+                console.error(`Modal ${modalId} not found`);
+                // Fallback to browser confirm/alert
+                if (type === 'confirm' && callback) {
+                    if (confirm(`${title}\n\n${message}`)) {
+                        callback();
+                    }
+                } else {
+                    alert(`${title}\n\n${message}`);
+                }
             }
         }
 
@@ -471,17 +490,188 @@
             showCustomModal('confirm', title, message, callback);
         }
 
-        // Show Bootstrap Toast
-         function showToast(message, type = 'success') {
-             const toast = $('#successToast');
-             $('#successToastMessage').text(message);
-             toast.toast('show');
-         }
+        // Enhanced toast function with HTML support and custom duration
+        function showEnhancedToast(message, type = 'success', duration = 3000) {
+            const toast = $('#successToast');
+            const header = toast.find('.toast-header');
+            const body = toast.find('.toast-body');
 
+            // Change toast styling based on type
+            header.removeClass('bg-success bg-warning bg-danger text-white text-dark');
+
+            if (type === 'warning') {
+                header.addClass('bg-warning text-dark');
+                toast.find('i').removeClass().addClass('bi bi-exclamation-triangle-fill me-2');
+            } else if (type === 'danger') {
+                header.addClass('bg-danger text-white');
+                toast.find('i').removeClass().addClass('bi bi-x-circle-fill me-2');
+            } else {
+                header.addClass('bg-success text-white');
+                toast.find('i').removeClass().addClass('bi bi-check-circle-fill me-2');
+            }
+
+            // Set message (with HTML support)
+            body.html(message);
+
+            // Configure toast options
+            toast.toast({
+                delay: duration,
+                autohide: true
+            });
+
+            toast.toast('show');
+        }
+
+        // Show Bootstrap Toast - ENHANCED VERSION
+        function showToast(message, type = 'success') {
+            const toast = $('#successToast');
+            const header = toast.find('.toast-header');
+
+            // Change toast styling based on type
+            header.removeClass('bg-success bg-warning bg-danger text-white text-dark');
+
+            if (type === 'warning') {
+                header.addClass('bg-warning text-dark');
+                toast.find('i').removeClass().addClass('bi bi-exclamation-triangle-fill me-2');
+            } else if (type === 'danger') {
+                header.addClass('bg-danger text-white');
+                toast.find('i').removeClass().addClass('bi bi-x-circle-fill me-2');
+            } else {
+                header.addClass('bg-success text-white');
+                toast.find('i').removeClass().addClass('bi bi-check-circle-fill me-2');
+            }
+
+            $('#successToastMessage').text(message);
+            toast.toast('show');
+        }
+
+        // MAIN FUNCTION - Smart delete/deactivate with proper relationship checking
+        function deleteOrDeactivateUser(userId, userName) {
+            console.log(`🔥 deleteOrDeactivateUser called for user: ${userName} (${userId})`);
+
+            showConfirm(
+                `Êtes-vous sûr de vouloir supprimer ${userName}? Si l'utilisateur a des données liées, il sera désactivé au lieu d'être supprimé.`,
+                'Supprimer/Désactiver Utilisateur',
+                function() {
+                    console.log('✅ User confirmed deletion/deactivation');
+
+                    $.post('/Admin/DeleteOrDeactivateUser', { id: userId })
+                        .done(function(response) {
+                            console.log('📨 Server response:', response);
+
+                            if (response.success) {
+                                if (response.action === 'deleted') {
+                                    showEnhancedToast(`✅ L'utilisateur ${userName} a été supprimé définitivement.`, 'success');
+                                } else if (response.action === 'deactivated') {
+                                    // Show detailed information about why the user was deactivated
+                                    let detailsHtml = '';
+                                    if (response.details && response.details.length > 0) {
+                                        detailsHtml = '<br><small><strong>Relations trouvées:</strong> ' + response.details.join(', ') + '</small>';
+                                    }
+
+                                    showEnhancedToast(
+                                        `⚠️ ${userName} a été désactivé au lieu d'être supprimé.${detailsHtml}`,
+                                        'warning',
+                                        8000 // Show for 8 seconds
+                                    );
+                                }
+                                setTimeout(() => location.reload(), 4000);
+                            } else {
+                                console.error('❌ Server returned error:', response.message);
+                                showError(response.message);
+                            }
+                        })
+                        .fail(function(xhr, status, error) {
+                            console.error('💥 AJAX request failed:', status, error);
+                            console.error('Response text:', xhr.responseText);
+                            showError('Une erreur inattendue s\'est produite lors du traitement de la demande.');
+                        });
+                }
+            );
+        }
+
+        // Debug function to test relationships before deletion
+        function testUserRelationshipsDebug(userId, userName, callback) {
+            console.log(`🧪 Testing relationships for user: ${userName} (${userId})`);
+
+            $.get('/Admin/TestUserRelationships', { id: userId })
+                .done(function(response) {
+                    console.log('🧪 Relationship test response:', response);
+
+                    if (response.success) {
+                        console.log(`📊 Relationship Summary for ${response.userName}:`);
+                        console.log(`   - User ID: ${response.userId}`);
+                        console.log(`   - Has Related Data: ${response.hasRelatedData}`);
+                        console.log(`   - Total Relationships: ${response.totalRelationships}`);
+                        console.log(`   - Details: ${response.details.join(', ')}`);
+                        console.log(`   - Individual Tests:`, response.individualTests);
+
+                        // Show a summary alert
+                        let message = `🧪 Test des relations pour ${response.userName}:\n\n`;
+                        message += `A des données liées: ${response.hasRelatedData ? 'OUI' : 'NON'}\n`;
+                        message += `Nombre total de relations: ${response.totalRelationships}\n\n`;
+
+                        if (response.details && response.details.length > 0) {
+                            message += `Détails:\n${response.details.join('\n')}\n\n`;
+                        }
+
+                        message += `Tests individuels:\n`;
+                        for (const [key, value] of Object.entries(response.individualTests)) {
+                            message += `- ${key}: ${value.count} enregistrement(s)\n`;
+                        }
+
+                        alert(message);
+
+                        if (callback) callback();
+                    } else {
+                        console.error('❌ Relationship test failed:', response.message);
+                        alert(`Erreur lors du test des relations: ${response.message}`);
+                    }
+                })
+                .fail(function() {
+                    console.error('💥 Relationship test request failed');
+                    alert('Erreur lors du test des relations utilisateur.');
+                    if (callback) callback(); // Continue anyway
+                });
+        }
+
+        // Function to get detailed motif information
+        function getUserMotifs(userId, userName) {
+            $.get('/Admin/GetUserMotifs', { id: userId })
+                .done(function(response) {
+                    if (response.success) {
+                        let message = `📋 Motifs pour ${userName}:\n\n`;
+                        message += `Motifs créés: ${response.createdCount}\n`;
+                        message += `Motifs lus: ${response.readCount}\n\n`;
+
+                        if (response.createdMotifs.length > 0) {
+                            message += `Motifs créés:\n`;
+                            response.createdMotifs.forEach(motif => {
+                                message += `- ${motif.NumeroEtatVenteArrivee}: ${motif.Description} (${motif.DateCreation})\n`;
+                            });
+                        }
+
+                        alert(message);
+                    }
+                });
+        }
+
+        // Enhanced delete function with pre-check option
+        function deleteOrDeactivateUserWithPreCheck(userId, userName) {
+            console.log(`🔍 Pre-checking relationships for user: ${userName} (${userId})`);
+
+            // First, test the relationships to see what we find
+            testUserRelationshipsDebug(userId, userName, () => {
+                // Proceed with actual deletion after seeing the test results
+                deleteOrDeactivateUser(userId, userName);
+            });
+        }
+
+        // EXISTING FUNCTIONS - Updated with French messages
         function deactivateUser(userId, userName) {
             showConfirm(
-                `Are you sure you want to deactivate ${userName}? This will prevent them from logging in.`,
-                'Deactivate User',
+                `Êtes-vous sûr de vouloir désactiver ${userName}? Cela l'empêchera de se connecter.`,
+                'Désactiver Utilisateur',
                 function() {
                     $.post('/Admin/DeactivateUser', { id: userId })
                         .done(function(response) {
@@ -493,7 +683,7 @@
                             }
                         })
                         .fail(function() {
-                            showError('An unexpected error occurred while deactivating the user.');
+                            showError('Une erreur inattendue s\'est produite lors de la désactivation de l\'utilisateur.');
                         });
                 }
             );
@@ -501,8 +691,8 @@
 
         function reactivateUser(userId, userName) {
             showConfirm(
-                `Are you sure you want to reactivate ${userName}?`,
-                'Reactivate User',
+                `Êtes-vous sûr de vouloir réactiver ${userName}?`,
+                'Réactiver Utilisateur',
                 function() {
                     $.post('/Admin/ReactivateUser', { id: userId })
                         .done(function(response) {
@@ -514,7 +704,7 @@
                             }
                         })
                         .fail(function() {
-                            showError('An unexpected error occurred while reactivating the user.');
+                            showError('Une erreur inattendue s\'est produite lors de la réactivation de l\'utilisateur.');
                         });
                 }
             );
@@ -527,7 +717,42 @@
                     $('#userModal').modal('show');
                 })
                 .fail(function() {
-                    showError('Failed to load user information');
+                    showError('Échec du chargement des informations utilisateur');
+                });
+        }
+
+        // Utility function to show all user relationships (for debugging)
+        function showAllUserRelationships(userId, userName) {
+            $.get('/Admin/TestUserRelationships', { id: userId })
+                .done(function(response) {
+                    if (response.success) {
+                        let details = `Relations détaillées pour ${response.userName}:\n\n`;
+                        details += `Email: ${response.userEmail}\n`;
+                        details += `ID: ${response.userId}\n\n`;
+                        details += `Résumé: ${response.hasRelatedData ? 'A des données liées' : 'Aucune donnée liée'}\n`;
+                        details += `Total relations: ${response.totalRelationships}\n\n`;
+
+                        if (response.details && response.details.length > 0) {
+                            details += `Détails des relations:\n`;
+                            response.details.forEach(detail => {
+                                details += `• ${detail}\n`;
+                            });
+                            details += '\n';
+                        }
+
+                        details += `Tests individuels:\n`;
+                        for (const [key, value] of Object.entries(response.individualTests)) {
+                            details += `• ${key}: ${value.count} enregistrement(s) ${value.hasData ? '✓' : '✗'}\n`;
+                        }
+
+                        // Create a modal or alert with the information
+                        showCustomModal('success', 'Relations Utilisateur', details);
+                    } else {
+                        showError(`Erreur: ${response.message}`);
+                    }
+                })
+                .fail(function() {
+                    showError('Erreur lors de la récupération des relations utilisateur.');
                 });
         }
     </script>

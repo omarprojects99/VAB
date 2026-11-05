@@ -57,6 +57,89 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
+var adminEmail = app.Configuration["AdminBootstrap:Email"]?.Trim();
+var adminPassword = app.Configuration["AdminBootstrap:Password"];
+
+if (!app.Environment.IsDevelopment())
+{
+    if (!string.IsNullOrWhiteSpace(adminEmail) || !string.IsNullOrWhiteSpace(adminPassword))
+    {
+        app.Logger.LogWarning("Admin bootstrap settings are ignored outside Development.");
+    }
+}
+else if (string.IsNullOrWhiteSpace(adminEmail) && string.IsNullOrWhiteSpace(adminPassword))
+{
+    app.Logger.LogInformation("Admin bootstrap skipped. Configure local User Secrets or environment variables to provision a development administrator.");
+}
+else if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+{
+    throw new InvalidOperationException("Both AdminBootstrap:Email and AdminBootstrap:Password must be configured.");
+}
+else
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        var roleResult = await roleManager.CreateAsync(new IdentityRole("Admin"));
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidOperationException($"Could not create the Admin role: {string.Join("; ", roleResult.Errors.Select(error => error.Description))}");
+        }
+    }
+
+    var admin = await userManager.FindByEmailAsync(adminEmail);
+    if (admin == null)
+    {
+        admin = new User
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+            IsActive = true,
+            NomPrenom = "Super Admin"
+        };
+
+        var userResult = await userManager.CreateAsync(admin, adminPassword);
+        if (!userResult.Succeeded)
+        {
+            throw new InvalidOperationException($"Could not create the administrator account: {string.Join("; ", userResult.Errors.Select(error => error.Description))}");
+        }
+    }
+    else if (app.Configuration.GetValue<bool>("AdminBootstrap:ResetPasswordOnStartup"))
+    {
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(admin);
+        var resetResult = await userManager.ResetPasswordAsync(admin, resetToken, adminPassword);
+        if (!resetResult.Succeeded)
+        {
+            throw new InvalidOperationException($"Could not reset the bootstrap administrator password: {string.Join("; ", resetResult.Errors.Select(error => error.Description))}");
+        }
+
+        admin.IsActive = true;
+        admin.EmailConfirmed = true;
+        await userManager.SetLockoutEndDateAsync(admin, null);
+        await userManager.ResetAccessFailedCountAsync(admin);
+        var updateResult = await userManager.UpdateAsync(admin);
+        if (!updateResult.Succeeded)
+        {
+            throw new InvalidOperationException($"Could not update the bootstrap administrator account: {string.Join("; ", updateResult.Errors.Select(error => error.Description))}");
+        }
+    }
+
+    if (!await userManager.IsInRoleAsync(admin, "Admin"))
+    {
+        var roleAssignment = await userManager.AddToRoleAsync(admin, "Admin");
+        if (!roleAssignment.Succeeded)
+        {
+            throw new InvalidOperationException($"Could not assign the Admin role: {string.Join("; ", roleAssignment.Errors.Select(error => error.Description))}");
+        }
+    }
+
+    app.Logger.LogInformation("Administrator account bootstrap completed for {Email}.", adminEmail);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -76,21 +159,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 app.MapHub<NotificationHub>("/notificationHub");
-// add first Admin
-//using (var scope = app.Services.CreateScope())
-//{
-//    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-//    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-//    string adminEmail = "admin@admin.com";
-//    string password = "[REDACTED]";
-
-//    if (await userManager.FindByEmailAsync(adminEmail) == null)
-//    {
-//        var user = new User { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true, NomPrenom = "Super Admin", Role = "Admin" };
-//        await userManager.CreateAsync(user, password);
-//    }
-//}
 // Configure culture
 var supportedCultures = new[] { new CultureInfo("fr-FR") };
 app.UseRequestLocalization(new RequestLocalizationOptions

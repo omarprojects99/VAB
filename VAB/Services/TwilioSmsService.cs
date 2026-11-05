@@ -18,21 +18,30 @@ namespace VAB.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<TwilioSmsService> _logger;
 
-        // Your Twilio credentials from the curl command
-        private readonly string _accountSid = "[REDACTED]";
-        private readonly string _messagingServiceSid = "[REDACTED]";
-        private readonly string _authToken; // This should be stored in configuration
+        private readonly string? _accountSid;
+        private readonly string? _messagingServiceSid;
+        private readonly string? _authToken;
 
         public TwilioSmsService(HttpClient httpClient, IConfiguration configuration, ILogger<TwilioSmsService> logger)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             _logger = logger;
-            _authToken = _configuration["Twilio:AuthToken"]; // Store this securely
+            _accountSid = _configuration["Twilio:AccountSid"];
+            _messagingServiceSid = _configuration["Twilio:MessagingServiceSid"];
+            _authToken = _configuration["Twilio:AuthToken"];
         }
 
         public async Task<bool> SendSmsAsync(string phoneNumber, string message)
         {
+            if (string.IsNullOrWhiteSpace(_accountSid)
+                || string.IsNullOrWhiteSpace(_messagingServiceSid)
+                || string.IsNullOrWhiteSpace(_authToken))
+            {
+                _logger.LogError("SMS was not sent because Twilio credentials are not configured.");
+                return false;
+            }
+
             try
             {
                 var url = $"https://api.twilio.com/2010-04-01/Accounts/{_accountSid}/Messages.json";
